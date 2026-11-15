@@ -27,8 +27,14 @@ export const appConfig = {
   /** 活体模型资源目录 */
   faceLivenessModelUrl: '',
 
-  /** 密码登录开关（演示版默认关闭） */
-  passwordLogin: false,
+  /**
+   * 密码登录开关
+   *
+   * 打开后：非微信环境（浏览器 / App）不再只显示「请在微信中打开」，
+   * 而是直接给出账号密码登录表单（演示账号 demo / 123456）。
+   * 小程序端仍以微信手机号快捷登录为主。
+   */
+  passwordLogin: true,
 }
 
 /** 完整 API Base URL */

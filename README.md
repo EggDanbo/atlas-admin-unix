@@ -112,5 +112,6 @@ node scripts/check-exports.mjs       # 体检：命名导入在目标模块里�
 
 ## 说明
 
-演示数据全部在本地生成，不发起真实网络请求（`constants/config.uts` 的 `appConfig.useMock = true`）。
+演示数据全部在本地生成，不发起真实网络请求（`constants/config.ts` 的 `appConfig.useMock = true`）。
+登录不再限制在微信环境：`appConfig.passwordLogin = true`，浏览器 / App 直接显示账号密码表单，演示账号 `demo` / `123456`（任意密码均可）。
 对接真实后端时把它置为 `false`，并配置 `apiUrl` / `apiUrlPrefix` 即可，页面代码无需改动。
