@@ -1,0 +1,217 @@
+<script setup lang="ts">
+import type { ContactGroup, ContactMember } from '@/api/contact.ts'
+
+import { computed, ref } from 'vue'
+import AuthLayout from '@/components/auth-layout/auth-layout.uvue'
+import PageNavbar from '@/components/page-navbar/page-navbar.uvue'
+import { showToast } from '@/components/sp-toast/toast.ts'
+import contactApi from '@/api/contact.ts'
+
+const groups = ref<ContactGroup[]>([])
+const keyword = ref('')
+const loading = ref(true)
+
+async function load() {
+  loading.value = true
+  const { isSuccess, data } = await contactApi.list()
+  if (isSuccess && data)
+    groups.value = data
+  loading.value = false
+}
+
+onPageShow(() => void load())
+
+const filtered = computed(() => {
+  const kw = keyword.value.trim()
+  if (!kw)
+    return groups.value
+  return groups.value
+    .map(group => ({
+      ...group,
+      members: group.members.filter(m => m.name.includes(kw) || m.role.includes(kw)),
+    }))
+    .filter(group => group.members.length > 0)
+})
+
+const total = computed(() => groups.value.reduce((sum, g) => sum + g.members.length, 0))
+
+function initial(name: string) {
+  return name.charAt(0)
+}
+
+function openMember(member: ContactMember) {
+  uni.showModal({
+    title: member.name,
+    content: `${member.role}\n电话：${member.phone}\n邮箱：${member.email}`,
+    confirmText: '呼叫',
+    cancelText: '关闭',
+  }).then((res) => {
+    if (res.confirm)
+      showToast`正在呼叫 ${member.name}`
+  })
+}
+
+</script>
+
+<template>
+  <AuthLayout>
+    <view class="sp-page page">
+      <PageNavbar title="通讯录" />
+
+      <SpSearchBar v-model="keyword" placeholder="搜索姓名或职位" />
+
+      <view class="hint">
+        共 {{ total }} 位同事 · 点击卡片查看联系方式
+      </view>
+
+      <view v-if="loading" class="tip">
+        加载中…
+      </view>
+      <SpEmpty v-else-if="!filtered.length" description="没有匹配的同事" />
+
+      <template v-else>
+        <view v-for="group in filtered" :key="group.id" class="group">
+          <view class="group-title">
+            {{ group.name }}
+            <text class="group-count">
+              {{ group.members.length }}
+            </text>
+          </view>
+          <view class="card">
+            <view
+              v-for="(member, index) in group.members"
+              :key="member.id"
+              :class="['member', index === group.members.length - 1 ? 'member--last' : '']"
+              @click="openMember(member)"
+            >
+              <view class="avatar">
+                {{ initial(member.name) }}
+              </view>
+              <view class="member-main">
+                <text class="member-name">
+                  {{ member.name }}
+                </text>
+                <text class="member-role">
+                  {{ member.role }}
+                </text>
+              </view>
+              <view class="call">
+                联系
+              </view>
+            </view>
+          </view>
+        </view>
+      </template>
+    </view>
+  </AuthLayout>
+</template>
+
+<style lang="scss">
+.page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  background-color: #f5f6fa;
+}
+
+/* 搜索：整块作为点击区，内层 input 垂直居中 */
+.hint {
+  padding: 14px 16px 0;
+  font-size: 20px;
+  color: #9aa0b4;
+}
+
+.tip {
+  padding: 40px 0;
+  text-align: center;
+  font-size: 22px;
+  color: #9aa0b4;
+}
+
+/* 分组 */
+.group {
+  margin-top: 14px;
+}
+
+.group-title {
+  padding: 0 16px 10px;
+  font-size: 22px;
+  font-weight: 600;
+  color: #6b7080;
+}
+
+.group-count {
+  margin-left: 8px;
+  font-weight: 400;
+  color: #b3b8c8;
+}
+
+.card {
+  margin: 0 16px;
+  padding: 0 24px;
+  border-radius: 18px;
+  background-color: #fff;
+  box-shadow: 0 8px 24px rgba(23, 23, 64, 0.05);
+}
+
+.member {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 20px 0;
+  border-bottom: 1px solid #f1f2f7;
+}
+
+.member--last {
+  border-bottom: none;
+}
+
+/* #ifdef WEB */
+.member:active {
+  opacity: 0.7;
+}
+
+/* #endif */
+
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #eef2ff 0%, #e5e9ff 100%);
+  font-size: 24px;
+  font-weight: 600;
+  color: #4f46e5;
+  flex-shrink: 0;
+}
+
+.member-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.member-name {
+  font-size: 26px;
+  font-weight: 600;
+  color: #1c1c2e;
+}
+
+.member-role {
+  font-size: 21px;
+  color: #9aa0b4;
+}
+
+.call {
+  padding: 8px 22px;
+  border-radius: 999px;
+  background-color: #eef2ff;
+  font-size: 21px;
+  color: #4f46e5;
+  flex-shrink: 0;
+}
+</style>

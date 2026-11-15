@@ -1,0 +1,194 @@
+{
+  "easycom": {
+    "autoscan": true,
+    "custom": {
+      "^sp-(.*)": "@/components/sp-$1/sp-$1.uvue"
+    }
+  },
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "Atlas 工作台",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/mine/index",
+      "style": {
+        "navigationBarTitleText": "我的",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/login/index",
+      "style": {
+        "navigationBarTitleText": "登录",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/oauthCallback/index",
+      "style": {
+        "navigationBarTitleText": "授权中...",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/checkin/index",
+      "style": {
+        "navigationBarTitleText": "打卡",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/checkin/records",
+      "style": {
+        "navigationBarTitleText": "打卡记录",
+        "navigationStyle": "custom",
+        "enablePullDownRefresh": true
+      }
+    },
+    {
+      "path": "pages/checkin/stats",
+      "style": {
+        "navigationBarTitleText": "考勤统计",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/apply/index",
+      "style": {
+        "navigationBarTitleText": "申请",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/apply/list",
+      "style": {
+        "navigationBarTitleText": "我的申请",
+        "navigationStyle": "custom",
+        "enablePullDownRefresh": true
+      }
+    },
+    {
+      "path": "pages/apply/leave",
+      "style": {
+        "navigationBarTitleText": "请假申请",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/apply/detail",
+      "style": {
+        "navigationBarTitleText": "申请详情",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/contact/index",
+      "style": {
+        "navigationBarTitleText": "通讯录",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/rules/index",
+      "style": {
+        "navigationBarTitleText": "考勤规则",
+        "navigationStyle": "custom",
+        "enablePullDownRefresh": true
+      }
+    },
+    {
+      "path": "pages/rules/detail",
+      "style": {
+        "navigationBarTitleText": "规则详情",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/rules/edit",
+      "style": {
+        "navigationBarTitleText": "考勤规则设置",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/team/index",
+      "style": {
+        "navigationBarTitleText": "成员管理",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/board/index",
+      "style": {
+        "navigationBarTitleText": "数据看板",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/mine/profile/index",
+      "style": {
+        "navigationBarTitleText": "个人信息",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/mine/password/index",
+      "style": {
+        "navigationBarTitleText": "修改密码",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/mine/face/index",
+      "style": {
+        "navigationBarTitleText": "人脸照片",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/mine/preview/index",
+      "style": {
+        "navigationBarTitleText": "文件预览",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/user/message/index",
+      "style": {
+        "navigationBarTitleText": "消息中心",
+        "navigationStyle": "custom",
+        "enablePullDownRefresh": true
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "Atlas 工作台",
+    "navigationBarBackgroundColor": "#ffffff",
+    "backgroundColor": "#f5f6fa"
+  },
+  "tabBar": {
+    "color": "#9aa0b4",
+    "selectedColor": "#4f46e5",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "static/images/tab/home.png",
+        "selectedIconPath": "static/images/tab/home-active.png"
+      },
+      {
+        "pagePath": "pages/mine/index",
+        "text": "我的",
+        "iconPath": "static/images/tab/mine.png",
+        "selectedIconPath": "static/images/tab/mine-active.png"
+      }
+    ]
+  }
+}

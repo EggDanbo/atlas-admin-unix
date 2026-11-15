@@ -1,0 +1,86 @@
+<script setup lang="ts">
+import SpToast from '@/components/sp-toast/sp-toast.uvue'
+import { useAuthStore } from '@/store/auth'
+
+import LoginPrompt from './login-prompt.uvue'
+
+const authStore = useAuthStore()
+
+</script>
+
+<template>
+  <view class="container">
+    <!-- loading 状态：骨架屏 -->
+    <view v-if="authStore.status === 'loading'" class="loadingWrapper">
+      <view class="skeleton">
+        <view class="skeleton-avatar" />
+        <view class="skeleton-body">
+          <view class="skeleton-line skeleton-line--long" />
+          <view class="skeleton-line" />
+          <view class="skeleton-line skeleton-line--short" />
+        </view>
+      </view>
+    </view>
+
+    <!-- auth 状态：正常渲染 -->
+    <slot v-else-if="authStore.status === 'auth'" />
+
+    <!-- guest 状态：登录引导 -->
+    <LoginPrompt v-else />
+
+    <!-- 全局提示 -->
+    <SpToast />
+  </view>
+</template>
+
+<style lang="scss">
+.container {
+  position: relative;
+  min-height: 100%;
+}
+
+.skeleton {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.skeleton-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 16px;
+  background-color: #eceef7;
+}
+
+.skeleton-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 8px;
+}
+
+.skeleton-line {
+  height: 26px;
+  border-radius: 8px;
+  background-color: #eceef7;
+}
+
+.skeleton-line--long {
+  width: 80%;
+}
+
+.skeleton-line--short {
+  width: 50%;
+}
+
+.loadingWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: 120px 50px;
+}
+</style>

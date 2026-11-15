@@ -1,0 +1,500 @@
+<script setup lang="ts">
+import type { FileStorageFileResourceModel } from '@/types/api.ts'
+import type { UploadTask } from './use-file-upload.ts'
+
+import { computed, ref, watch } from 'vue'
+
+import { fileUploadProps } from './props.ts'
+import { useFilePreview } from './use-file-preview.ts'
+import { useFileSelect } from './use-file-select.ts'
+import { useFileUpload } from './use-file-upload.ts'
+
+const props = defineProps({ ...fileUploadProps })
+const emit = defineEmits(['change', 'delete', 'update:modelValue'])
+
+const { selectFiles } = useFileSelect()
+const { createTask, runTask } = useFileUpload()
+const { videoPreview, isImage, isVideo, preview, closeVideoPreview } = useFilePreview()
+
+// 卡片尺寸样式（内联注入，因 v-bind 不支持外部 CSS Modules）
+const cardStyle = computed(() => ({
+  width: `${props.width}px`,
+  height: props.showFileName ? `${props.height + 36}px` : `${props.height}px`,
+}))
+
+// 已上传的文件列表
+const fileList = ref<FileStorageFileResourceModel[]>([...props.modelValue])
+// 正在上传的任务列表
+const uploadingTasks = ref<UploadTask[]>([])
+// 上传中锁，防止重复点击
+const isUploading = ref(false)
+
+// 监听外部 modelValue 变化
+watch(() => props.modelValue, (val) => {
+  fileList.value = [...val]
+}, { deep: true })
+
+// 剩余可选数量
+const remaining = computed(() => {
+  const max = props.maxNumber
+  if (!Number.isFinite(max))
+    return 99
+  return Math.max(0, max - fileList.value.length - uploadingTasks.value.length)
+})
+
+// 是否显示上传按钮
+const showAddBtn = computed(() => !props.disabled && remaining.value > 0)
+
+/** 获取文件类型图标名称 */
+function getFileIcon(item: FileStorageFileResourceModel): string {
+  if (isVideo(item))
+    return 'play-circle-fill'
+  return 'order'
+}
+
+/** 选择并上传文件 */
+async function handleAdd() {
+  if (isUploading.value)
+    return
+  isUploading.value = true
+  try {
+    await doUpload()
+  }
+  finally {
+    isUploading.value = false
+  }
+}
+
+async function doUpload() {
+  const files = await selectFiles(props.mode, props.accepts, remaining.value, props.sourceType)
+  if (files.length === 0)
+    return
+
+  // 大小校验
+  const maxSizeBytes = props.maxSize * 1024 * 1024
+  const validFiles = files.filter((f) => {
+    if (f.size > maxSizeBytes) {
+      console.warn`文件 ${f.name} 超过大小限制 ${props.maxSize}MB`
+      return false
+    }
+    return true
+  })
+
+  if (validFiles.length === 0)
+    return
+
+  const watermarkOptions = {
+    watermark: props.watermark,
+    watermarkPos: props.watermarkPos,
+    watermarkText: props.watermarkText,
+  }
+
+  // 逐个上传
+  for (const file of validFiles) {
+    const task = createTask(file)
+    uploadingTasks.value.push(task)
+
+    await runTask(
+      task,
+      watermarkOptions,
+      (updatedTask) => {
+        const idx = uploadingTasks.value.findIndex(t => t.uid === updatedTask.uid)
+        if (idx >= 0)
+          uploadingTasks.value[idx] = { ...updatedTask }
+      },
+    )
+
+    if (task.status === 'success' && task.result) {
+      fileList.value.push(task.result)
+      emit('update:modelValue', [...fileList.value])
+      emit('change', [...fileList.value])
+      uploadingTasks.value = uploadingTasks.value.filter(t => t.uid !== task.uid)
+    }
+  }
+}
+
+/** 重试上传 */
+async function handleRetry(task: UploadTask) {
+  task.status = 'uploading'
+  task.progress = 0
+
+  const watermarkOptions = {
+    watermark: props.watermark,
+    watermarkPos: props.watermarkPos,
+    watermarkText: props.watermarkText,
+  }
+
+  await runTask(
+    task,
+    watermarkOptions,
+    (updatedTask) => {
+      const idx = uploadingTasks.value.findIndex(t => t.uid === updatedTask.uid)
+      if (idx >= 0)
+        uploadingTasks.value[idx] = { ...updatedTask }
+    },
+  )
+
+  if (task.status === 'success' && task.result) {
+    fileList.value.push(task.result)
+    emit('update:modelValue', [...fileList.value])
+    emit('change', [...fileList.value])
+    uploadingTasks.value = uploadingTasks.value.filter(t => t.uid !== task.uid)
+  }
+}
+
+/** 删除已上传文件 */
+function handleDelete(index: number) {
+  const removed = fileList.value.splice(index, 1)[0]
+  emit('delete', removed, index)
+  emit('update:modelValue', [...fileList.value])
+  emit('change', [...fileList.value])
+}
+
+/** 点击已上传文件卡片 */
+function handleFileClick(item: FileStorageFileResourceModel) {
+  preview(item, fileList.value)
+}
+
+/** 获取缩略图 URL（服务端裁切，避免加载原图） */
+function getThumbUrl(item: FileStorageFileResourceModel): string {
+  if (!item.url)
+    return ''
+  const sep = item.url.includes('?') ? '&' : '?'
+  return `${item.url}${sep}width=${props.width}&height=${props.height}`
+}
+
+/** 点击上传中的卡片（无操作） */
+function handleUploadingClick(_task: UploadTask) {
+  // 上传中不可操作
+}
+
+</script>
+
+<template>
+  <view class="container">
+    <!-- 已上传文件卡片 -->
+    <view
+      v-for="(item, index) in fileList"
+      :key="`file_${index}`"
+      class="card"
+      :style="cardStyle"
+      @click="handleFileClick(item)"
+    >
+      <view class="cardContent">
+        <!-- 图片缩略图 -->
+        <image
+          v-if="isImage(item)"
+          :src="getThumbUrl(item)"
+          mode="aspectFill"
+          class="thumbnail"
+        />
+        <!-- 视频图标 -->
+        <view v-else-if="isVideo(item)" class="iconWrapper">
+          <text class="fileIcon">
+            ▶
+          </text>
+        </view>
+        <!-- 文件类型图标 -->
+        <view v-else class="iconWrapper">
+          <text class="fileIcon">
+            {{ getFileIcon(item) }}
+          </text>
+        </view>
+      </view>
+      <!-- 文件名 -->
+      <view v-if="showFileName" class="cardFooter" :style="{ width: `${props.width}px` }">
+        {{ item.name }}
+      </view>
+      <!-- 删除按钮 -->
+      <view
+        v-if="!disabled"
+        class="deleteBtn"
+        @click.stop="handleDelete(index)"
+      >
+        <text class="closeGlyph">
+          ✕
+        </text>
+      </view>
+    </view>
+
+    <!-- 上传中/上传失败卡片 -->
+    <view
+      v-for="task in uploadingTasks"
+      :key="task.uid"
+      :class="['card', task.status === 'error' ? 'error' : 'uploading']"
+      :style="cardStyle"
+      @click="task.status === 'error' ? handleRetry(task) : handleUploadingClick(task)"
+    >
+      <view class="cardContent">
+        <!-- 上传中 -->
+        <template v-if="task.status === 'uploading'">
+          <view class="progressWrapper">
+            <view class="progressTrack">
+              <view class="progressBar" :style="{ width: task.progress + '%' }" />
+            </view>
+            <text class="progressText">
+              上传中...
+            </text>
+          </view>
+        </template>
+        <!-- 上传失败 -->
+        <template v-else-if="task.status === 'error'">
+          <view class="errorWrapper">
+            <text class="failGlyph">
+              !
+            </text>
+            <text>上传失败</text>
+            <view class="retryBtn">
+              点击重试
+            </view>
+          </view>
+        </template>
+      </view>
+      <view v-if="showFileName" class="cardFooter" :style="{ width: `${props.width}px` }">
+        {{ task.name }}
+      </view>
+    </view>
+
+    <!-- 添加按钮 -->
+    <view
+      v-if="showAddBtn"
+      :class="['addBtn', isUploading && 'addBtnDisabled']"
+      :style="cardStyle"
+      @click="handleAdd"
+    >
+      <text class="addIcon">
+        ＋
+      </text>
+      <text class="addText">
+        {{ uploadTitle }}
+      </text>
+    </view>
+  </view>
+
+  <!-- 视频预览弹窗 -->
+  <view v-if="videoPreview.visible" class="videoOverlay">
+    <view class="videoCloseBtn" @click="closeVideoPreview">
+      <text class="closeGlyph">
+        ✕
+      </text>
+    </view>
+    <video
+      :src="videoPreview.url"
+      class="videoPlayer"
+      controls
+      autoplay
+      :show-fullscreen-btn="true"
+      :show-play-btn="true"
+      object-fit="contain"
+    />
+  </view>
+</template>
+
+<style lang="scss">
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* 卡片 */
+.card {
+  position: relative;
+  border: 1px solid $border-color;
+  border-radius: $border-radius-sm;
+  background-color: $bg-color-white;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  &.uploading,
+}
+
+.card.error {
+  border-style: dashed;
+}
+
+/* 卡片内容区 */
+.cardContent {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* 缩略图 */
+.thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+/* 文件类型图标区 */
+.iconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $text-color-secondary;
+  font-size: 48px;
+}
+
+/* 卡片底部（文件名） */
+.cardFooter {
+  padding: 4px 8px;
+  border-top: 1px solid $border-color-light;
+  font-size: $font-size-xs;
+  color: $text-color-regular;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+/* 删除按钮 */
+.deleteBtn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  z-index: 1;
+}
+
+/* #ifdef WEB */
+.deleteBtn:active {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+/* #endif */
+
+/* 上传进度 */
+.progressWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  gap: 8px;
+}
+
+.progressText {
+  font-size: $font-size-xs;
+  color: $text-color-secondary;
+}
+
+/* 上传失败 */
+.errorWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  gap: 8px;
+  color: $danger-color;
+}
+
+.retryBtn {
+  font-size: $font-size-xs;
+  color: $primary-color;
+  padding: 4px 12px;
+  border: 1px solid $primary-color;
+  border-radius: $border-radius-sm;
+  background: transparent;
+}
+
+/* #ifdef WEB */
+.retryBtn:active {
+  opacity: 0.7;
+}
+
+/* #endif */
+
+/* 上传按钮 */
+.addBtn {
+  border: 1px dashed $border-color;
+  border-radius: $border-radius-sm;
+  background-color: $bg-color;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: $text-color-secondary;
+}
+
+/* #ifdef WEB */
+.addBtn:active {
+  background-color: #ebebeb;
+}
+
+/* #endif */
+.addBtn.addBtnDisabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.addIcon {
+  font-size: 40px;
+  color: $text-color-placeholder;
+}
+
+.addText {
+  font-size: $font-size-xs;
+}
+
+/* 视频预览弹窗 */
+.videoOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.9);
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.videoPlayer {
+  width: 100%;
+}
+
+.videoCloseBtn {
+  position: absolute;
+  top: 40px;
+  right: 20px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  z-index: 1;
+}
+
+/* #ifdef WEB */
+.videoCloseBtn:active {
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+/* #endif */
+</style>

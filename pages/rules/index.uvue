@@ -1,0 +1,422 @@
+<script setup lang="ts">
+import type { AttendanceRule } from '@/api/rules.ts'
+
+import { computed, ref } from 'vue'
+import AuthLayout from '@/components/auth-layout/auth-layout.uvue'
+import PageNavbar from '@/components/page-navbar/page-navbar.uvue'
+import rulesApi from '@/api/rules.ts'
+import { modeLabel, ruleMainText, ruleModeHint } from '@/utils/attendance'
+import { routes } from '@/utils/router'
+
+const list = ref<AttendanceRule[]>([])
+const keyword = ref('')
+const loading = ref(true)
+
+async function load() {
+  loading.value = true
+  const { isSuccess, data } = await rulesApi.list({
+    page: 1,
+    pagesize: 50,
+    filter: keyword.value.trim() || undefined,
+  })
+  if (isSuccess && data)
+    list.value = data.list || []
+  loading.value = false
+}
+
+onPageShow(() => void load())
+
+const activeCount = computed(() => list.value.filter(item => item.status === 1).length)
+
+const modeCount = computed(() => {
+  const count: Record<string, number> = { fixed: 0, free: 0, shift: 0 }
+  list.value.forEach((item) => {
+    const key = item.mode || 'fixed'
+    count[key] = (count[key] || 0) + 1
+  })
+  return [
+    { key: 'fixed', label: '固定班次', count: count.fixed },
+    { key: 'free', label: '自由打卡', count: count.free },
+    { key: 'shift', label: '排班制', count: count.shift },
+  ]
+})
+
+function onSearch() {
+  void load()
+}
+
+function clearKeyword() {
+  keyword.value = ''
+  void load()
+}
+
+function openDetail(item: AttendanceRule) {
+  uni.navigateTo({ url: `${routes.ruleDetail}?id=${item.id}` })
+}
+
+function createRule() {
+  uni.navigateTo({ url: routes.ruleEdit })
+}
+
+</script>
+
+<template>
+  <AuthLayout>
+    <view class="sp-page sp-page--with-fab page">
+      <PageNavbar title="考勤规则" />
+
+      <view class="toolbar">
+        <SpSearchBar
+          v-model="keyword"
+          :inset="false"
+          placeholder="搜索规则名称或适用部门"
+          @confirm="onSearch"
+          @clear="clearKeyword"
+        />
+
+        <view class="summary">
+          <text class="summary-text">
+            共 {{ list.length }} 条规则
+          </text>
+          <text class="summary-hint">
+            启用 {{ activeCount }}
+          </text>
+        </view>
+
+        <view class="mode-stats">
+          <view v-for="item in modeCount" :key="item.key" class="mode-stat">
+            <text :class="['mode-dot', `mode-dot--${item.key}`]" />
+            <text class="mode-stat-text">
+              {{ item.label }} {{ item.count }}
+            </text>
+          </view>
+        </view>
+      </view>
+
+      <view v-if="loading && !list.length" class="tip">
+        加载中…
+      </view>
+      <SpEmpty v-else-if="!list.length" description="还没有考勤规则，点右下角新建" />
+      <template v-else>
+        <view
+          v-for="item in list"
+          :key="item.id"
+          class="card"
+          @click="openDetail(item)"
+        >
+          <view class="card-head">
+            <view class="card-title">
+              <text class="card-name">
+                {{ item.name }}
+              </text>
+              <text :class="['mode', `mode--${item.mode || 'fixed'}`]">
+                {{ modeLabel(item.mode) }}
+              </text>
+            </view>
+            <text :class="['tag', item.status === 1 ? 'tag--on' : 'tag--off']">
+              {{ item.status === 1 ? '启用' : '停用' }}
+            </text>
+          </view>
+
+          <view class="meta">
+            <text>{{ item.scope }}</text>
+            <text class="dot">
+              ·
+            </text>
+            <text>{{ item.member_count }} 人</text>
+          </view>
+
+          <view class="shift">
+            <text class="shift-time">
+              {{ ruleMainText(item) }}
+            </text>
+            <text class="shift-tag">
+              {{ ruleModeHint(item) }}
+            </text>
+          </view>
+
+          <view class="chips">
+            <text v-for="way in item.ways" :key="way" class="chip">
+              {{ way }}
+            </text>
+            <text class="chip">
+              {{ item.gps_range }}m
+            </text>
+          </view>
+
+          <view class="card-foot">
+            <text class="card-time">
+              更新 {{ item.utime }}
+            </text>
+            <text class="card-link">
+              查看详情
+            </text>
+          </view>
+        </view>
+      </template>
+
+      <view class="fab" @click="createRule">
+        <text class="fab-plus">
+          +
+        </text>
+      </view>
+    </view>
+  </AuthLayout>
+</template>
+
+<style lang="scss">
+.page {
+  min-height: 100%;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  background-color: #f5f6fa;
+}
+
+.toolbar {
+  padding: 16px 16px 0;
+}
+
+/* 搜索 */
+.summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 16px 6px 0;
+}
+
+.summary-text {
+  font-size: 21px;
+  color: #9aa0b4;
+}
+
+.summary-hint {
+  font-size: 20px;
+  color: #0d9488;
+}
+
+/* 模式分布 */
+.mode-stats {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 10px 6px 0;
+}
+
+.mode-stat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mode-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.mode-dot--fixed {
+  background-color: #4f46e5;
+}
+
+.mode-dot--free {
+  background-color: #0d9488;
+}
+
+.mode-dot--shift {
+  background-color: #ea8a0b;
+}
+
+.mode-stat-text {
+  font-size: 19px;
+  color: #8a90a3;
+}
+
+.tip {
+  padding: 40px 0;
+  text-align: center;
+  font-size: 22px;
+  color: #9aa0b4;
+}
+
+/* 规则卡片 */
+.card {
+  margin: 14px 16px 0;
+  padding: 20px 24px 16px;
+  border-radius: 18px;
+  background-color: #fff;
+  box-shadow: 0 8px 24px rgba(23, 23, 64, 0.05);
+}
+
+/* #ifdef WEB */
+.card:active {
+  opacity: 0.88;
+}
+
+/* #endif */
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.card-name {
+  font-size: 29px;
+  font-weight: 600;
+  color: #1c1c2e;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* 模式徽章 */
+.mode {
+  flex-shrink: 0;
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.mode--fixed {
+  color: #4f46e5;
+  background-color: #eef2ff;
+}
+
+.mode--free {
+  color: #0d9488;
+  background-color: #ecfdf5;
+}
+
+.mode--shift {
+  color: #b45309;
+  background-color: #fff7ed;
+}
+
+.tag {
+  flex-shrink: 0;
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-size: 19px;
+}
+
+.tag--on {
+  color: #0d9488;
+  background-color: #ecfdf5;
+}
+
+.tag--off {
+  color: #6b7080;
+  background-color: #f2f3f7;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 21px;
+  color: #9aa0b4;
+}
+
+.dot {
+  color: #c8ccd8;
+}
+
+.shift {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  background-color: #f7f8fc;
+}
+
+.shift-time {
+  font-size: 30px;
+  font-weight: 700;
+  color: #23263a;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.5px;
+}
+
+.shift-tag {
+  font-size: 19px;
+  color: #6b7080;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.chip {
+  padding: 5px 14px;
+  border-radius: 8px;
+  background-color: #f2f5ff;
+  font-size: 18px;
+  color: #4f46e5;
+}
+
+.card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed #f1f2f7;
+  font-size: 20px;
+}
+
+.card-time {
+  color: #9aa0b4;
+}
+
+.card-link {
+  color: #4f46e5;
+  font-weight: 500;
+}
+
+/* 悬浮新增 */
+
+.fab {
+  position: fixed;
+  right: 32px;
+  bottom: calc(48px + env(safe-area-inset-bottom, 0px));
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 108px;
+  height: 108px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b4fe0 0%, #7c6cf6 100%);
+  box-shadow: 0 14px 28px rgba(59, 79, 224, 0.4);
+}
+
+/* #ifdef WEB */
+.fab:active {
+  opacity: 0.85;
+  transform: scale(0.96);
+}
+
+/* #endif */
+
+.fab-plus {
+  margin-top: -6px;
+  font-size: 60px;
+  font-weight: 300;
+  line-height: 1;
+  color: #fff;
+}
+</style>

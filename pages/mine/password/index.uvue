@@ -1,0 +1,419 @@
+<script setup lang="ts">
+import { computed, reactive, ref } from 'vue'
+import AuthLayout from '@/components/auth-layout/auth-layout.uvue'
+import PageNavbar from '@/components/page-navbar/page-navbar.uvue'
+import { showToast } from '@/components/sp-toast/toast.ts'
+import { profile as api } from '@/api/identity/index.ts'
+import { useAuthStore } from '@/store/auth'
+import { safeBack } from '@/utils/auth'
+
+const authStore = useAuthStore()
+
+const form = reactive({
+  oldpassword: '',
+  newpassword: '',
+  confirm: '',
+})
+
+const errors = reactive<Record<string, string>>({})
+const visible = reactive({ old: false, next: false, confirm: false })
+const loading = ref(false)
+
+const accountText = computed(() => authStore.userInfo?.code || 'demo')
+
+/** 密码强度：长度 + 字符种类，1~3 段对应 弱 / 中 / 强 */
+const strength = computed(() => {
+  const value = form.newpassword
+  if (!value)
+    return { level: 0, label: '', color: '' }
+  const score = [
+    value.length >= 6,
+    /[a-z]/i.test(value) && /\d/.test(value),
+    value.length >= 10,
+  ].filter(Boolean).length || 1
+  const level = Math.min(3, score)
+  return {
+    level,
+    label: ['弱', '中', '强'][level - 1],
+    color: ['#f43f5e', '#f59e0b', '#0d9488'][level - 1],
+  }
+})
+
+/** 密码要求实时勾选 */
+const rules = computed(() => {
+  const value = form.newpassword
+  return [
+    { key: 'length', text: '至少 6 个字符', ok: value.length >= 6 },
+    { key: 'mix', text: '同时包含字母与数字', ok: /[a-z]/i.test(value) && /\d/.test(value) },
+    { key: 'diff', text: '与手机号、工号不重复', ok: !!value && ![authStore.userInfo?.mobile_number, authStore.userInfo?.wkno].includes(value) },
+  ]
+})
+
+const matched = computed(() => !!form.confirm && form.confirm === form.newpassword)
+
+function clearError(key: string) {
+  if (errors[key])
+    delete errors[key]
+}
+
+function validate() {
+  for (const key of Object.keys(errors))
+    delete errors[key]
+
+  if (!form.oldpassword)
+    errors.oldpassword = '请输入旧密码'
+  if (!form.newpassword)
+    errors.newpassword = '请输入新密码'
+  else if (form.newpassword.length < 6)
+    errors.newpassword = '新密码不能少于 6 位'
+  else if (form.newpassword === form.oldpassword)
+    errors.newpassword = '新密码不能与旧密码相同'
+  if (!form.confirm)
+    errors.confirm = '请再次输入新密码'
+  else if (form.confirm !== form.newpassword)
+    errors.confirm = '两次输入的密码不一致'
+
+  const first = Object.values(errors)[0]
+  if (first)
+    showToast(first)
+  return !first
+}
+
+async function handleSubmit() {
+  if (loading.value || !validate())
+    return
+
+  loading.value = true
+  try {
+    const { isSuccess, message } = await api.changePassword({
+      oldpassword: form.oldpassword,
+      newpassword: form.newpassword,
+    })
+    if (!isSuccess) {
+      showToast(message || '修改失败，请稍后重试')
+      return
+    }
+
+    showToast('密码修改成功')
+    form.oldpassword = ''
+    form.newpassword = ''
+    form.confirm = ''
+    setTimeout(safeBack, 700)
+  }
+  catch {
+    showToast('修改失败，请稍后重试')
+  }
+  finally {
+    loading.value = false
+  }
+}
+
+</script>
+
+<template>
+  <AuthLayout>
+    <view class="sp-page sp-page--with-bar page">
+      <PageNavbar title="修改密码" />
+      <Watermark />
+
+      <!-- 安全提示卡 -->
+      <view class="hero">
+        <view class="hero-glow" />
+        <view class="hero-icon">
+          <view class="lock-shackle" />
+          <view class="lock-body" />
+        </view>
+        <view class="hero-info">
+          <text class="hero-title">
+            账号安全
+          </text>
+          <text class="hero-meta">
+            当前账号 {{ accountText }} · 建议每 3 个月更换一次密码
+          </text>
+        </view>
+      </view>
+
+      <!-- 修改密码 -->
+      <SpCard title="修改密码" hint="修改后立即生效">
+        <SpFormRow label="旧密码" required :error="errors.oldpassword">
+          <input
+            v-model="form.oldpassword"
+            class="sp-form-input"
+            :password="!visible.old"
+            placeholder="请输入当前密码"
+            placeholder-class="sp-form-placeholder"
+            maxlength="32"
+            @input="clearError('oldpassword')" />
+          <text class="sp-form-eye" @click="visible.old = !visible.old">
+            {{ visible.old ? '隐藏' : '显示' }}
+          </text>
+        </SpFormRow>
+
+        <SpFormRow label="新密码" required>
+          <input
+            v-model="form.newpassword"
+            class="sp-form-input"
+            :password="!visible.next"
+            placeholder="请输入新密码"
+            placeholder-class="sp-form-placeholder"
+            maxlength="32"
+            @input="clearError('newpassword')" />
+          <text class="sp-form-eye" @click="visible.next = !visible.next">
+            {{ visible.next ? '隐藏' : '显示' }}
+          </text>
+        </SpFormRow>
+
+        <!-- 强度：有输入才出现，避免空条看起来像「很弱」 -->
+        <view v-if="form.newpassword" class="strength">
+          <view class="strength-bars">
+            <view
+              v-for="index in 3"
+              :key="index"
+              :class="['strength-bar', (strength.level >= index ? 'strength-bar--on' : '')]"
+              :style="strength.level >= index ? { backgroundColor: strength.color } : {}"
+            />
+          </view>
+          <text class="strength-label" :style="{ color: strength.color }">
+            {{ strength.label }}
+          </text>
+        </view>
+        <view v-if="errors.newpassword" class="sp-form-error">
+          {{ errors.newpassword }}
+        </view>
+
+        <SpFormRow
+          label="确认密码"
+          required
+          :error="errors.confirm"
+          :success="matched ? '两次输入一致' : ''"
+        >
+          <input
+            v-model="form.confirm"
+            class="sp-form-input"
+            :password="!visible.confirm"
+            placeholder="请再次输入新密码"
+            placeholder-class="sp-form-placeholder"
+            maxlength="32"
+            @input="clearError('confirm')" />
+          <text class="sp-form-eye" @click="visible.confirm = !visible.confirm">
+            {{ visible.confirm ? '隐藏' : '显示' }}
+          </text>
+        </SpFormRow>
+      </SpCard>
+
+      <!-- 密码要求 -->
+      <SpCard title="密码要求" hint="满足项会自动勾选">
+        <view class="rules">
+          <view v-for="item in rules" :key="item.key" class="rule">
+            <view :class="['rule-dot', (item.ok ? 'rule-dot--ok' : '')]">
+              <text v-if="item.ok" class="rule-check">
+                ✓
+              </text>
+            </view>
+            <text :class="['rule-text', (item.ok ? 'rule-text--ok' : '')]">
+              {{ item.text }}
+            </text>
+          </view>
+        </view>
+      </SpCard>
+
+      <view class="notice">
+        如忘记当前密码，请联系管理员重置；管理员账号的密码由后台统一维护。
+      </view>
+
+      <!-- 底部操作栏 -->
+      <view class="sp-bottom-bar">
+        <view class="sp-bottom-bar-inner">
+          <view class="sp-btn sp-btn--primary" style="flex: 1;" @click="handleSubmit">
+        <text class="sp-btn-text">
+          确认修改
+        </text>
+      </view>
+        </view>
+      </view>
+    </view>
+  </AuthLayout>
+</template>
+
+<style lang="scss">
+.page {
+  min-height: 100%;
+  // 底部留白交给 .sp-page--with-bar
+  padding: 12px 0 0;
+  background: #f5f6fa;
+}
+
+/* ==================== 安全提示卡 ==================== */
+
+.hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin: 4px 16px 0;
+  padding: 22px 24px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #3b4fe0 0%, #5b4ae0 46%, #7c3aed 100%);
+  box-shadow: 0 18px 40px rgba(59, 79, 224, 0.26);
+  color: #fff;
+}
+
+.hero-glow {
+  position: absolute;
+  top: -110px;
+  right: -70px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(94, 234, 212, 0.3), transparent 68%);
+}
+
+.hero-icon {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  width: 76px;
+  height: 76px;
+  border-radius: 22px;
+  background-color: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.lock-shackle {
+  position: absolute;
+  top: 17px;
+  left: 25px;
+  width: 26px;
+  height: 20px;
+  box-sizing: border-box;
+  border: 4px solid rgba(255, 255, 255, 0.92);
+  border-bottom: none;
+  border-radius: 14px 14px 0 0;
+}
+
+.lock-body {
+  position: absolute;
+  top: 33px;
+  left: 21px;
+  width: 34px;
+  height: 26px;
+  border-radius: 7px;
+  background-color: #fff;
+}
+
+.hero-info {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hero-title {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.hero-meta {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 19px;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* ==================== 卡片 ==================== */
+
+/* 输入行 */
+
+/* 密码强度 */
+
+.strength {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 4px 16px;
+}
+
+.strength-bars {
+  flex: 1;
+  display: flex;
+  gap: 8px;
+}
+
+.strength-bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background-color: #eef0f6;
+  transition: background-color 0.2s ease;
+}
+
+.strength-label {
+  flex-shrink: 0;
+  width: 56px;
+  text-align: right;
+  font-size: 19px;
+  font-weight: 600;
+}
+
+/* 密码要求 */
+
+.rules {
+  padding: 2px 0 12px;
+}
+
+.rule {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 4px;
+}
+
+.rule-dot {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 2px solid #dcdfea;
+}
+
+.rule-dot--ok {
+  border-color: #0d9488;
+  background-color: #0d9488;
+}
+
+.rule-check {
+  font-size: 17px;
+  line-height: 1;
+  color: #fff;
+}
+
+.rule-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 21px;
+  color: #5b6072;
+}
+
+.rule-text--ok {
+  color: #0f766e;
+}
+
+/* ==================== 底部说明 ==================== */
+
+.notice {
+  padding: 20px 26px 4px;
+  font-size: 19px;
+  line-height: 1.7;
+  color: #a8aec0;
+}
+</style>

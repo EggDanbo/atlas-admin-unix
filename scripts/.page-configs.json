@@ -1,0 +1,21 @@
+{
+  "apply/detail": "export default definePageConfig({\n  navigationBarTitleText: '申请详情',\n  ...(process.env.TARO_ENV === 'h5' ? { navigationStyle: 'custom' } : {}),\n})\n",
+  "apply/index": "export default definePageConfig({\n  navigationBarTitleText: '申请',\n  ...(process.env.TARO_ENV === 'h5' ? { navigationStyle: 'custom' } : {}),\n})\n",
+  "apply/leave": "export default definePageConfig({\n  navigationBarTitleText: '请假申请',\n  ...(process.env.TARO_ENV === 'h5' ? { navigationStyle: 'custom' } : {}),\n})\n",
+  "apply/list": "export default definePageConfig({\n  navigationBarTitleText: '我的申请',\n  ...(process.env.TARO_ENV === 'h5' ? { navigationStyle: 'custom' } : {}),\n})\n",
+  "board/index": "export default definePageConfig({\n  navigationBarTitleText: '数据看板',\n  ...(process.env.TARO_ENV === 'h5' ? { navigationStyle: 'custom' } : {}),\n})\n",
+  "checkin/index": "export default definePageConfig({\n  navigationBarTitleText: '打卡',\n  ...(process.env.TARO_ENV === 'h5' ? { navigationStyle: 'custom' } : {}),\n  enablePullDownRefresh: false,\n})\n",
+  "checkin/records": "export default definePageConfig({\n  navigationBarTitleText: '打卡记录',\n  ...(process.env.TARO_ENV === 'h5' ? { navigationStyle: 'custom' } : {}),\n})\n",
+  "checkin/stats": "export default definePageConfig({\n  navigationBarTitleText: '考勤统计',\n  ...(process.env.TARO_ENV === 'h5' ? { navigationStyle: 'custom' } : {}),\n})\n",
+  "contact/index": "export default definePageConfig({\n  navigationBarTitleText: '通讯录',\n  ...(process.env.TARO_ENV === 'h5' ? { navigationStyle: 'custom' } : {}),\n})\n",
+  "mine/face/index": "export default definePageConfig({\n  navigationBarTitleText: '人脸照片',\n  ...(process.env.TARO_ENV === 'h5' ? { navigationStyle: 'custom' } : {}),\n})\n",
+  "mine/password/index": "export default definePageConfig({\n  navigationBarTitleText: '修改密码',\n  ...(process.env.TARO_ENV === 'h5' ? { navigationStyle: 'custom' } : {}),\n})\n",
+  "mine/preview/index": "export default definePageConfig({\n  navigationBarTitleText: '文件预览',\n  ...(process.env.TARO_ENV === 'h5' ? { navigationStyle: 'custom' } : {}),\n})\n",
+  "mine/profile/index": "export default definePageConfig({\n  navigationBarTitleText: '个人信息',\n  ...(process.env.TARO_ENV === 'h5' ? { navigationStyle: 'custom' } : {}),\n})\n",
+  "oauthCallback/index": "export default definePageConfig({\n  navigationBarTitleText: '授权中...',\n})\n",
+  "rules/detail": "export default definePageConfig({\n  navigationBarTitleText: '规则详情',\n  ...(process.env.TARO_ENV === 'h5' ? { navigationStyle: 'custom' } : {}),\n})\n",
+  "rules/edit": "export default definePageConfig({\n  navigationBarTitleText: '考勤规则设置',\n  ...(process.env.TARO_ENV === 'h5' ? { navigationStyle: 'custom' } : {}),\n})\n",
+  "rules/index": "export default definePageConfig({\n  navigationBarTitleText: '考勤规则',\n  ...(process.env.TARO_ENV === 'h5' ? { navigationStyle: 'custom' } : {}),\n})\n",
+  "team/index": "export default definePageConfig({\n  navigationBarTitleText: '成员管理',\n  ...(process.env.TARO_ENV === 'h5' ? { navigationStyle: 'custom' } : {}),\n})\n",
+  "user/message/index": "export default definePageConfig({\n  navigationBarTitleText: '消息中心',\n  ...(process.env.TARO_ENV === 'h5' ? { navigationStyle: 'custom' } : {}),\n})\n"
+}

@@ -1,0 +1,97 @@
+<script setup lang="ts">
+defineProps({
+  label: { type: String, default: '' },
+  required: { type: Boolean, default: false },
+  error: { type: String, default: '' },
+  success: { type: String, default: '' },
+  arrow: { type: Boolean, default: false },
+})
+
+</script>
+
+<template>
+  <view class="item">
+    <view :class="['row', error && 'row--error']">
+      <text v-if="label" class="label">
+        {{ label }}<text v-if="required" class="req">
+          *
+        </text>
+      </text>
+
+      <slot />
+
+      <view v-if="arrow" class="arrow" />
+    </view>
+
+    <view v-if="error" data-role="form-error" class="error">
+      {{ error }}
+    </view>
+    <view v-else-if="success" class="success">
+      {{ success }}
+    </view>
+  </view>
+</template>
+
+<style lang="scss">
+.item {
+  padding: 0 4px;
+
+  /* 行与行之间的分隔线：用「后续兄弟」选择器，中间夹着强度条等元素时也能命中 */
+}
+
+/* #ifdef WEB */
+.item ~ .item {
+  border-top: 1px solid #f3f4f9;
+}
+
+/* #endif */
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 94px;
+}
+
+/* #ifdef WEB */
+.row--error .label {
+  color: #e11d48;
+}
+
+/* #endif */
+
+.label {
+  flex-shrink: 0;
+  width: 150px;
+  font-size: 24px;
+  color: #23263a;
+}
+
+.req {
+  margin-left: 4px;
+  font-size: 22px;
+  color: #f43f5e;
+}
+
+.arrow {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  margin-left: 4px;
+  border-top: 2px solid #c3c8d6;
+  border-right: 2px solid #c3c8d6;
+  transform: rotate(45deg);
+}
+
+.error {
+  padding: 8px 4px 14px;
+  font-size: 19px;
+  color: #f43f5e;
+}
+
+.success {
+  padding: 8px 4px 14px;
+  font-size: 19px;
+  color: #0d9488;
+}
+</style>

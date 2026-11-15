@@ -1,0 +1,370 @@
+<script setup lang="ts">
+import type { FilterOption } from '@/components/sp-filter-select/types.ts'
+
+import { computed, ref } from 'vue'
+import AuthLayout from '@/components/auth-layout/auth-layout.uvue'
+import PageNavbar from '@/components/page-navbar/page-navbar.uvue'
+import SpListStatus from '@/components/sp-list-status/sp-list-status.uvue'
+import { showToast } from '@/components/sp-toast/toast.ts'
+import { useListPage } from '@/composables/list'
+import messageApi from '@/api/message/index.ts'
+
+/** 类型筛选项：key 为空表示全部 */
+const TYPE_OPTIONS: FilterOption[] = [
+  { key: '', label: '全部类型' },
+  { key: '0', label: '待办' },
+  { key: '1', label: '消息' },
+  { key: '2', label: '通知' },
+]
+
+const active = ref('')
+const keyword = ref('')
+
+const { list, total, loading, finished, isEmpty, queryModel, search, loadMore } = useListPage({
+  api: {
+    search: params => messageApi.search({ ...params, kind: 'ATLAS' }),
+  },
+  createQueryModel: () => ({
+    filter: undefined as string | undefined,
+    types: undefined as string | undefined,
+    read: null as string | null,
+    date: null as [number, number] | null,
+    title: undefined as string | undefined,
+    biz_id: undefined as string | undefined,
+  }),
+  idField: 'id',
+  immediate: false,
+})
+
+onPageShow(() => search())
+
+// 支持从工作台「待办 → 查看全部」带类型进来（types=0 待办 / 1 消息 / 2 通知）
+onLoad((options) => {
+  const types = options?.types
+  if (types === undefined)
+    return
+  const matched = TYPE_OPTIONS.find(opt => opt.key === String(types))
+  if (!matched)
+    return
+  active.value = matched.key
+  queryModel.types = matched.key || undefined
+})
+
+onReachBottom(() => loadMore())
+
+const unreadCount = computed(() => list.value.filter(item => !item.utime).length)
+
+/** 切换待办 / 消息 / 通知 */
+function onTypeChange(option: FilterOption) {
+  queryModel.types = option.key || undefined
+  search()
+}
+
+function onSearch() {
+  queryModel.filter = keyword.value.trim() || undefined
+  search()
+}
+
+function clearKeyword() {
+  keyword.value = ''
+  if (queryModel.filter) {
+    queryModel.filter = undefined
+    search()
+  }
+}
+
+function typeLabel(item: Recordable) {
+  return TYPE_OPTIONS.find(opt => opt.key === String(item.types))?.label || '消息'
+}
+
+/** 类型 → 标签配色 */
+function typeTone(item: Recordable) {
+  const types = String(item.types)
+  if (types === '0')
+    return 'todo'
+  if (types === '1')
+    return 'info'
+  return 'notice'
+}
+
+function isUnread(item: Recordable) {
+  return !item.utime
+}
+
+function nowText() {
+  const d = new Date()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+/** 点开即视为已读，再展示内容 */
+async function handleView(item: Recordable) {
+  if (!item.utime) {
+    const { isSuccess } = await messageApi.read(item.id)
+    if (isSuccess)
+      item.utime = nowText()
+  }
+  uni.showModal({
+    title: item.title || '消息详情',
+    content: item.content || '暂无详细内容',
+    showCancel: false,
+    confirmText: '知道了',
+  })
+}
+
+async function handleReadAll() {
+  if (!unreadCount.value)
+    return
+  const { confirm } = await uni.showModal({
+    title: '全部已读',
+    content: `当前列表有 ${unreadCount.value} 条未读，确认全部标记为已读？`,
+    confirmText: '全部已读',
+  })
+  if (!confirm)
+    return
+  const { isSuccess } = await messageApi.readAll('ATLAS')
+  showToast(isSuccess ? '已全部标记为已读' : '操作失败')
+  if (isSuccess)
+    search()
+}
+
+</script>
+
+<template>
+  <AuthLayout>
+    <view class="sp-page page">
+      <PageNavbar title="消息中心" />
+
+      <!-- 搜索 + 类型筛选 -->
+      <view class="toolbar">
+        <SpSearchBar
+          v-model="keyword"
+          :inset="false"
+          placeholder="搜索消息标题或内容"
+          @confirm="onSearch"
+          @clear="clearKeyword"
+        />
+
+        <view class="filter-bar">
+          <SpFilterSelect
+            v-model="active"
+            :options="TYPE_OPTIONS"
+            @change="onTypeChange"
+          />
+
+          <text class="filter-count">
+            共 {{ total }} 条
+          </text>
+
+          <text
+            v-if="unreadCount > 0"
+            class="read-all"
+            @click="handleReadAll"
+          >
+            全部已读
+          </text>
+        </view>
+      </view>
+
+      <view class="list">
+        <SpListStatus
+          :loading="loading"
+          :finished="finished || (total > 0 && list.length >= total)"
+          :is-empty="isEmpty"
+          :has-data="list.length > 0"
+          empty-text="没有符合条件的消息"
+        >
+          <view
+            v-for="item in list"
+            :key="item.id"
+            class="card"
+            @click="handleView(item)"
+          >
+            <view class="card-head">
+              <view class="card-heading">
+                <text :class="['card-cat', `card-cat--${typeTone(item)}`]">
+                  {{ typeLabel(item) }}
+                </text>
+                <text class="card-title">
+                  {{ item.title }}
+                </text>
+              </view>
+              <text v-if="isUnread(item)" class="unread">
+                未读
+              </text>
+            </view>
+
+            <text class="content">
+              {{ item.content }}
+            </text>
+
+            <view class="card-foot">
+              <text class="card-time">
+                {{ item.ctime }}
+              </text>
+              <text class="card-link">
+                查看详情
+              </text>
+            </view>
+          </view>
+        </SpListStatus>
+      </view>
+
+      <view class="sp-footnote">
+        <text class="sp-footnote-text">
+          数据由本地引擎生成 · 仅用于演示
+        </text>
+      </view>
+    </view>
+  </AuthLayout>
+</template>
+
+<style lang="scss">
+.page {
+  min-height: 100%;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  background-color: #f5f6fa;
+}
+
+/* 顶部工具条 */
+.toolbar {
+  position: relative;
+  z-index: 50;
+  padding: 16px 16px 0;
+}
+
+/* 搜索框：整块作为点击区，内层 input 垂直居中 */
+/* 类型筛选 */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.filter-count {
+  margin-left: 14px;
+  font-size: 20px;
+  color: #9aa0b4;
+}
+
+.read-all {
+  margin-left: auto;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background-color: #eef2ff;
+  font-size: 20px;
+  color: #4f46e5;
+}
+
+/* #ifdef WEB */
+.read-all:active {
+  opacity: 0.7;
+}
+
+/* #endif */
+
+/* 下拉面板 */
+/* 列表 */
+.list {
+  margin-top: 6px;
+}
+
+.card {
+  margin: 14px 16px 0;
+  padding: 20px 24px 16px;
+  border-radius: 18px;
+  background-color: #fff;
+  box-shadow: 0 8px 24px rgba(23, 23, 64, 0.05);
+}
+
+/* #ifdef WEB */
+.card:active {
+  opacity: 0.85;
+}
+
+/* #endif */
+
+.card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.card-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.card-cat {
+  flex-shrink: 0;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 18px;
+}
+
+.card-cat--todo {
+  color: #b45309;
+  background-color: #fffbeb;
+}
+
+.card-cat--info {
+  color: #1d4ed8;
+  background-color: #eff6ff;
+}
+
+.card-cat--notice {
+  color: #7c3aed;
+  background-color: #f5f3ff;
+}
+
+.card-title {
+  font-size: 27px;
+  font-weight: 600;
+  color: #1c1c2e;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.unread {
+  flex-shrink: 0;
+  padding: 4px 12px;
+  border-radius: 8px;
+  background-color: #fef2f2;
+  font-size: 19px;
+  color: #b91c1c;
+}
+
+.content {
+  display: -webkit-box;
+  margin-top: 10px;
+  overflow: hidden;
+  font-size: 22px;
+  line-height: 1.55;
+  color: #6b7080;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed #f1f2f7;
+  font-size: 20px;
+}
+
+.card-time {
+  color: #9aa0b4;
+}
+
+.card-link {
+  color: #4f46e5;
+  font-weight: 500;
+}
+</style>

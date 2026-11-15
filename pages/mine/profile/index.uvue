@@ -1,0 +1,898 @@
+<script setup lang="ts">
+import type { FileStorageFileResourceModel } from '@/types/api.ts'
+import { computed, reactive, ref } from 'vue'
+import AuthLayout from '@/components/auth-layout/auth-layout.uvue'
+import { useFileUpload } from '@/components/file-upload/use-file-upload.ts'
+import PageNavbar from '@/components/page-navbar/page-navbar.uvue'
+import { showToast } from '@/components/sp-toast/toast.ts'
+import { appConfig } from '@/constants/config'
+import { useAuthLoad } from '@/composables/use-auth-load.ts'
+import { profile as api } from '@/api/identity/index.ts'
+import { team as teamApi } from '@/api/organ/index.ts'
+import { useAuthStore } from '@/store/auth'
+import { safeBack } from '@/utils/auth'
+import { rules as patternRules } from '@/utils/rules'
+
+const authStore = useAuthStore()
+const loading = ref(false)
+/** 资料加载完成前禁用保存，避免加载结果覆盖用户输入 */
+const ready = ref(false)
+const teamTreeOptions = ref<any[]>([])
+const teamVisible = ref(false)
+/** 已下钻的层级，最后一项的子级即为当前列表 */
+const teamPath = ref<any[]>([])
+const { uploadFile } = useFileUpload()
+
+const formData = reactive({
+  team_id: '',
+  team_name: '',
+  name: '',
+  mobile_number: '',
+  id_no: '',
+  wkno: '',
+  code: '',
+  working: true,
+  user_pic: [] as FileStorageFileResourceModel[],
+})
+
+/** 字段错误提示：行内展示，替代表单校验弹窗 */
+const errors = reactive<Record<string, string>>({})
+
+const photoUrl = computed(() => formData.user_pic[0]?.url || '')
+const avatarText = computed(() => (formData.name || 'A').trim().charAt(0))
+
+/** 头部副标题：单位 · 工号 */
+const metaText = computed(() => {
+  const parts = [formData.team_name, formData.wkno ? `工号 ${formData.wkno}` : ''].filter(Boolean)
+  return parts.join(' · ') || '资料待完善'
+})
+
+/** 资料完整度：姓名 / 手机号 / 单位 / 身份证 / 工号 / 照片 */
+const complete = computed(() => {
+  const fields = [
+    formData.name,
+    formData.mobile_number,
+    formData.team_id,
+    formData.id_no,
+    formData.wkno,
+    formData.user_pic.length > 0 ? '1' : '',
+  ]
+  const filled = fields.filter(v => String(v || '').trim().length > 0).length
+  return Math.round((filled / fields.length) * 100)
+})
+
+function onWorkingChange(e: any) {
+  formData.working = e.detail.value === true
+}
+
+async function loadTeamTree() {
+  const { isSuccess, data } = await teamApi.tree()
+  if (isSuccess && data)
+    teamTreeOptions.value = data
+}
+
+async function loadProfile() {
+  const { isSuccess, data } = await api.info()
+  if (isSuccess && data) {
+    formData.team_id = data.team_id || ''
+    formData.team_name = data.team_name || ''
+    formData.name = data.name || ''
+    formData.mobile_number = data.mobile_number || ''
+    formData.id_no = data.id_no || ''
+    formData.wkno = data.wkno || ''
+    formData.code = data.code || ''
+    formData.working = data.working ?? true
+
+    if (data.user_pic && data.user_url) {
+      formData.user_pic = [{
+        id: data.user_pic,
+        url: data.user_url,
+        name: 'user_pic',
+        image: true,
+        content_type: 'image/jpeg',
+        size: '',
+      }]
+    }
+    else {
+      formData.user_pic = []
+    }
+  }
+  ready.value = true
+}
+
+/** 选择 / 更换人员照片 */
+async function pickAvatar() {
+  if (!ready.value || loading.value)
+    return
+  try {
+    const res = await uni.chooseImage({
+      count: 1,
+      sizeType: ['compressed'],
+      sourceType: ['album', 'camera'],
+    })
+    const path = res.tempFilePaths?.[0]
+    if (!path)
+      return
+    const size = res.tempFiles?.[0]?.size ?? 0
+
+    // 演示环境不走真实上传，直接用本地临时路径预览
+    if (appConfig.useMock) {
+      formData.user_pic = [{
+        id: `local-${Date.now()}`,
+        url: path,
+        name: '人员照片',
+        image: true,
+        content_type: 'image/jpeg',
+        size: String(size),
+      }]
+      return
+    }
+
+    const file = await uploadFile(
+      { path, name: 'avatar.jpg', size, type: 'image/jpeg' },
+      { watermark: false, watermarkPos: 3, watermarkText: '' },
+    )
+    if (file)
+      formData.user_pic = [file]
+  }
+  catch {
+    // 用户取消选择或上传中断，保持原状
+  }
+}
+
+function clearError(key: string) {
+  if (errors[key])
+    delete errors[key]
+}
+
+/** 在部门树中查找目标节点，返回从根到该节点的链路 */
+function findTeamPath(nodes: any[], targetId: string, trail: any[] = []): any[] | null {
+  for (const node of nodes) {
+    const path = [...trail, node]
+    if (String(node.value) === String(targetId))
+      return path
+    if (node.children?.length) {
+      const found = findTeamPath(node.children, targetId, path)
+      if (found)
+        return found
+    }
+  }
+  return null
+}
+
+/** 当前层级可选部门 */
+const teamLevelList = computed(() => {
+  const last = teamPath.value[teamPath.value.length - 1]
+  return last ? (last.children || []) : teamTreeOptions.value
+})
+
+function openTeamPicker() {
+  if (!ready.value || loading.value)
+    return
+  const path = formData.team_id ? findTeamPath(teamTreeOptions.value, formData.team_id) : null
+  // 定位到当前所选部门的同级，避免每次从根节点重新找
+  teamPath.value = path ? path.slice(0, -1) : []
+  teamVisible.value = true
+}
+
+function drillTeam(node: any) {
+  if (node.children?.length) {
+    teamPath.value = [...teamPath.value, node]
+    return
+  }
+  formData.team_id = String(node.value)
+  formData.team_name = [...teamPath.value, node].map((item: any) => item.text).join('/')
+  clearError('team_id')
+  teamVisible.value = false
+}
+
+/** 保存前校验：返回首个错误文案 */
+function validate() {
+  for (const key of Object.keys(errors))
+    delete errors[key]
+
+  if (!formData.name.trim())
+    errors.name = '请输入姓名'
+  if (!formData.mobile_number.trim())
+    errors.mobile_number = '请输入手机号码'
+  else if (!patternRules.isMobileNumber.test(formData.mobile_number))
+    errors.mobile_number = '手机号码格式不正确'
+  if (!formData.team_id)
+    errors.team_id = '请选择所属单位'
+  if (formData.id_no && !/^\d{17}[\dx]$/i.test(formData.id_no.trim()))
+    errors.id_no = '身份证号格式不正确'
+  if (formData.code && !/^\w{3,30}$/.test(formData.code.trim()))
+    errors.code = '登录账号为 3-30 位字母、数字或下划线'
+
+  const first = Object.values(errors)[0]
+  if (first)
+    showToast(first)
+  return !first
+}
+
+async function handleSave() {
+  if (!ready.value || loading.value || !validate())
+    return
+
+  loading.value = true
+  try {
+    const { isSuccess, message } = await api.updateProfile({
+      team_id: formData.team_id,
+      team_name: formData.team_name || undefined,
+      name: formData.name.trim(),
+      mobile_number: formData.mobile_number.trim(),
+      id_no: formData.id_no.trim() || undefined,
+      wkno: formData.wkno.trim() || undefined,
+      code: formData.code.trim() || undefined,
+      working: formData.working,
+      user_pic: formData.user_pic[0]?.id || undefined,
+      user_url: formData.user_pic[0]?.url || undefined,
+    })
+    if (!isSuccess) {
+      showToast(message || '保存失败')
+      return
+    }
+
+    // 同步全局用户信息，返回「我的」后即时生效
+    const { isSuccess: profileSuccess, data: profileData } = await api.get()
+    if (profileSuccess && profileData)
+      authStore.userInfo = { ...authStore.userInfo, ...profileData }
+
+    showToast('资料已保存')
+    setTimeout(safeBack, 600)
+  }
+  catch {
+    showToast('保存失败，请稍后重试')
+  }
+  finally {
+    loading.value = false
+  }
+}
+
+useAuthLoad(() => {
+  loadTeamTree()
+  loadProfile()
+})
+
+</script>
+
+<template>
+  <AuthLayout>
+    <view class="sp-page sp-page--with-bar page">
+      <PageNavbar title="个人信息" />
+      <Watermark />
+
+      <!-- 个人卡：照片 + 身份 + 完整度 -->
+      <view class="hero">
+        <view class="hero-glow" />
+        <view class="hero-glow2" />
+
+        <view class="hero-top">
+          <view class="avatar-wrap" @click="pickAvatar">
+            <image
+              v-if="photoUrl"
+              class="avatar"
+              :src="photoUrl"
+              mode="aspectFill"
+            />
+            <view v-else class="avatar-text">
+              {{ avatarText }}
+            </view>
+            <view class="avatar-badge">
+              ＋
+            </view>
+          </view>
+
+          <view class="hero-info">
+            <view class="hero-title">
+              <text class="hero-name">
+                {{ formData.name || '未填写姓名' }}
+              </text>
+              <view
+                :class="[
+                  'hero-status',
+                  (!formData.working ? 'hero-status--off' : ''),
+                ]"
+              >
+                <view class="status-dot" />
+                <text>{{ formData.working ? '工作中' : '免打扰' }}</text>
+              </view>
+            </view>
+            <text class="hero-meta">
+              {{ metaText }}
+            </text>
+            <text class="hero-hint">
+              点击头像更换人员照片
+            </text>
+          </view>
+        </view>
+
+        <view class="hero-progress">
+          <view class="progress-head">
+            <text class="progress-label">
+              资料完整度
+            </text>
+            <text class="progress-value">
+              {{ complete }}%
+            </text>
+          </view>
+          <view class="progress-track">
+            <view class="progress-fill" :style="{ width: `${complete}%` }" />
+          </view>
+        </view>
+      </view>
+
+      <!-- 基本信息 -->
+      <SpCard title="基本信息" hint="用于考勤与审批流转">
+        <SpFormRow label="姓名" required :error="errors.name">
+          <input
+            v-model="formData.name"
+            class="sp-form-input"
+            placeholder="请输入姓名"
+            placeholder-class="sp-form-placeholder"
+            maxlength="20"
+            @input="clearError('name')" />
+        </SpFormRow>
+
+        <SpFormRow label="手机号码" required :error="errors.mobile_number">
+          <input
+            v-model="formData.mobile_number"
+            class="sp-form-input"
+            type="number"
+            placeholder="请输入手机号码"
+            placeholder-class="sp-form-placeholder"
+            maxlength="11"
+            @input="clearError('mobile_number')" />
+        </SpFormRow>
+
+        <SpFormRow
+          label="所属单位"
+          required
+          arrow
+          :error="errors.team_id"
+          @click="openTeamPicker"
+        >
+          <text class="sp-form-value" :class="[{ 'sp-form-value--placeholder': !formData.team_name }]">
+            {{ formData.team_name || '请选择' }}
+          </text>
+        </SpFormRow>
+      </SpCard>
+
+      <!-- 其他信息 -->
+      <SpCard title="其他信息" hint="选填，用于身份核验">
+        <SpFormRow label="身份证号" :error="errors.id_no">
+          <input
+            v-model="formData.id_no"
+            class="sp-form-input"
+            placeholder="请输入身份证号"
+            placeholder-class="sp-form-placeholder"
+            maxlength="18"
+            @input="clearError('id_no')" />
+        </SpFormRow>
+
+        <SpFormRow label="工号">
+          <input
+            v-model="formData.wkno"
+            class="sp-form-input"
+            placeholder="请输入工号"
+            placeholder-class="sp-form-placeholder"
+            maxlength="20" />
+        </SpFormRow>
+
+        <SpFormRow label="登录账号" :error="errors.code">
+          <input
+            v-model="formData.code"
+            class="sp-form-input"
+            placeholder="区分大小写"
+            placeholder-class="sp-form-placeholder"
+            maxlength="30"
+            @input="clearError('code')" />
+        </SpFormRow>
+      </SpCard>
+
+      <!-- 工作状态 -->
+      <SpCard title="提醒设置">
+        <view class="row row--switch">
+          <view class="row-main">
+            <text class="row-label">
+              工作状态
+            </text>
+            <text class="row-desc">
+              {{ formData.working ? '工作中，正常接收待办与考勤提醒' : '免打扰，暂时不再接收消息提醒' }}
+            </text>
+          </view>
+          <switch :checked="formData.working" @change="onWorkingChange" />
+        </view>
+      </SpCard>
+
+      <view class="notice">
+        <text class="notice-title">
+          资料说明
+        </text>
+        <text class="notice-item">
+          · 姓名、手机号与所属单位会同步到考勤打卡与审批流程
+        </text>
+        <text class="notice-item">
+          · 人员照片仅用于工作台展示，人脸识别照片请前往「人脸采集」更新
+        </text>
+      </view>
+
+      <!-- 底部操作栏 -->
+      <view class="sp-bottom-bar">
+        <view class="sp-bottom-bar-inner">
+          <view class="sp-btn sp-btn--primary" :class="!ready ? 'sp-btn--disabled' : ''" style="flex: 1;" @click="handleSave">
+        <text class="sp-btn-text">
+          保存修改
+        </text>
+      </view>
+        </view>
+      </view>
+
+      <view v-if="teamVisible" class="sp-mask" @click="teamVisible = false">
+        <view class="sp-sheet" @click.stop>
+        <view class="sheet">
+          <view class="sheet-head">
+            <text class="sheet-title">
+              选择所属单位
+            </text>
+            <text class="sheet-close" @click="teamVisible = false">
+              ✕
+            </text>
+          </view>
+
+          <view class="sheet-crumb">
+            <text
+              :class="['crumb-item', (!teamPath.length ? 'crumb-item--active' : '')]"
+              @click="teamPath = []"
+            >
+              全部
+            </text>
+            <text
+              v-for="(node, index) in teamPath"
+              :key="node.value"
+              :class="['crumb-item', (index === teamPath.length - 1 ? 'crumb-item--active' : '')]"
+              @click="teamPath = teamPath.slice(0, index + 1)"
+            >
+              {{ node.text }}
+            </text>
+          </view>
+
+          <view class="sheet-list">
+            <view
+              v-for="node in teamLevelList"
+              :key="node.value"
+              :class="['sheet-item', (String(node.value) === formData.team_id ? 'sheet-item--current' : '')]"
+              @click="drillTeam(node)"
+            >
+              <text class="sheet-item-text">
+                {{ node.text }}
+              </text>
+              <text v-if="node.children?.length" class="sheet-item-extra">
+                {{ node.children.length }} 个下级
+              </text>
+              <view class="sheet-item-arrow">
+                <Check
+                  v-if="String(node.value) === formData.team_id"
+                  size="16"
+                  color="#4f46e5"
+                />
+                <text v-else-if="node.children?.length" class="sp-icon-chevron" :style="{ color: '#c2c6d4' }">›</text>
+              </view>
+            </view>
+          </view>
+        </view>
+              </view>
+      </view>
+    </view>
+  </AuthLayout>
+</template>
+
+<style lang="scss">
+.page {
+  min-height: 100%;
+  // 底部留白交给 .sp-page--with-bar，避免简写覆盖固定操作栏的预留高度
+  padding: 12px 0 0;
+  background: #f5f6fa;
+}
+
+/* ==================== 顶部个人卡 ==================== */
+
+.hero {
+  position: relative;
+  margin: 4px 16px 0;
+  padding: 24px 24px 20px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #3b4fe0 0%, #5b4ae0 46%, #7c3aed 100%);
+  box-shadow: 0 18px 40px rgba(59, 79, 224, 0.26);
+  color: #fff;
+}
+
+.hero-glow {
+  position: absolute;
+  top: -120px;
+  right: -80px;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(94, 234, 212, 0.3), transparent 68%);
+}
+
+.hero-glow2 {
+  position: absolute;
+  bottom: -110px;
+  left: -70px;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.18), transparent 70%);
+}
+
+.hero-top {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+/* 头像 */
+
+.avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+  width: 100px;
+  height: 100px;
+}
+
+/* #ifdef WEB */
+.avatar-wrap:active {
+  opacity: 0.86;
+}
+
+/* #endif */
+
+.avatar {
+  display: block;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.32);
+  background-color: rgba(255, 255, 255, 0.14);
+}
+
+.avatar-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  height: 100px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.32);
+  background-color: rgba(255, 255, 255, 0.16);
+  font-size: 40px;
+  font-weight: 700;
+}
+
+.avatar-badge {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #fff;
+  box-shadow: 0 4px 10px rgba(23, 23, 64, 0.22);
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1;
+  color: #4f46e5;
+}
+
+.hero-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hero-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.hero-name {
+  flex-shrink: 0;
+  max-width: 60%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.hero-status {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 12px 3px 8px;
+  border-radius: 999px;
+  background-color: rgba(255, 255, 255, 0.18);
+  font-size: 18px;
+  color: #fff;
+}
+
+/* #ifdef WEB */
+.hero-status .status-dot {
+  background-color: #5eead4;
+  box-shadow: 0 0 0 4px rgba(94, 234, 212, 0.22);
+}
+
+/* #endif */
+/* #ifdef WEB */
+.hero-status--off .status-dot {
+  background-color: #fbbf24;
+  box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.22);
+}
+
+/* #endif */
+
+.status-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.hero-meta {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 21px;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.hero-hint {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.52);
+}
+
+/* 资料完整度 */
+
+.hero-progress {
+  position: relative;
+  z-index: 1;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.progress-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.progress-label {
+  font-size: 20px;
+  color: rgba(255, 255, 255, 0.66);
+}
+
+.progress-value {
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.progress-track {
+  height: 6px;
+  border-radius: 999px;
+  background-color: rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #5eead4 0%, #a7f3d0 100%);
+  transition: width 0.3s ease;
+}
+
+/* ==================== 表单卡片 ==================== */
+
+/* 表单行 */
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 94px;
+  padding: 0 4px;
+  border-bottom: 1px solid #f3f4f9;
+}
+
+/* #ifdef WEB */
+.row:last-child {
+  border-bottom: none;
+}
+
+/* #endif */
+
+.row-label {
+  flex-shrink: 0;
+  width: 150px;
+  font-size: 24px;
+  color: #23263a;
+}
+
+/* 只读值（选择类） */
+
+.row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px 0;
+}
+
+/* #ifdef WEB */
+.row-main .row-label {
+  width: auto;
+}
+
+/* #endif */
+
+.row-desc {
+  font-size: 19px;
+  line-height: 1.5;
+  color: #9aa0b4;
+}
+
+/* 必填标记 */
+
+/* 校验失败 */
+
+/* ==================== 单位选择面板 ==================== */
+
+.sheet {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 0 calc(12px + env(safe-area-inset-bottom, 0px));
+}
+
+.sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 26px 12px;
+}
+
+.sheet-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1c1c2e;
+}
+
+.sheet-close {
+  font-size: 26px;
+  color: #b6bbc9;
+  padding: 4px 0 4px 12px;
+}
+
+.sheet-crumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 0 26px 14px;
+  font-size: 20px;
+  color: #9aa0b4;
+}
+
+.crumb-item {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background-color: #f4f5fb;
+  color: #6b7080;
+}
+
+.crumb-item--active {
+  background-color: #eef2ff;
+  color: #4f46e5;
+}
+
+/* #ifdef WEB */
+.crumb-item:active {
+  opacity: 0.75;
+}
+
+/* #endif */
+
+.sheet-list {
+  max-height: 52vh;
+  overflow-y: auto;
+  padding: 0 26px;
+}
+
+.sheet-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 88px;
+  border-bottom: 1px solid #f3f4f9;
+}
+
+/* #ifdef WEB */
+.sheet-item:last-child {
+  border-bottom: none;
+}
+
+/* #endif */
+/* #ifdef WEB */
+.sheet-item:active {
+  background-color: #fafbff;
+}
+
+/* #endif */
+/* #ifdef WEB */
+.sheet-item--current .sheet-item-text {
+  color: #4f46e5;
+  font-weight: 600;
+}
+
+/* #endif */
+
+.sheet-item-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 24px;
+  color: #23263a;
+}
+
+.sheet-item-extra {
+  flex-shrink: 0;
+  font-size: 19px;
+  color: #a8aec0;
+}
+
+.sheet-item-arrow {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  color: #c2c6d4;
+}
+
+/* ==================== 底部说明 ==================== */
+
+.notice {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 22px 26px 4px;
+}
+
+.notice-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #8f96ab;
+}
+
+.notice-item {
+  font-size: 19px;
+  line-height: 1.6;
+  color: #a8aec0;
+}
+</style>

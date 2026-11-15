@@ -1,0 +1,397 @@
+<script setup lang="ts">
+import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { profile as profileApi } from '@/api/identity/index.ts'
+import { file as fileApi } from '@/api/misc/index.ts'
+
+const emit = defineEmits(['cancel', 'success', 'switch-photo'])
+
+const videoBoxRef = ref<any>(null)
+const phase = ref<'init' | 'ready' | 'submitting' | 'success' | 'failed'>('init')
+const cameraError = ref(false)
+const statusText = ref('请正对摄像头，面部置于取景框内')
+const resultText = ref<string | null>(null)
+let video: HTMLVideoElement | null = null
+let stream: MediaStream | null = null
+
+onMounted(() => {
+  if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
+    cameraError.value = true
+    return
+  }
+
+  navigator.mediaDevices
+    .getUserMedia({
+      audio: false,
+      video: {
+        // 不用 exact: 'user'，部分安卓机/外接摄像头会直接 OverconstrainedError
+        facingMode: 'user',
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      },
+    })
+    .then((mediaStream) => {
+      stream = mediaStream
+      nextTick(() => {
+        const el = document.createElement('video')
+        el.setAttribute('playsinline', '')
+        el.setAttribute('webkit-playsinline', '')
+        el.muted = true
+        el.autoplay = true
+        el.style.cssText = 'width:100vw;height:100vh;object-fit:cover;transform:scaleX(-1);'
+        const box = videoBoxRef.value?.$el ?? videoBoxRef.value
+        if (!box) {
+          mediaStream.getTracks().forEach(track => track.stop())
+          cameraError.value = true
+          return
+        }
+        box.appendChild(el)
+        el.srcObject = mediaStream
+        video = el
+        el.play().catch(() => {
+          cleanup()
+          cameraError.value = true
+        })
+        phase.value = 'ready'
+      })
+    })
+    .catch((err) => {
+      console.log('视频流摄像头不可用', err)
+      cameraError.value = true
+    })
+})
+
+onBeforeUnmount(() => {
+  cleanup()
+})
+
+function cleanup() {
+  stream?.getTracks().forEach(track => track.stop())
+  stream = null
+  video?.remove()
+  video = null
+}
+
+/** 抓取登记帧（base64，不带 data:image 前缀）；镜像处理与考勤识别帧保持一致 */
+function captureFrame(): string {
+  const vw = video!.videoWidth
+  const vh = video!.videoHeight
+  const width = Math.min(640, vw)
+  const height = Math.round(vh * (width / vw))
+  const canvas = document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height
+  const ctx = canvas.getContext('2d')!
+  ctx.translate(width, 0)
+  ctx.scale(-1, 1)
+  ctx.drawImage(video!, 0, 0, width, height)
+  return canvas.toDataURL('image/jpeg', 0.85).split(',')[1]
+}
+
+function markFail(message: string) {
+  if (phase.value !== 'submitting')
+    return
+  phase.value = 'failed'
+  resultText.value = message
+}
+
+async function submit() {
+  if (phase.value !== 'ready' || !video?.videoWidth) {
+    statusText.value = '相机画面尚未准备完成，请稍候'
+    return
+  }
+
+  phase.value = 'submitting'
+  resultText.value = '照片上传中，请稍候...'
+
+  const upload = await fileApi.uploadImageTemp({ data: captureFrame() }).catch(() => null)
+  if (!upload?.isSuccess || !upload.data) {
+    markFail('照片上传失败，请重试')
+    return
+  }
+
+  const update = await profileApi.updateFace({ image_pic: upload.data.id }).catch(() => null)
+  if (!update?.isSuccess) {
+    markFail(update?.message || '人脸照片不合规，请重新拍摄')
+    return
+  }
+
+  phase.value = 'success'
+  resultText.value = '登记成功'
+  setTimeout(() => {
+    cleanup()
+    emit('success')
+  }, 1000)
+}
+
+function restart() {
+  phase.value = 'ready'
+  resultText.value = null
+  statusText.value = '请正对摄像头，面部置于取景框内'
+}
+
+function handleCancel() {
+  cleanup()
+  emit('cancel')
+}
+
+function handleSwitchPhoto() {
+  cleanup()
+  emit('switch-photo')
+}
+
+</script>
+
+<template>
+  <view class="stream_box">
+    <view v-if="cameraError" class="camera_error">
+      <view class="on1">
+        相机权限被拒绝或不可用，请尝试如下操作：
+      </view>
+      <view>· 刷新页面后重试；</view>
+      <view>· 在系统中检测当前App或浏览器的相机权限是否被禁用；</view>
+      <view class="btns">
+        <view class="sp-btn btn_error" @click="handleSwitchPhoto">
+        <text class="sp-btn-text">
+          切换拍照上传
+        </text>
+      </view>
+      </view>
+    </view>
+
+    <template v-else>
+      <view ref="videoBoxRef" class="video_box" />
+      <view class="mask" />
+
+      <view class="status_bar">
+        <view class="status_text">
+          {{ statusText }}
+        </view>
+      </view>
+
+      <view v-if="phase === 'ready'" class="shutter_bar">
+        <view class="sp-btn btn_primary sp-btn--primary" @click="submit">
+        <text class="sp-btn-text">
+          开始采集
+        </text>
+      </view>
+        <view class="sp-btn btn_switch" @click="handleSwitchPhoto">
+        <text class="sp-btn-text sp-btn-text--dark">
+          切换拍照上传
+        </text>
+      </view>
+      </view>
+
+      <view class="close_bar">
+        <view class="sp-btn btn_white" @click="handleCancel">
+        <text class="sp-btn-text sp-btn-text--dark">
+          取消
+        </text>
+      </view>
+      </view>
+
+      <view v-if="phase === 'submitting' || phase === 'success' || phase === 'failed'" class="result_errors">
+        <view class="content">
+          <Loading v-if="phase === 'submitting'" size="80" color="#999999" />
+          <text
+            v-else
+            class="result-glyph"
+            :style="{ color: phase === 'success' ? '#57842D' : '#F14B5E' }"
+          >
+            {{ phase === 'success' ? '✓' : '!' }}
+          </text>
+          <view class="text">
+            {{ resultText }}
+          </view>
+        </view>
+        <view v-if="phase === 'failed'" class="footer_btn">
+          <view class="sp-btn btn_retry" @click="restart">
+        <text class="sp-btn-text sp-btn-text--dark">
+          重新拍摄
+        </text>
+      </view>
+          <view class="sp-btn btn_retry" @click="handleSwitchPhoto">
+        <text class="sp-btn-text sp-btn-text--dark">
+          切换拍照上传
+        </text>
+      </view>
+        </view>
+      </view>
+    </template>
+  </view>
+</template>
+
+<style lang="scss">
+.stream_box {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: $z-overlay;
+  background-color: #000;
+}
+
+.video_box {
+  width: 100vw;
+  height: 100vh;
+}
+
+// 人脸取景框：中心圆孔 + 四周半透明遮罩
+.mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: auto;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* #ifdef WEB */
+.mask::after {
+  content: '';
+  width: 480px;
+  height: 480px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.5);
+  border: 4px solid rgba(255, 255, 255, 0.8);
+}
+
+/* #endif */
+
+.status_bar {
+  position: absolute;
+  top: 200px;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  color: #fff;
+  z-index: 10;
+}
+
+.status_text {
+  font-size: 36px;
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+}
+
+.shutter_bar,
+.close_bar {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.shutter_bar {
+  bottom: 120px;
+  gap: 20px;
+}
+
+.close_bar {
+  top: 40px;
+  justify-content: flex-start;
+  padding-left: 40px;
+}
+
+.camera_error {
+  padding: 80px;
+  color: #fff;
+  font-size: 28px;
+}
+
+/* #ifdef WEB */
+.camera_error .on1 {
+  font-size: 32px;
+  margin-bottom: 20px;
+}
+
+/* #endif */
+/* #ifdef WEB */
+.camera_error .btns {
+  margin-top: 60px;
+}
+
+/* #endif */
+
+.btn_primary {
+  width: 300px;
+  height: 88px;
+  border-radius: 44px;
+}
+
+.btn_switch {
+  width: 300px;
+  height: 80px;
+}
+
+.btn_retry {
+  width: 300px;
+  height: 80px;
+}
+
+// 摄像头画面上的按钮：白字 + 半透明黑底，确保在深色视频背景上可辨识
+.btn_white {
+  width: 160px;
+  height: 64px;
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  background-color: rgba(0, 0, 0, 0.35);
+}
+
+.btn_error {
+  width: 300px;
+}
+
+.result_errors {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding-top: 360px;
+  background-color: #fff;
+  z-index: 100;
+  box-sizing: border-box;
+}
+
+/* #ifdef WEB */
+.result_errors .content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* #endif */
+
+/* #ifdef WEB */
+.result_errors .content .text {
+  margin-top: 100px;
+  color: rgba(0, 0, 0, 0.8);
+  padding: 0 40px;
+  word-break: break-all;
+}
+
+/* #endif */
+
+.footer_btn {
+  position: absolute;
+  bottom: 240px;
+  left: 0;
+  width: 100%;
+  padding: 0 160px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+</style>

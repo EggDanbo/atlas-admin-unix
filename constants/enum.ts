@@ -1,0 +1,17 @@
+/** HTTP 业务状态码 */
+export const HttpStatus = {
+  SUCCESS: 0,
+  TOKEN_EXPIRED: 42001,
+  NEED_LOGIN: 912,
+  NO_PERMISSION: 900,
+  NO_CREDENTIAL: 901,
+  CREDENTIAL_FAIL: 902,
+  ACCOUNT_ERROR: 903,
+  PARAM_ERROR: 730,
+  TIMEOUT: 720,
+  REQUEST_FAIL: 701,
+  SERVER_ERROR: 500,
+}
+
+/** 不需要错误提示的 code 列表 */
+export const NO_ERROR_TIP_CODES: number[] = [10000]

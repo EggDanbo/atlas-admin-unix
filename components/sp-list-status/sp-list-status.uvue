@@ -1,0 +1,75 @@
+<script setup lang="ts">
+defineProps({
+  loading: { type: Boolean, default: false },
+  finished: { type: Boolean, default: false },
+  isEmpty: { type: Boolean, default: false },
+  hasData: { type: Boolean, default: false },
+  emptyText: { type: String, default: '暂无数据' },
+})
+
+defineEmits(['loadMore'])
+
+</script>
+
+<template>
+  <view>
+    <!-- 首次加载中 -->
+    <view v-if="loading && !hasData" class="loadingWrap">
+      <Loading class="loadingIcon" />
+      <text class="loadingText">
+        加载中...
+      </text>
+    </view>
+
+    <!-- 空列表 -->
+    <SpEmpty v-else-if="isEmpty && !loading" :description="emptyText" />
+
+    <!-- 列表正常显示 -->
+    <template v-else-if="hasData">
+      <slot />
+
+      <!-- 底部加载状态：非加载中 -->
+      <view v-if="!loading" class="loadStatus">
+        <text class="loadStatusText">
+          {{ finished ? '没有更多了' : '上拉加载更多' }}
+        </text>
+      </view>
+
+      <!-- 底部加载状态：加载更多中 -->
+      <view v-else class="loadStatus">
+        <Loading class="loadingIcon" />
+      </view>
+    </template>
+  </view>
+</template>
+
+<style lang="scss">
+.loadingWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 0;
+}
+
+.loadingIcon {
+  font-size: $font-size-sm;
+  color: $primary-color;
+}
+
+.loadingText {
+  margin-top: 12px;
+  font-size: $font-size-sm;
+  color: $text-color-secondary;
+}
+
+.loadStatus {
+  padding: 24px 0;
+  text-align: center;
+}
+
+.loadStatusText {
+  font-size: $font-size-xs;
+  color: $text-color-placeholder;
+}
+</style>

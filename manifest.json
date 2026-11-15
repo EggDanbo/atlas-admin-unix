@@ -1,0 +1,51 @@
+{
+  "name": "Atlas 工作台",
+  "appid": "__UNI__ATLASX",
+  "description": "Atlas 工作台 · 移动端演示应用（uni-app x 版）",
+  "versionName": "1.0.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "uni-app-x": {},
+  "app": {
+    "distribute": {
+      "android": {
+        "permissions": [
+          "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>",
+          "<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"/>",
+          "<uses-permission android:name=\"android.permission.CAMERA\"/>",
+          "<uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\"/>",
+          "<uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\"/>",
+          "<uses-permission android:name=\"android.permission.INTERNET\"/>"
+        ]
+      },
+      "ios": {},
+      "sdkConfigs": {}
+    },
+    "permission": {
+      "scope.userLocation": {
+        "desc": "需要获取您的位置以提供相关服务"
+      }
+    }
+  },
+  "web": {
+    "router": {
+      "mode": "hash"
+    },
+    "title": "Atlas 工作台"
+  },
+  "mp-weixin": {
+    "appid": "wx3a861f93771bd50b",
+    "setting": {
+      "urlCheck": false,
+      "es6": true,
+      "minified": true
+    },
+    "usingComponents": true,
+    "permission": {
+      "scope.userLocation": {
+        "desc": "需要获取您的位置以提供相关服务"
+      }
+    }
+  },
+  "vueVersion": "3"
+}

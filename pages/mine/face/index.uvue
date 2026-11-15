@@ -1,0 +1,706 @@
+<script setup lang="ts">
+import type { FileStorageFileResourceModel } from '@/types/api.ts'
+import { computed, ref } from 'vue'
+import { isWeb, isWeapp } from '@/utils/platform.ts'
+import AuthLayout from '@/components/auth-layout/auth-layout.uvue'
+import PageNavbar from '@/components/page-navbar/page-navbar.uvue'
+import SpFaceCamera from '@/components/sp-face-camera/sp-face-camera.uvue'
+import { showToast } from '@/components/sp-toast/toast.ts'
+import { useAuthLoad } from '@/composables/use-auth-load.ts'
+import { profile as api } from '@/api/identity/index.ts'
+import { useAuthStore } from '@/store/auth'
+import FaceStreamCapture from './components/FaceStreamCapture.uvue'
+
+const authStore = useAuthStore()
+
+// 视频流采集仅 H5 支持，小程序直接使用拍照链路
+const IS_WEAPP = isWeapp()
+
+const faceModel = ref<FileStorageFileResourceModel | null>(null)
+const faceUtime = ref('')
+const captureMode = ref<'photo' | 'stream'>('photo')
+const method = ref<'photo' | 'stream'>(IS_WEAPP ? 'photo' : 'stream')
+const cameraRef = ref<any>(null)
+
+const hasFace = computed(() => !!faceModel.value)
+const faceUrl = computed(() => faceModel.value?.url || '')
+/** 采集时间去掉年份，适合放在状态卡的一行里 */
+const faceUtimeText = computed(() => faceUtime.value.replace(/^\d{4}-/, '') || '—')
+const ctaText = computed(() => (hasFace.value ? '重新采集人脸' : '开始采集'))
+
+/** 采集流程三步说明 */
+const steps = ['对准取景框', '拍摄自动核验', '完成启用']
+
+/** 拍摄要求 */
+const tips = [
+  '正对镜头，人脸完整落在取景框内',
+  '光线均匀，避免逆光、阴影与强反光',
+  '不戴帽子口罩，眼镜镜片不反光',
+  '背景干净，画面中只有你一张脸',
+]
+
+async function loadFace() {
+  const { isSuccess, data } = await api.info()
+  if (isSuccess && data?.face_url) {
+    faceModel.value = {
+      id: data.face_pic || '',
+      url: data.face_url,
+      name: 'face.jpg',
+      image: true,
+      content_type: 'image/jpeg',
+      size: '0',
+    }
+    faceUtime.value = data.face_utime || ''
+  }
+  else {
+    faceModel.value = null
+    faceUtime.value = ''
+  }
+}
+
+/** 人脸照片变化后同步全局用户信息，「我的」页可即时看到采集状态 */
+async function syncAuth() {
+  const { isSuccess, data } = await api.get()
+  if (isSuccess && data)
+    authStore.userInfo = { ...authStore.userInfo, ...data }
+}
+
+/** 开始采集：已采集过先确认，避免误覆盖 */
+async function startCapture() {
+  if (hasFace.value) {
+    const { confirm } = await uni.showModal({
+      title: '重新采集',
+      content: '重新采集会覆盖现有人脸照片，确定继续吗？',
+      confirmText: '继续采集',
+    })
+    if (!confirm)
+      return
+  }
+
+  if (method.value === 'stream' && !IS_WEAPP) {
+    captureMode.value = 'stream'
+    return
+  }
+  cameraRef.value?.startCamera()
+}
+
+function chooseStream() {
+  if (IS_WEAPP) {
+    showToast('小程序端请使用拍照采集')
+    return
+  }
+  method.value = 'stream'
+}
+
+async function handleStreamSuccess() {
+  captureMode.value = 'photo'
+  await loadFace()
+  await syncAuth()
+  showToast('人脸照片更新成功')
+}
+
+function handleStreamCancel() {
+  captureMode.value = 'photo'
+}
+
+function handleStreamSwitchPhoto() {
+  captureMode.value = 'photo'
+  method.value = 'photo'
+}
+
+async function handleFaceChange(file: FileStorageFileResourceModel | null) {
+  if (!file)
+    return
+
+  const { isSuccess, message } = await api.updateFace({
+    image_pic: file.id,
+    image_url: file.url,
+  })
+
+  if (!isSuccess) {
+    showToast(message || '人脸照片上传失败', { duration: 3000 })
+    return
+  }
+
+  await loadFace()
+  await syncAuth()
+  showToast('人脸照片更新成功')
+}
+
+useAuthLoad(async () => {
+  await loadFace()
+})
+
+</script>
+
+<template>
+  <AuthLayout>
+    <view class="sp-page sp-page--with-bar page">
+      <PageNavbar title="人脸采集" />
+      <Watermark />
+
+      <!-- 状态卡 -->
+      <view class="hero">
+        <view class="hero-glow" />
+        <view class="hero-glow2" />
+
+        <view class="hero-main">
+          <view class="face-shell">
+            <image
+              v-if="faceUrl"
+              class="face"
+              :src="faceUrl"
+              mode="aspectFill"
+            />
+            <view v-else class="face-empty">
+              <My size="42" color="rgba(255, 255, 255, 0.72)" />
+            </view>
+            <view :class="['face-badge', (hasFace ? 'face-badge--done' : '')]">
+              <Check v-if="hasFace" size="13" color="#0f766e" />
+              <text v-else class="face-badge-plus">
+                ＋
+              </text>
+            </view>
+          </view>
+
+          <view class="hero-info">
+            <view class="hero-title">
+              <text class="hero-name">
+                {{ hasFace ? '人脸已采集' : '还未采集人脸' }}
+              </text>
+              <view :class="['hero-pill', (hasFace ? 'hero-pill--done' : '')]">
+                <view class="pill-dot" />
+                <text>{{ hasFace ? '已启用' : '待采集' }}</text>
+              </view>
+            </view>
+            <text class="hero-meta">
+              {{ hasFace ? `更新于 ${faceUtimeText}` : '采集后可用于人脸识别打卡' }}
+            </text>
+            <text class="hero-hint">
+              {{ hasFace ? '如需停用人脸识别，请联系管理员' : '整个采集过程约需 10 秒' }}
+            </text>
+          </view>
+        </view>
+
+        <view class="hero-steps">
+          <view v-for="(step, index) in steps" :key="step" class="step">
+            <view class="step-index">
+              {{ index + 1 }}
+            </view>
+            <text class="step-text">
+              {{ step }}
+            </text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 采集方式 -->
+      <SpCard title="采集方式" :hint="IS_WEAPP ? '小程序端' : '推荐视频采集'">
+        <view
+          :class="['method', (method === 'photo' ? 'method--active' : '')]"
+          @click="method = 'photo'"
+        >
+          <view class="method-icon">
+            <Photograph size="20" color="#4f46e5" />
+          </view>
+          <view class="method-body">
+            <text class="method-title">
+              拍照采集
+            </text>
+            <text class="method-desc">
+              拍摄一张清晰的正面照片
+            </text>
+          </view>
+          <view :class="['radio', (method === 'photo' ? 'radio--on' : '')]">
+            <Check v-if="method === 'photo'" size="11" color="#fff" />
+          </view>
+        </view>
+
+        <view
+          :class="[
+            'method',
+            (method === 'stream' ? 'method--active' : ''),
+            (IS_WEAPP ? 'method--disabled' : ''),
+          ]"
+          @click="chooseStream"
+        >
+          <view class="method-icon method-icon--teal">
+            <PlayCircleFill size="20" color="#0d9488" />
+          </view>
+          <view class="method-body">
+            <view class="method-title-row">
+              <text class="method-title">
+                视频采集
+              </text>
+              <text v-if="!IS_WEAPP" class="method-tag">
+                推荐
+              </text>
+            </view>
+            <text class="method-desc">
+              {{ IS_WEAPP ? '小程序端暂不支持，请使用拍照采集' : '实时取景，活体检测更可靠' }}
+            </text>
+          </view>
+          <view :class="['radio', (method === 'stream' ? 'radio--on' : '')]">
+            <Check v-if="method === 'stream'" size="11" color="#fff" />
+          </view>
+        </view>
+      </SpCard>
+
+      <!-- 拍摄要求 -->
+      <SpCard title="拍摄要求" hint="一次拍好，减少重试">
+        <view class="tips">
+          <view v-for="(tip, index) in tips" :key="tip" class="tip">
+            <view class="tip-index">
+              {{ index + 1 }}
+            </view>
+            <text class="tip-text">
+              {{ tip }}
+            </text>
+          </view>
+        </view>
+      </SpCard>
+
+      <!-- 隐私说明 -->
+      <view class="privacy">
+        <view class="privacy-icon">
+          <Check size="16" color="#0d9488" />
+        </view>
+        <view class="privacy-body">
+          <text class="privacy-title">
+            隐私说明
+          </text>
+          <text class="privacy-text">
+            人脸照片仅用于考勤身份核验，加密存储，不会用于其他用途；重新采集会覆盖原有照片。
+          </text>
+        </view>
+      </view>
+
+      <!-- 底部操作栏 -->
+      <view class="sp-bottom-bar">
+        <view class="sp-bottom-bar-inner">
+          <view class="sp-btn sp-btn--primary" style="flex: 1;" @click="startCapture">
+        <text class="sp-btn-text">
+          {{ ctaText }}
+        </text>
+      </view>
+        </view>
+      </view>
+
+      <!-- 拍照采集：相机 / 预览 / 上传由组件全屏承载 -->
+      <SpFaceCamera
+        ref="cameraRef"
+        v-model="faceModel"
+        :show-idle="false"
+        @change="handleFaceChange"
+      />
+    </view>
+  </AuthLayout>
+
+  <FaceStreamCapture
+    v-if="captureMode === 'stream'"
+    @success="handleStreamSuccess"
+    @cancel="handleStreamCancel"
+    @switch-photo="handleStreamSwitchPhoto"
+  />
+</template>
+
+<style lang="scss">
+.page {
+  min-height: 100%;
+  // 底部留白交给 .sp-page--with-bar
+  padding: 12px 0 0;
+  background: #f5f6fa;
+}
+
+/* ==================== 状态卡 ==================== */
+
+.hero {
+  position: relative;
+  margin: 4px 16px 0;
+  padding: 24px 24px 18px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #3b4fe0 0%, #5b4ae0 46%, #7c3aed 100%);
+  box-shadow: 0 18px 40px rgba(59, 79, 224, 0.26);
+  color: #fff;
+}
+
+.hero-glow {
+  position: absolute;
+  top: -120px;
+  right: -80px;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(94, 234, 212, 0.3), transparent 68%);
+}
+
+.hero-glow2 {
+  position: absolute;
+  bottom: -110px;
+  left: -70px;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.18), transparent 70%);
+}
+
+.hero-main {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+/* 人脸圆形 */
+
+.face-shell {
+  position: relative;
+  flex-shrink: 0;
+  width: 116px;
+  height: 116px;
+}
+
+.face {
+  display: block;
+  width: 116px;
+  height: 116px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.32);
+  background-color: rgba(255, 255, 255, 0.14);
+}
+
+.face-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 116px;
+  height: 116px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 2px dashed rgba(255, 255, 255, 0.42);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.face-badge {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background-color: #fff;
+  box-shadow: 0 4px 10px rgba(23, 23, 64, 0.22);
+  color: #4f46e5;
+}
+
+.face-badge--done {
+  background-color: #5eead4;
+}
+
+.face-badge-plus {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.hero-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hero-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.hero-name {
+  flex-shrink: 0;
+  max-width: 62%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.hero-pill {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px 4px 9px;
+  border-radius: 999px;
+  background-color: rgba(255, 255, 255, 0.18);
+  font-size: 18px;
+  color: #fff;
+}
+
+/* #ifdef WEB */
+.hero-pill .pill-dot {
+  background-color: #fbbf24;
+  box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.22);
+}
+
+/* #endif */
+/* #ifdef WEB */
+.hero-pill--done .pill-dot {
+  background-color: #5eead4;
+  box-shadow: 0 0 0 4px rgba(94, 234, 212, 0.22);
+}
+
+/* #endif */
+
+.pill-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.hero-meta {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 21px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.hero-hint {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.52);
+}
+
+/* 采集流程 */
+
+.hero-steps {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.step {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.step-index {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.2);
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.step-text {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 17px;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* ==================== 卡片 ==================== */
+
+/* 采集方式 */
+
+.method {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 -8px;
+  padding: 16px 8px;
+  border-radius: 14px;
+  border-bottom: 1px solid #f3f4f9;
+}
+
+/* #ifdef WEB */
+.method:last-child {
+  border-bottom: none;
+}
+
+/* #endif */
+.method--active {
+  background-color: #f7f8ff;
+}
+
+.method--disabled {
+  opacity: 0.55;
+}
+
+.method-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background-color: #eef2ff;
+}
+
+.method-icon--teal {
+  background-color: #ecfdf5;
+}
+
+.method-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.method-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.method-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #23263a;
+}
+
+.method-tag {
+  flex-shrink: 0;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background-color: rgba(13, 148, 136, 0.1);
+  font-size: 16px;
+  color: #0d9488;
+}
+
+.method-desc {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 19px;
+  color: #9aa0b4;
+}
+
+.radio {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid #dcdfea;
+  box-sizing: border-box;
+}
+
+.radio--on {
+  border-color: #4f46e5;
+  background-color: #4f46e5;
+}
+
+/* 拍摄要求 */
+
+.tips {
+  padding: 0 0 6px;
+}
+
+.tip {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 15px 4px;
+  border-bottom: 1px solid #f3f4f9;
+}
+
+/* #ifdef WEB */
+.tip:last-child {
+  border-bottom: none;
+}
+
+/* #endif */
+
+.tip-index {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #eef2ff;
+  font-size: 17px;
+  font-weight: 600;
+  color: #4f46e5;
+}
+
+.tip-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 21px;
+  line-height: 1.5;
+  color: #4b5063;
+}
+
+/* ==================== 隐私说明 ==================== */
+
+.privacy {
+  display: flex;
+  gap: 14px;
+  margin: 16px 16px 0;
+  padding: 18px 20px;
+  border-radius: 18px;
+  background-color: rgba(13, 148, 136, 0.06);
+}
+
+.privacy-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgba(13, 148, 136, 0.12);
+}
+
+.privacy-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.privacy-title {
+  font-size: 21px;
+  font-weight: 600;
+  color: #0f766e;
+}
+
+.privacy-text {
+  font-size: 19px;
+  line-height: 1.6;
+  color: #5f8b86;
+}
+</style>

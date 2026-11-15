@@ -1,0 +1,302 @@
+<script setup lang="ts">
+import type { CheckinStats } from '@/api/checkin.ts'
+
+import { computed, ref } from 'vue'
+import AuthLayout from '@/components/auth-layout/auth-layout.uvue'
+import PageNavbar from '@/components/page-navbar/page-navbar.uvue'
+import checkinApi from '@/api/checkin.ts'
+
+const stats = ref<CheckinStats | null>(null)
+const loading = ref(true)
+
+const maxHours = computed(() => Math.max(10, ...(stats.value?.recent ?? []).map(r => r.hours)))
+
+async function load() {
+  loading.value = true
+  const { isSuccess, data } = await checkinApi.stats()
+  if (isSuccess && data)
+    stats.value = data
+  loading.value = false
+}
+
+onPageShow(() => void load())
+
+function barHeight(hours: number) {
+  return `${Math.round((hours / maxHours.value) * 100)}%`
+}
+
+</script>
+
+<template>
+  <AuthLayout>
+    <view class="sp-page page">
+      <PageNavbar title="考勤统计" />
+
+      <view class="header">
+        <text class="header-title">
+          {{ stats?.month || '' }}考勤概览
+        </text>
+        <text class="header-sub">
+          截止今天，数据每 5 分钟同步一次
+        </text>
+      </view>
+
+      <view class="grid">
+        <view class="tile">
+          <text class="tile-value">
+            {{ stats?.days ?? 0 }}
+          </text>
+          <text class="tile-label">
+            出勤天数
+          </text>
+        </view>
+        <view class="tile">
+          <text class="tile-value tile-value--warn">
+            {{ stats?.late ?? 0 }}
+          </text>
+          <text class="tile-label">
+            迟到次数
+          </text>
+        </view>
+        <view class="tile">
+          <text class="tile-value">
+            {{ stats?.average ?? '0.0' }}
+          </text>
+          <text class="tile-label">
+            平均工时
+          </text>
+        </view>
+        <view class="tile">
+          <text class="tile-value tile-value--accent">
+            {{ stats?.overtime ?? 0 }}
+          </text>
+          <text class="tile-label">
+            加班时长
+          </text>
+        </view>
+      </view>
+
+      <view class="card">
+        <view class="card-head">
+          <text class="card-title">
+            近 7 个工作日
+          </text>
+          <text class="card-hint">
+            单位：小时
+          </text>
+        </view>
+
+        <view v-if="loading" class="tip">
+          加载中…
+        </view>
+        <view v-else class="chart">
+          <view v-for="item in stats?.recent || []" :key="item.label" class="bar">
+            <view class="bar-track">
+              <view
+                :class="['bar-fill', item.status === '迟到' ? 'bar-fill--warn' : '']"
+                :style="{ height: barHeight(item.hours) }"
+              />
+            </view>
+            <text class="bar-value">
+              {{ item.hours }}
+            </text>
+            <text class="bar-label">
+              {{ item.label }}
+            </text>
+          </view>
+        </view>
+      </view>
+
+      <view class="card">
+        <view class="card-head">
+          <text class="card-title">
+            规则说明
+          </text>
+        </view>
+        <view class="rule">
+          标准班次 09:00 - 18:00，弹性打卡 30 分钟
+        </view>
+        <view class="rule">
+          单日工时满 8 小时计为正常出勤
+        </view>
+        <view class="rule rule--last">
+          因公迟到可在 3 个工作日内提交补卡
+        </view>
+      </view>
+    </view>
+  </AuthLayout>
+</template>
+
+<style lang="scss">
+.page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  background-color: #f5f6fa;
+}
+
+.header {
+  // 与下方卡片保持同一条左边线
+  padding: 20px 16px 4px;
+}
+
+.header-title {
+  display: block;
+  font-size: 34px;
+  font-weight: 700;
+  color: #1c1c2e;
+}
+
+.header-sub {
+  display: block;
+  margin-top: 6px;
+  font-size: 20px;
+  color: #9aa0b4;
+}
+
+/* 四宫格指标 */
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 16px 16px 0;
+}
+
+.tile {
+  flex: 1 1 calc(50% - 7px);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px 22px;
+  border-radius: 18px;
+  background-color: #fff;
+  box-shadow: 0 8px 24px rgba(23, 23, 64, 0.05);
+}
+
+.tile-value {
+  font-size: 44px;
+  font-weight: 700;
+  color: #1c1c2e;
+  line-height: 1.1;
+}
+
+.tile-value--warn {
+  color: #d97706;
+}
+
+.tile-value--accent {
+  color: #4f46e5;
+}
+
+.tile-label {
+  font-size: 21px;
+  color: #9aa0b4;
+}
+
+/* 柱状图 */
+.card {
+  margin: 16px 16px 0;
+  padding: 20px 24px 14px;
+  border-radius: 18px;
+  background-color: #fff;
+  box-shadow: 0 8px 24px rgba(23, 23, 64, 0.05);
+}
+
+.card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 12px;
+}
+
+.card-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1c1c2e;
+}
+
+.card-hint {
+  font-size: 20px;
+  color: #9aa0b4;
+}
+
+.tip {
+  padding: 36px 0;
+  text-align: center;
+  font-size: 22px;
+  color: #9aa0b4;
+}
+
+.chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  height: 300px;
+  padding: 10px 4px 0;
+}
+
+.bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  height: 100%;
+}
+
+.bar-track {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+  border-radius: 8px;
+  background-color: #f5f6fa;
+  overflow: hidden;
+}
+
+.bar-fill {
+  width: 100%;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #7c6cf6 0%, #4f46e5 100%);
+  transition: height 0.3s ease;
+}
+
+.bar-fill--warn {
+  background: linear-gradient(180deg, #fdba74 0%, #f59e0b 100%);
+}
+
+.bar-value {
+  font-size: 19px;
+  color: #6b7080;
+}
+
+.bar-label {
+  font-size: 19px;
+  color: #9aa0b4;
+}
+
+/* 规则说明 */
+.rule {
+  padding: 12px 0;
+  border-bottom: 1px solid #f1f2f7;
+  font-size: 22px;
+  color: #4a4f60;
+}
+
+/* #ifdef WEB */
+.rule::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 12px;
+  border-radius: 50%;
+  background-color: #c7cbf0;
+  vertical-align: middle;
+}
+
+/* #endif */
+.rule--last {
+  border-bottom: none;
+}
+</style>

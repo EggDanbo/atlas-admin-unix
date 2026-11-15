@@ -1,0 +1,29 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+import AuthLayout from '@/components/auth-layout/auth-layout.uvue'
+import PageNavbar from '@/components/page-navbar/page-navbar.uvue'
+import BillListPanel from './components/BillListPanel.uvue'
+
+const panel = ref()
+
+onPageShow(() => panel.value?.refresh())
+onReachBottom(() => panel.value?.loadMore())
+
+</script>
+
+<template>
+  <AuthLayout>
+    <view class="sp-page page">
+      <PageNavbar title="我的申请" />
+      <BillListPanel ref="panel" />
+    </view>
+  </AuthLayout>
+</template>
+
+<style lang="scss">
+.page {
+  min-height: 100%;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  background-color: #f5f6fa;
+}
+</style>

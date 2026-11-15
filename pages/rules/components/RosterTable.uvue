@@ -1,0 +1,221 @@
+<script setup lang="ts">
+import type { RosterAssignment, ShiftSlot } from '@/api/rules.ts'
+import { computed } from 'vue'
+import { dayOfMonth, REST_SHIFT, scheduleLabel, weekdayLabel } from '@/utils/attendance'
+
+const props = defineProps({
+  members: { type: Array },
+  dates: { type: Array },
+  assignments: { type: Array },
+  shifts: { type: Array },
+  selected: { type: Array, default: () => [] },
+  editable: { type: Boolean, default: false },
+  crossOver: { type: Object, default: () => ({}) },
+})
+
+const emit = defineEmits(['cell-click'])
+
+const PALETTE = [
+  { fg: '#b45309', bg: '#fff7ed' },
+  { fg: '#1d4ed8', bg: '#eff6ff' },
+  { fg: '#4f46e5', bg: '#eef2ff' },
+  { fg: '#0d9488', bg: '#ecfdf5' },
+  { fg: '#be185d', bg: '#fdf2f8' },
+  { fg: '#7c3aed', bg: '#f5f3ff' },
+]
+
+const cellMap = computed(() => {
+  const map: Record<string, string[]> = {}
+  props.assignments.forEach((row) => {
+    if (!row.shift)
+      return
+    const key = `${row.member}|${row.date}`
+    map[key] = [...(map[key] || []), row.shift]
+  })
+  return map
+})
+
+function namesOf(member: string, date: string) {
+  return cellMap.value[`${member}|${date}`] || []
+}
+
+function cellText(member: string, date: string) {
+  const names = namesOf(member, date)
+  if (names.length)
+    return scheduleLabel(names)
+  const cross = props.crossOver[`${member}|${date}`]
+  return cross ? '续' : ''
+}
+
+function cellStyle(member: string, date: string) {
+  const names = namesOf(member, date)
+  if (!names.length)
+    return { backgroundColor: '#fafbfd' }
+  if (names[0] === REST_SHIFT)
+    return { color: '#94a3b8', backgroundColor: '#f6f7fb' }
+  const index = props.shifts.findIndex(item => item.name === names[0])
+  const color = PALETTE[(index < 0 ? 0 : index) % PALETTE.length]
+  return { color: color.fg, backgroundColor: color.bg }
+}
+
+function isSelected(member: string, date: string) {
+  return props.selected.includes`${member}|${date}`
+}
+
+function isWeekend(date: string) {
+  const label = weekdayLabel(date)
+  return label === '六' || label === '日'
+}
+
+function cellId(member: string, date: string) {
+  return `roster-${member}-${date}`
+}
+
+function onCell(member: string, date: string) {
+  if (!props.editable)
+    return
+  emit('cell-click', member, date)
+}
+
+</script>
+
+<template>
+  <view class="roster">
+    <view class="names">
+      <view class="names-cell names-head">
+        姓名
+      </view>
+      <view v-for="member in members" :key="member" class="names-cell">
+        {{ member }}
+      </view>
+    </view>
+
+    <scroll-view scroll-x class="scroll">
+      <view class="inner">
+        <view class="row row--head">
+          <view v-for="date in dates" :key="date" class="day-cell">
+            <text :class="['day-num', isWeekend(date) && 'day-num--weekend']">
+              {{ dayOfMonth(date) }}
+            </text>
+            <text :class="['day-week', isWeekend(date) && 'day-week--weekend']">
+              {{ weekdayLabel(date) }}
+            </text>
+          </view>
+        </view>
+
+        <view v-for="member in members" :key="member" class="row">
+          <view
+            v-for="date in dates"
+            :id="cellId(member, date)"
+            :key="date"
+            :class="['cell', isSelected(member, date) && 'cell--on']"
+            :style="cellStyle(member, date)"
+            @click="onCell(member, date)"
+          >
+            <text class="cell-text">
+              {{ cellText(member, date) }}
+            </text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+</template>
+
+<style lang="scss">
+.roster {
+  display: flex;
+  margin: 0 -12px;
+  padding-top: 4px;
+}
+
+.names {
+  flex-shrink: 0;
+  width: 152px;
+  padding-left: 16px;
+  background-color: #fff;
+}
+
+.names-cell {
+  display: flex;
+  align-items: center;
+  height: 112px;
+  font-size: 25px;
+  color: #3a3f52;
+}
+
+.names-head {
+  height: 96px;
+  font-size: 21px;
+  color: #9aa0b4;
+}
+
+.scroll {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.inner {
+  display: inline-block;
+}
+
+.row {
+  display: flex;
+}
+
+.row--head {
+  height: 96px;
+}
+
+.day-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  flex-shrink: 0;
+  width: 88px;
+}
+
+.day-num {
+  font-size: 25px;
+  font-weight: 600;
+  color: #23263a;
+  font-variant-numeric: tabular-nums;
+}
+
+.day-num--weekend {
+  color: #e11d48;
+}
+
+.day-week {
+  font-size: 19px;
+  color: #9aa0b4;
+}
+
+.day-week--weekend {
+  color: #fb7185;
+}
+
+.cell {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  justify-content: center;
+  width: 88px;
+  height: 112px;
+  border: 4px solid transparent;
+  border-radius: 14px;
+  background-clip: padding-box;
+}
+
+.cell--on {
+  box-shadow: inset 0 0 0 2px #4f46e5;
+}
+
+.cell-text {
+  font-size: 21px;
+  line-height: 1.2;
+}
+</style>

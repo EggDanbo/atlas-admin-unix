@@ -1,0 +1,485 @@
+<script setup lang="ts">
+import type { CheckinStatus } from '@/api/checkin.ts'
+
+import { computed, onUnmounted, ref } from 'vue'
+import AuthLayout from '@/components/auth-layout/auth-layout.uvue'
+import PageNavbar from '@/components/page-navbar/page-navbar.uvue'
+import { showToast } from '@/components/sp-toast/toast.ts'
+import checkinApi from '@/api/checkin.ts'
+import { routes } from '@/utils/router'
+
+const status = ref<CheckinStatus | null>(null)
+const loading = ref(true)
+const submitting = ref(false)
+const clock = ref('')
+
+let timer: number | null = null
+
+function tick() {
+  const d = new Date()
+  clock.value = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+
+async function load() {
+  loading.value = true
+  const { isSuccess, data } = await checkinApi.status()
+  if (isSuccess && data)
+    status.value = data
+  loading.value = false
+}
+
+/** 当前该做什么：in 上班 / out 下班 / done 已完成 */
+const phase = computed(() => {
+  if (!status.value)
+    return 'in'
+  if (!status.value.today.inTime)
+    return 'in'
+  if (!status.value.today.outTime)
+    return 'out'
+  return 'done'
+})
+
+const TITLE_MAP = new Map<string, string>([
+  ['in', '上班打卡'],
+  ['out', '下班打卡'],
+  ['done', '今日已完成'],
+])
+
+const HINT_MAP = new Map<string, string>([
+  ['in', '点击记录上班时间'],
+  ['out', '点击记录下班时间'],
+  ['done', '下班记得按时打卡'],
+])
+
+const dialTitle = computed(() => TITLE_MAP.get(phase.value) ?? '上班打卡')
+const dialHint = computed(() => {
+  if (loading.value)
+    return '正在加载考勤信息'
+  return HINT_MAP.get(phase.value) ?? '点击记录上班时间'
+})
+
+function goRecords() {
+  uni.navigateTo({ url: routes.checkinRecords })
+}
+
+async function handlePunch() {
+  if (loading.value || submitting.value)
+    return
+  if (phase.value === 'done') {
+    showToast('今日打卡已完成')
+    return
+  }
+  submitting.value = true
+  const { isSuccess, data } = await checkinApi.submit(phase.value === 'in' ? 'in' : 'out')
+  submitting.value = false
+  if (!isSuccess || !data) {
+    showToast('打卡失败，请重试')
+    return
+  }
+  status.value = data
+  showToast(phase.value === 'in' ? '上班打卡成功' : '下班打卡成功')
+}
+
+onPageShow(() => {
+  tick()
+  if (!timer)
+    timer = setInterval(tick, 10_000)
+  void load()
+})
+
+onUnmounted(() => {
+  if (timer)
+    clearInterval(timer)
+  timer = null
+})
+
+</script>
+
+<template>
+  <AuthLayout>
+    <view class="sp-page page">
+      <PageNavbar title="打卡" />
+
+      <!-- 顶部信息卡 -->
+      <view class="hero">
+        <view class="hero-date">
+          <text>{{ status?.date || '—' }}</text>
+          <text class="hero-weekday">
+            {{ status?.weekday || '' }}
+          </text>
+        </view>
+        <text class="hero-time">
+          {{ clock }}
+        </text>
+        <view class="hero-shift">
+          <view class="hero-dot" />
+          <text>{{ status?.shift.name || '总部固定班次' }} · {{ status?.shift.start || '09:00' }} - {{ status?.shift.end || '18:00' }}</text>
+        </view>
+      </view>
+
+      <!-- 打卡按钮 -->
+      <view :class="['dial', `dial--${phase}`, (submitting ? 'dial--busy' : '')]" @click="handlePunch">
+        <view class="dial-inner">
+          <view class="dial-icon">
+            <view class="dial-pulse" />
+          </view>
+          <text class="dial-title">
+            {{ dialTitle }}
+          </text>
+          <text class="dial-hint">
+            {{ dialHint }}
+          </text>
+        </view>
+      </view>
+
+      <!-- 今日记录 -->
+      <view class="card">
+        <view class="card-head">
+          <text class="card-title">
+            今日记录
+          </text>
+          <text class="card-more">
+            {{ status?.today.inTime ? '正常' : '待打卡' }}
+          </text>
+        </view>
+        <view class="row">
+          <view class="row-left">
+            <view class="dot dot--in" />
+            <text>上班</text>
+          </view>
+          <text :class="['row-value', (!status?.today.inTime ? 'row-value--empty' : '')]">
+            {{ status?.today.inTime || '未打卡' }}
+          </text>
+        </view>
+        <view class="row row--last">
+          <view class="row-left">
+            <view class="dot dot--out" />
+            <text>下班</text>
+          </view>
+          <text :class="['row-value', (!status?.today.outTime ? 'row-value--empty' : '')]">
+            {{ status?.today.outTime || '未打卡' }}
+          </text>
+        </view>
+      </view>
+
+      <!-- 本月统计 -->
+      <view class="card">
+        <view class="card-head">
+          <text class="card-title">
+            本月统计
+          </text>
+          <text class="card-more" @click="goRecords">
+            查看记录 ›
+          </text>
+        </view>
+        <view class="stats">
+          <view class="stat">
+            <text class="stat-num">
+              {{ status?.month.days ?? 0 }}
+            </text>
+            <text class="stat-label">
+              出勤天数
+            </text>
+          </view>
+          <view class="stat">
+            <text class="stat-num">
+              {{ status?.month.late ?? 0 }}
+            </text>
+            <text class="stat-label">
+              迟到
+            </text>
+          </view>
+          <view class="stat">
+            <text class="stat-num">
+              {{ status?.month.overtime ?? 0 }}
+            </text>
+            <text class="stat-label">
+              加班时长
+            </text>
+          </view>
+        </view>
+      </view>
+
+      <view class="sp-footnote">
+        <text class="sp-footnote-text">
+          定位与设备信息为演示数据
+        </text>
+      </view>
+    </view>
+  </AuthLayout>
+</template>
+
+<style lang="scss">
+.page {
+  /* 高度交给全局 .sp-page（min-height: 100dvh），这里只覆盖底色与底部留白 */
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  background-color: #f5f6fa;
+}
+
+/* ── 顶部信息卡 ── */
+.hero {
+  position: relative;
+  margin: 16px 16px 0;
+  padding: 26px 28px 24px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #3b4fe0 0%, #7c6cf6 100%);
+  box-shadow: 0 16px 32px rgba(59, 79, 224, 0.24);
+  color: #fff;
+  overflow: hidden;
+}
+
+.hero-date {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 22px;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.hero-weekday {
+  padding: 2px 12px;
+  border-radius: 999px;
+  background-color: rgba(255, 255, 255, 0.18);
+  font-size: 20px;
+  color: #fff;
+}
+
+.hero-time {
+  display: block;
+  margin-top: 8px;
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 2px;
+}
+
+.hero-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #5eead4;
+}
+
+.hero-shift {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 21px;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+/* ── 打卡按钮 ── */
+.dial {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 320px;
+  height: 320px;
+  margin: 34px auto 6px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #ffffff 0%, #f3f4ff 100%);
+  box-shadow:
+  0 18px 40px rgba(59, 79, 224, 0.16),
+  inset 0 0 0 2px rgba(79, 70, 229, 0.12);
+  transition:
+  transform 0.15s ease,
+  opacity 0.15s ease;
+}
+
+/* #ifdef WEB */
+.dial:active {
+  transform: scale(0.97);
+}
+
+/* #endif */
+
+/* 外圈进度环 */
+/* #ifdef WEB */
+.dial::before {
+  content: '';
+  position: absolute;
+  inset: -14px;
+  border-radius: 50%;
+  border: 3px dashed rgba(79, 70, 229, 0.25);
+}
+
+/* #endif */
+
+.dial-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.dial-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: #eef2ff;
+}
+
+.dial-pulse {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c6cf6 100%);
+  box-shadow: 0 0 0 8px rgba(79, 70, 229, 0.12);
+}
+
+.dial-title {
+  font-size: 38px;
+  font-weight: 700;
+  color: #1c1c2e;
+}
+
+.dial-hint {
+  font-size: 21px;
+  color: #9aa0b4;
+}
+
+/* 已打上班卡：主按钮转为“下班打卡”，配色加深 */
+.dial--out {
+  background: linear-gradient(180deg, #ffffff 0%, #eef2ff 100%);
+  box-shadow:
+  0 18px 40px rgba(59, 79, 224, 0.2),
+  inset 0 0 0 2px rgba(79, 70, 229, 0.24);
+}
+
+.dial--done {
+  background: linear-gradient(180deg, #ffffff 0%, #ecfdf5 100%);
+  box-shadow:
+  0 18px 40px rgba(13, 148, 136, 0.14),
+  inset 0 0 0 2px rgba(13, 148, 136, 0.18);
+}
+
+/* #ifdef WEB */
+.dial--done .dial-icon {
+  background-color: #ecfdf5;
+}
+
+/* #endif */
+
+.dial--busy {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* ── 卡片 ── */
+.card {
+  margin: 18px 16px 0;
+  padding: 20px 24px 8px;
+  border-radius: 18px;
+  background-color: #fff;
+  box-shadow: 0 8px 24px rgba(23, 23, 64, 0.05);
+}
+
+.card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 8px;
+}
+
+.card-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1c1c2e;
+}
+
+.card-more {
+  font-size: 20px;
+  color: #4f46e5;
+}
+
+/* #ifdef WEB */
+.card-more:active {
+  opacity: 0.6;
+}
+
+/* #endif */
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0;
+  border-bottom: 1px solid #f1f2f7;
+}
+
+.row--last {
+  border-bottom: none;
+}
+
+.row-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 25px;
+  color: #23263a;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.dot--in {
+  background-color: #4f46e5;
+  box-shadow: 0 0 0 6px #eef2ff;
+}
+
+.dot--out {
+  background-color: #14b8a6;
+  box-shadow: 0 0 0 6px #ecfdf5;
+}
+
+.row-value {
+  font-size: 26px;
+  font-weight: 600;
+  color: #1c1c2e;
+}
+
+.row-value--empty {
+  font-weight: 400;
+  color: #b3b8c8;
+}
+
+/* ── 本月统计 ── */
+.stats {
+  display: flex;
+  padding: 8px 0 16px;
+}
+
+.stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+/* #ifdef WEB */
+.stat + .stat {
+  border-left: 1px solid #f1f2f7;
+}
+
+/* #endif */
+
+.stat-num {
+  font-size: 40px;
+  font-weight: 700;
+  color: #1c1c2e;
+}
+
+.stat-label {
+  font-size: 20px;
+  color: #9aa0b4;
+}
+</style>

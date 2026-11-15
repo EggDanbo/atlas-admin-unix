@@ -1,0 +1,13 @@
+{
+  "name": "atlas-admin-uni-x",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Atlas 工作台 · uni-app x 移动端演示应用",
+  "scripts": {
+    "migrate": "node scripts/migrate-from-taro.mjs && node scripts/migrate-api.mjs && node scripts/fix-imports.mjs && node scripts/post-process.mjs && node scripts/to-ts.mjs",
+    "check": "node scripts/check-unix.mjs"
+  },
+  "devDependencies": {
+    "sass": "^1.80.0"
+  }
+}

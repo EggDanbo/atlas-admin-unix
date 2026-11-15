@@ -1,0 +1,140 @@
+<script setup lang="ts">
+import { ref, watch } from 'vue'
+
+const props = defineProps({
+  modelValue: { type: String, default: '' },
+  placeholder: { type: String, default: '搜索' },
+  confirmType: { type: String, default: 'search' },
+  clearable: { type: Boolean, default: true },
+  inset: { type: Boolean, default: true },
+})
+
+const emit = defineEmits(['clear', 'confirm', 'update:modelValue'])
+
+// 本地镜像：confirm 要拿到「刚输入完」的值，等父级 props 回流会滞后一拍
+const inner = ref(props.modelValue)
+
+watch(() => props.modelValue, (value) => {
+  if (value !== inner.value)
+    inner.value = value ?? ''
+})
+
+function handleInput(e: any) {
+  inner.value = e?.detail?.value ?? ''
+  emit('update:modelValue', inner.value)
+}
+
+function handleConfirm() {
+  emit('confirm', inner.value)
+}
+
+function handleClear() {
+  inner.value = ''
+  emit('update:modelValue', '')
+  emit('clear')
+}
+
+</script>
+
+<template>
+  <view :class="['search', (inset ? 'search--inset' : '')]">
+    <view class="search-icon" />
+    <input
+      :value="inner"
+      class="search-input"
+      :placeholder="placeholder"
+      :placeholder-class="'search-placeholder'"
+      :confirm-type="confirmType"
+      @input="handleInput"
+      @confirm="handleConfirm" />
+    <view
+      v-if="clearable && inner"
+      class="search-clear"
+      @click="handleClear"
+    >
+      <text class="search-clear-icon">
+        ×
+      </text>
+    </view>
+  </view>
+</template>
+
+<style lang="scss">
+.search {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 76px;
+  padding: 0 22px;
+  border-radius: 18px;
+  border: 1px solid #edeff6;
+  background-color: #fff;
+  box-shadow: 0 6px 18px rgba(23, 23, 64, 0.04);
+}
+
+/* 页面顶层使用时自带左右留白；放进工具栏时由父级控制 */
+.search--inset {
+  margin: 16px 16px 0;
+}
+
+.search-icon {
+  position: relative;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border: 2px solid #b6bccd;
+  border-radius: 50%;
+}
+
+/* #ifdef WEB */
+.search-icon::after {
+  content: '';
+  position: absolute;
+  right: -6px;
+  bottom: -2px;
+  width: 10px;
+  height: 2px;
+  border-radius: 2px;
+  background-color: #b6bccd;
+  transform: rotate(45deg);
+}
+
+/* #endif */
+
+.search-input {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  font-size: 24px;
+  color: #23263a;
+}
+
+.search-placeholder {
+  color: #b3b8c8;
+}
+
+.search-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #eef0f6;
+}
+
+/* #ifdef WEB */
+.search-clear:active {
+  background-color: #e4e7f2;
+}
+
+/* #endif */
+
+.search-clear-icon {
+  font-size: 24px;
+  line-height: 1;
+  color: #8a90a3;
+}
+</style>

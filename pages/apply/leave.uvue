@@ -1,0 +1,37 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+import AuthLayout from '@/components/auth-layout/auth-layout.uvue'
+import PageNavbar from '@/components/page-navbar/page-navbar.uvue'
+import BillListPanel from './components/BillListPanel.uvue'
+
+const panel = ref()
+
+onPageShow(() => panel.value?.refresh())
+onReachBottom(() => panel.value?.loadMore())
+
+</script>
+
+<template>
+  <AuthLayout>
+    <view class="sp-page sp-page--with-fab page">
+      <PageNavbar title="请假申请" />
+      <BillListPanel
+        ref="panel"
+        module="leave"
+        :show-category="false"
+        with-fab
+        placeholder="搜索单号或请假类型"
+        empty-text="还没有请假记录，点右下角发起一条"
+        footnote="仅展示请假类单据 · 加班可在申请页切换"
+      />
+    </view>
+  </AuthLayout>
+</template>
+
+<style lang="scss">
+// 请假列表页：底色与列表页一致，底部留白由 .sp-page--with-fab 统一预留
+.page {
+  min-height: 100%;
+  background-color: #f5f6fa;
+}
+</style>

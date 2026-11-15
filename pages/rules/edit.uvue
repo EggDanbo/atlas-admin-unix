@@ -1,0 +1,2381 @@
+<script setup lang="ts">
+import type { AttendanceMode, RosterAssignment, ShiftSlot } from '@/api/rules.ts'
+
+import { computed, ref } from 'vue'
+import AuthLayout from '@/components/auth-layout/auth-layout.uvue'
+import PageNavbar from '@/components/page-navbar/page-navbar.uvue'
+import { showToast } from '@/components/sp-toast/toast.ts'
+import rulesApi from '@/api/rules.ts'
+import { addDays, DEFAULT_WORK_DAYS, defaultRestRange, findFixedShiftClash, findRosterClash, fixedShiftDays, isCrossShift, isRestWithinShift, MODE_OPTIONS, monthDates, monthLabelOf, REST_SHIFT, rosterCrossOver, shiftsOverlap, shiftWorkMinutes, startOfWeek, weekDates, WEEKDAY_OPTIONS, weekdayFull, workDaysText } from '@/utils/attendance'
+import { safeBack } from '@/utils/auth'
+import { getCurrentPageInfo } from '@/utils/router'
+import RosterTable from './components/RosterTable.uvue'
+
+const id = getCurrentPageInfo().params.id || ''
+const isEdit = computed(() => !!id)
+
+const DEPTS = [
+  '技术中心',
+  '产品部',
+  '设计部',
+  '市场部',
+  '销售部',
+  '客户成功部',
+  '财务部',
+  '人力资源部',
+  '行政部',
+  '法务部',
+  '供应链中心',
+  '质量管理部',
+]
+const DEPT_MEMBERS: Record<string, string[]> = {
+  技术中心: ['陈昊', '林悦', '周启', '苏雯'],
+  产品部: ['赵一鸣', '钱多多', '孙可'],
+  设计部: ['李沐', '吴桐'],
+  市场部: ['郑楠', '冯悦'],
+  销售部: ['陈锋', '许静', '邓超'],
+  客户成功部: ['王琳', '李哲', '周舟', '陈默', '赵敏', '孙浩'],
+  财务部: ['何静', '徐磊'],
+  人力资源部: ['王倩', '郑凯'],
+  行政部: ['刘敏', '杨帆'],
+  法务部: ['沈川'],
+  供应链中心: ['张伟', '刘洋', '王强', '李娜', '赵磊'],
+  质量管理部: ['黄磊', '孙婷'],
+}
+const WAYS = ['GPS 定位', 'Wi-Fi', '人脸识别']
+const RANGES = [100, 300, 500, 1000]
+const MAKE_UPS = [0, 3, 5]
+const FLEX_MINUTES = [15, 30, 60]
+const FREE_TIMES = [2, 4]
+const HANDOVERS = [0, 15, 30, 60]
+
+const name = ref('')
+const scope = ref<string[]>(['技术中心'])
+const deptOpen = ref(false)
+const mode = ref<AttendanceMode>('fixed')
+const start = ref('09:00')
+const end = ref('18:00')
+const flex = ref(false)
+const flexMinutes = ref(30)
+const workDays = ref<number[]>([...DEFAULT_WORK_DAYS])
+const workHours = ref(8)
+const freeTimes = ref(2)
+const latest = ref('21:00')
+/** 固定班次：默认一个「标准班」，周一到周五 09:00-18:00 */
+function createFixedShift(name = '标准班'): ShiftSlot {
+  return {
+    name,
+    start: '09:00',
+    end: '18:00',
+    cross: false,
+    rest: defaultRestRange('09:00', '18:00'),
+    work_days: [...DEFAULT_WORK_DAYS],
+  }
+}
+
+const shifts = ref<ShiftSlot[]>([createFixedShift()])
+const members = ref<string[]>([])
+const assignments = ref<RosterAssignment[]>([])
+const handoverMinutes = ref(30)
+const ways = ref<string[]>(['GPS 定位'])
+const gpsRange = ref(300)
+const makeUp = ref(3)
+const saving = ref(false)
+
+/* 排班表：按人 × 日期 */
+const cursor = ref(new Date())
+const viewMode = ref<'week' | 'month'>('week')
+const selectedCells = ref<string[]>([])
+const pendingShifts = ref<string[]>([])
+const memberOpen = ref(false)
+
+const dates = computed(() => viewMode.value === 'week'
+  ? weekDates(startOfWeek(cursor.value))
+  : monthDates(cursor.value.getFullYear(), cursor.value.getMonth()))
+
+const rangeLabel = computed(() => {
+  if (viewMode.value === 'month')
+    return `${cursor.value.getFullYear()} 年 ${cursor.value.getMonth() + 1} 月`
+  const list = dates.value
+  const first = monthLabelOf(list[0])
+  if (list[6].slice(5, 7) !== list[0].slice(5, 7))
+    return `${first} - ${Number(list[6].slice(5, 7))} 月`
+  return first
+})
+
+const crossOver = computed(() => rosterCrossOver(assignments.value, shifts.value))
+
+const candidateMembers = computed(() => {
+  // 已选人员置顶，方便快速取消
+  const list: string[] = [...members.value]
+  Object.values(DEPT_MEMBERS).forEach((group) => {
+    group.forEach((member) => {
+      if (!list.includes(member))
+        list.push(member)
+    })
+  })
+  return list
+})
+
+function shiftRange(delta: number) {
+  if (viewMode.value === 'week')
+    cursor.value = addDays(cursor.value, delta * 7)
+  else
+    cursor.value = new Date(cursor.value.getFullYear(), cursor.value.getMonth() + delta, 1)
+}
+
+function clearSelection() {
+  selectedCells.value = []
+  pendingShifts.value = []
+}
+
+function togglePick(name: string) {
+  if (name === REST_SHIFT) {
+    pendingShifts.value = pendingShifts.value.includes(REST_SHIFT) ? [] : [REST_SHIFT]
+    return
+  }
+  const picked = pendingShifts.value.filter(item => item !== REST_SHIFT)
+  pendingShifts.value = picked.includes(name)
+    ? picked.filter(item => item !== name)
+    : [...picked, name]
+}
+
+function toggleMember(member: string) {
+  if (members.value.includes(member)) {
+    members.value = members.value.filter(item => item !== member)
+    assignments.value = assignments.value.filter(row => row.member !== member)
+    selectedCells.value = selectedCells.value.filter(key => !key.startsWith`${member}|`)
+    return
+  }
+  members.value = [...members.value, member]
+}
+
+function toggleCell(member: string, date: string) {
+  if (!shifts.value.length) {
+    showToast('请先添加班次，再排班')
+    return
+  }
+  const key = `${member}|${date}`
+  selectedCells.value = selectedCells.value.includes(key)
+    ? selectedCells.value.filter(item => item !== key)
+    : [...selectedCells.value, key]
+}
+
+/** 新建规则时按所选部门带出排班人员 */
+function syncMembersFromScope() {
+  const list: string[] = []
+  scope.value.forEach((dept) => {
+    (DEPT_MEMBERS[dept] || []).forEach((member) => {
+      if (!list.includes(member))
+        list.push(member)
+    })
+  })
+  members.value = list
+}
+
+const scopeText = computed(() => {
+  if (!scope.value.length)
+    return '请选择适用部门'
+  return scope.value.join('、')
+})
+
+onLoad(() => {
+  if (id)
+    void loadRule()
+})
+
+async function loadRule() {
+  const { isSuccess, data } = await rulesApi.get(id)
+  if (!isSuccess || !data)
+    return
+  name.value = data.name
+  mode.value = data.mode || 'fixed'
+  scope.value = data.scope.split(' / ')
+  start.value = data.start
+  end.value = data.end
+  flex.value = data.flex
+  flexMinutes.value = data.flex_minutes || 30
+  workDays.value = data.work_days?.length ? [...data.work_days] : [...DEFAULT_WORK_DAYS]
+  workHours.value = data.work_hours || 8
+  freeTimes.value = data.free_times || 2
+  latest.value = data.latest || '21:00'
+  if (data.shifts?.length) {
+    shifts.value = data.shifts.map(item => ({ ...item, work_days: [...(item.work_days || [])] }))
+  }
+  else if ((data.mode || 'fixed') === 'fixed') {
+    // 兼容只存了单一上下班时间的旧数据
+    shifts.value = [{
+      name: '标准班',
+      start: data.start,
+      end: data.end,
+      cross: isCrossShift({ start: data.start, end: data.end }),
+      rest: data.rest,
+      work_days: data.work_days?.length ? [...data.work_days] : [...DEFAULT_WORK_DAYS],
+    }]
+  }
+  members.value = [...(data.members || [])]
+  assignments.value = (data.assignments || []).map(item => ({ ...item }))
+  handoverMinutes.value = data.handover_minutes ?? 30
+  ways.value = [...data.ways]
+  gpsRange.value = data.gps_range
+  makeUp.value = data.make_up
+}
+
+function selectMode(next: AttendanceMode) {
+  if (next === mode.value)
+    return
+  mode.value = next
+  // 固定班次的班次要带工作日，排班制是纯班次库，切换时重置避免脏数据
+  if (next === 'shift') {
+    if (!isEdit.value)
+      shifts.value = []
+    if (!members.value.length && !isEdit.value)
+      syncMembersFromScope()
+    return
+  }
+  if (next === 'fixed' && !shifts.value.length)
+    shifts.value = [createFixedShift()]
+}
+
+function toggleDept(dept: string) {
+  scope.value = scope.value.includes(dept)
+    ? scope.value.filter(item => item !== dept)
+    : [...scope.value, dept]
+  if (!isEdit.value)
+    syncMembersFromScope()
+}
+
+function toggleWorkDay(day: number) {
+  workDays.value = workDays.value.includes(day)
+    ? workDays.value.filter(item => item !== day)
+    : [...workDays.value, day].sort((a, b) => a - b)
+}
+
+/** 工时输入：允许小数与空值，失焦时再归一化 */
+function onWorkHoursInput(e: any) {
+  const raw = String(e.detail?.value ?? '').replace(/[^\d.]/g, '')
+  if (raw === '')
+    return
+  const next = Number(raw)
+  if (Number.isNaN(next))
+    return
+  workHours.value = Math.min(Math.max(next, 0.5), 24)
+}
+
+function stepHours(delta: number) {
+  const next = Math.round((workHours.value + delta) * 10) / 10
+  workHours.value = Math.min(Math.max(next, 0.5), 24)
+}
+
+function normalizeWorkHours() {
+  const next = Math.round(Number(workHours.value || 0) * 10) / 10
+  workHours.value = Math.min(Math.max(next || 8, 0.5), 24)
+}
+
+function toggleWay(way: string) {
+  if (ways.value.includes(way)) {
+    if (ways.value.length === 1) {
+      showToast('至少保留一种打卡方式')
+      return
+    }
+    ways.value = ways.value.filter(item => item !== way)
+    return
+  }
+  ways.value = [...ways.value, way]
+}
+
+function onLatestChange(e: any) {
+  const value = e.detail?.value as string
+  if (value)
+    latest.value = value
+}
+
+/* ==================== 班次库 ==================== */
+
+function addHours(time: string, hours: number) {
+  const [h, m] = time.split(':').map(Number)
+  const total = (h * 60 + m + hours * 60) % (24 * 60)
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`
+}
+
+function updateSlot(index: number, patch: Partial<ShiftSlot>) {
+  shifts.value = shifts.value.map((item, i) => (i === index ? { ...item, ...patch } : item))
+}
+
+function onSlotTime(index: number, field: 'start' | 'end', e: any) {
+  const value = e.detail?.value as string
+  if (!value)
+    return
+  const current = shifts.value[index]
+  const next = { ...current, [field]: value }
+
+  // 选上班时间后，若下班时间不晚于上班时间，默认按上班时间 +3 小时
+  if (field === 'start' && next.end <= value)
+    next.end = addHours(value, 3)
+  next.cross = isCrossShift(next)
+  // 休息时段跟着上下班重新取中间 1 小时
+  if (restParts(current).enabled)
+    next.rest = defaultRestRange(next.start, next.end)
+  updateSlot(index, next)
+}
+
+function restParts(slot: ShiftSlot) {
+  if (!slot.rest || slot.rest === '不休息' || !slot.rest.includes('-'))
+    return { enabled: false, start: '12:00', end: '13:00' }
+  const [start, end] = slot.rest.split('-')
+  return { enabled: true, start, end }
+}
+
+function toggleSlotRest(index: number) {
+  const slot = shifts.value[index]
+  if (restParts(slot).enabled) {
+    updateSlot(index, { rest: '不休息' })
+    return
+  }
+  // 打开前先校验上下班时间，再按中间 1 小时生成
+  if (slot.start === slot.end) {
+    showToast('上下班时间相同，请先调整班次时间')
+    return
+  }
+  const next = defaultRestRange(slot.start, slot.end)
+  if (next === '不休息') {
+    showToast('班次时长不足 1 小时，无法设置休息')
+    return
+  }
+  updateSlot(index, { rest: next })
+}
+
+function onSlotRest(index: number, field: 'start' | 'end', e: any) {
+  const value = e.detail?.value as string
+  if (!value)
+    return
+  const slot = shifts.value[index]
+  const parts = restParts(slot)
+  const next = { ...parts, [field]: value }
+  const nextRest = `${next.start}-${next.end}`
+  if (!isRestWithinShift(slot, nextRest)) {
+    showToast('休息时间需要在上下班之间')
+    return
+  }
+  updateSlot(index, { rest: nextRest })
+}
+
+/** 该工作日是否已被其它班次占用，返回占用方名称 */
+function dayLockedBy(day: number, index: number) {
+  const self = shifts.value[index]
+  if ((self?.work_days || []).includes(day))
+    return ''
+  const other = shifts.value.find((item, i) => i !== index && (item.work_days || []).includes(day))
+  return other ? (other.name.trim() || '其它班次') : ''
+}
+
+/** 7 天是否已被现有班次排满（排满后不能再新增班次） */
+const allDaysUsed = computed(() => fixedShiftDays(shifts.value).length >= 7)
+
+function toggleSlotDay(index: number, day: number) {
+  const locked = dayLockedBy(day, index)
+  if (locked) {
+    showToast`${weekdayFull(day)}已被「${locked}」占用`
+    return
+  }
+  const slot = shifts.value[index]
+  const days = (slot.work_days || []).includes(day)
+    ? (slot.work_days || []).filter(item => item !== day)
+    : [...(slot.work_days || []), day].sort((a, b) => a - b)
+  updateSlot(index, { work_days: days })
+}
+
+function onSlotName(index: number, e: any) {
+  const next = String(e.detail?.value ?? '')
+  const prev = shifts.value[index].name
+  if (prev === next)
+    return
+  shifts.value = shifts.value.map((item, i) => (i === index ? { ...item, name: next } : item))
+  // 改名同步已排班记录，避免引用丢失
+  if (prev)
+    assignments.value = assignments.value.map(row => (row.shift === prev ? { ...row, shift: next } : row))
+}
+
+function nextShiftName() {
+  let index = shifts.value.length + 1
+  while (shifts.value.some(item => item.name === `班次${index}`))
+    index += 1
+  return `班次${index}`
+}
+
+function addShift() {
+  if (mode.value === 'fixed' && allDaysUsed.value) {
+    showToast('7 天都已排上班次，无法继续添加班次')
+    return
+  }
+  if (shifts.value.length >= 6) {
+    showToast('最多添加 6 个班次')
+    return
+  }
+  // 固定班次新增时默认勾选还没被占用的工作日，避免新班次一片空白
+  const used = fixedShiftDays(shifts.value)
+  const remaining = [1, 2, 3, 4, 5, 6, 7].filter(day => !used.includes(day))
+  const preset = remaining.length === 7 ? [...DEFAULT_WORK_DAYS] : remaining
+
+  shifts.value = [
+    ...shifts.value,
+    {
+      name: nextShiftName(),
+      start: '09:00',
+      end: '18:00',
+      cross: false,
+      rest: defaultRestRange('09:00', '18:00'),
+      work_days: mode.value === 'fixed' ? preset : [],
+    },
+  ]
+}
+
+function removeShift(index: number) {
+  const target = shifts.value[index]
+  if (shifts.value.length === 1) {
+    showToast('至少保留一个班次')
+    return
+  }
+  shifts.value = shifts.value.filter((_, i) => i !== index)
+  if (target?.name) {
+    assignments.value = assignments.value.filter(row => row.shift !== target.name)
+  }
+}
+
+/* ==================== 按人排班 ==================== */
+
+function commitShift() {
+  if (!shifts.value.length) {
+    showToast('请先添加班次，再排班')
+    return
+  }
+  if (!selectedCells.value.length) {
+    showToast('请先选择要排班的人员和日期')
+    return
+  }
+  if (!pendingShifts.value.length) {
+    showToast('请先选择班次')
+    return
+  }
+
+  const restMode = pendingShifts.value.includes(REST_SHIFT)
+  const picked = restMode
+    ? []
+    : pendingShifts.value
+        .map(name => shifts.value.find(item => item.name === name))
+        .filter((item): item is ShiftSlot => !!item)
+
+  // 所选班次之间时间重叠：提示并取消这次选择
+  if (picked.length > 1) {
+    for (let i = 0; i < picked.length; i += 1) {
+      for (let j = i + 1; j < picked.length; j += 1) {
+        if (shiftsOverlap(picked[i], picked[j])) {
+          showToast`${picked[i].name}与${picked[j].name}时间重叠，请重新选择`
+          pendingShifts.value = []
+          return
+        }
+      }
+    }
+  }
+
+  const conflicts: { member: string, date: string, shift: string, reason: 'clash' | 'daily', clash?: any }[] = []
+  let next = [...assignments.value]
+
+  selectedCells.value.forEach((key) => {
+    const [member, date] = key.split('|')
+
+    // 设为休息：清掉当天全部班次，只保留休息标记
+    if (restMode) {
+      next = next.filter(row => !(row.member === member && row.date === date))
+      next.push({ member, date, shift: REST_SHIFT })
+      return
+    }
+
+    picked.forEach((target) => {
+      const sameDay = next.filter(row => row.member === member && row.date === date && row.shift)
+      // 重复排同一个班次直接忽略
+      if (sameDay.some(row => row.shift === target.name))
+        return
+      // 加班次前去掉休息占位
+      next = next.filter(row => !(row.member === member && row.date === date && row.shift === REST_SHIFT))
+
+      // 一天总工作时长（含跨天）不能超过 24 小时
+      const dayMinutes = next
+        .filter(row => row.member === member && row.date === date && row.shift && row.shift !== REST_SHIFT)
+        .reduce((sum, row) => {
+          const slot = shifts.value.find(item => item.name === row.shift)
+          return sum + (slot ? shiftWorkMinutes(slot) : 0)
+        }, 0)
+      if (dayMinutes + shiftWorkMinutes(target) > 24 * 60) {
+        conflicts.push({ member, date, shift: target.name, reason: 'daily' })
+        return
+      }
+
+      const clash = findRosterClash(next, member, date, target, shifts.value, handoverMinutes.value)
+      if (clash) {
+        conflicts.push({ member, date, shift: target.name, reason: 'clash', clash })
+        return
+      }
+      next.push({ member, date, shift: target.name })
+    })
+  })
+
+  const shiftOrder = (name: string) => {
+    const index = shifts.value.findIndex(item => item.name === name)
+    return index < 0 ? shifts.value.length : index
+  }
+  assignments.value = next.sort((a, b) =>
+    a.date.localeCompare(b.date)
+    || members.value.indexOf(a.member) - members.value.indexOf(b.member)
+    || shiftOrder(a.shift) - shiftOrder(b.shift),
+  )
+
+  // 成功不打扰，只有冲突才提示
+  if (conflicts.length) {
+    const first = conflicts[0]
+    const day = Number(first.date.slice(8))
+    let title = ''
+    if (first.reason === 'daily') {
+      title = `${first.member} ${day} 号已排满 24 小时，${first.shift}未排入`
+    }
+    else {
+      const clash = first.clash
+      if (clash) {
+        const clashDay = Number(clash.date.slice(8))
+        title = clash.date === first.date
+          ? `${first.member} ${day} 号已排「${clash.shift}」，与${first.shift}时间重叠`
+          : `${first.member} ${clashDay} 号「${clash.shift}」跨天占用到 ${day} 号，与${first.shift}冲突`
+        if (handoverMinutes.value > 0)
+          title += `，需间隔 ${handoverMinutes.value} 分钟`
+      }
+    }
+    if (conflicts.length > 1)
+      title += `（共 ${conflicts.length} 个被跳过）`
+    showToast(title, { duration: 3200 })
+  }
+  selectedCells.value = []
+  pendingShifts.value = []
+}
+
+/** 固定班次保存前校验：班次、工作日、工作日去重、跨班次时间冲突 */
+function validateFixedShifts() {
+  if (!shifts.value.length) {
+    showToast('请先添加班次')
+    return false
+  }
+  const names = shifts.value.map(item => item.name.trim())
+  if (names.some(item => !item)) {
+    showToast('请填写班次名称')
+    return false
+  }
+  if (new Set(names).size !== names.length) {
+    showToast('班次名称不能重复')
+    return false
+  }
+
+  for (const slot of shifts.value) {
+    if (slot.start === slot.end) {
+      showToast`「${slot.name.trim()}」上下班时间不能相同`
+      return false
+    }
+    if (!(slot.work_days || []).length) {
+      showToast`请为「${slot.name.trim()}」选择工作日`
+      return false
+    }
+  }
+
+  // 工作日不能重复分配给两个班次
+  const used = new Map<number, string>()
+  for (const slot of shifts.value) {
+    for (const day of slot.work_days || []) {
+      const owner = used.get(day)
+      if (owner) {
+        showToast`${weekdayFull(day)}同时属于「${owner}」和「${slot.name.trim()}」，工作日不能重复`
+        return false
+      }
+      used.set(day, slot.name.trim())
+    }
+  }
+
+  // 前后班次时间冲突（含跨天占用次日）
+  for (const slot of shifts.value) {
+    const clash = findFixedShiftClash(shifts.value, slot)
+    if (clash) {
+      showToast(
+        `「${slot.name.trim()}」${weekdayFull(clash.day)} ${slot.start}-${slot.end} 与「${clash.slot.name}」${weekdayFull(clash.otherDay)} 时间重叠`,
+        { duration: 3200 },
+      )
+      return false
+    }
+  }
+  return true
+}
+
+async function save() {
+  if (saving.value)
+    return
+  if (!name.value.trim()) {
+    showToast('请输入规则名称')
+    return
+  }
+  if (!scope.value.length) {
+    showToast('请选择适用部门')
+    return
+  }
+  if (mode.value === 'free' && !workDays.value.length) {
+    showToast('请至少选择一个工作日')
+    return
+  }
+  if (mode.value === 'free' && (!workHours.value || workHours.value < 0.5)) {
+    showToast('每日应出勤工时不能小于 0.5 小时')
+    return
+  }
+  if (mode.value === 'fixed' && !validateFixedShifts())
+    return
+  if (mode.value === 'shift') {
+    if (!shifts.value.length) {
+      showToast('请先添加班次')
+      return
+    }
+    const names = shifts.value.map(item => item.name.trim())
+    if (names.some(item => !item)) {
+      showToast('请填写班次名称')
+      return
+    }
+    if (new Set(names).size !== names.length) {
+      showToast('班次名称不能重复')
+      return
+    }
+    if (!members.value.length) {
+      showToast('请先选择排班人员')
+      return
+    }
+    if (!assignments.value.length) {
+      showToast('请先给人员排班')
+      return
+    }
+  }
+
+  const firstShift = shifts.value[0]
+  saving.value = true
+  const payload = {
+    id: id || undefined,
+    name: name.value.trim(),
+    mode: mode.value,
+    scope: scope.value.join(' / '),
+    // 固定班次的规则级字段取第一个班次，供列表 / 概览展示
+    start: mode.value === 'fixed' && firstShift ? firstShift.start : start.value,
+    end: mode.value === 'fixed' && firstShift ? firstShift.end : end.value,
+    rest: mode.value === 'fixed' && firstShift ? firstShift.rest : '不休息',
+    flex: flex.value,
+    flex_minutes: flex.value ? flexMinutes.value : 0,
+    work_days: mode.value === 'fixed'
+      ? fixedShiftDays(shifts.value)
+      : mode.value === 'free' ? [...workDays.value].sort((a, b) => a - b) : [],
+    work_hours: workHours.value,
+    free_times: freeTimes.value,
+    latest: latest.value,
+    shifts: mode.value === 'fixed' || mode.value === 'shift'
+      ? shifts.value.map(item => ({
+          ...item,
+          name: item.name.trim(),
+          cross: isCrossShift(item),
+          work_days: mode.value === 'fixed' ? [...(item.work_days || [])] : [],
+        }))
+      : [],
+    members: mode.value === 'shift' ? members.value : [],
+    assignments: mode.value === 'shift' ? assignments.value : [],
+    handover_minutes: mode.value === 'shift' ? handoverMinutes.value : 0,
+    ways: ways.value,
+    gps_range: gpsRange.value,
+    make_up: makeUp.value,
+  }
+  const { isSuccess, message } = isEdit.value
+    ? await rulesApi.update(payload)
+    : await rulesApi.create(payload)
+  saving.value = false
+
+  showToast(isSuccess ? '保存成功' : (message || '保存失败'))
+  if (isSuccess)
+    setTimeout(safeBack, 600)
+}
+
+</script>
+
+<template>
+  <AuthLayout>
+    <view class="sp-page page">
+      <PageNavbar :title="isEdit ? '修改规则' : '新建规则'" />
+
+      <!-- 基本信息 -->
+      <view class="card">
+        <text class="card-title">
+          基本信息
+        </text>
+        <view class="row">
+          <text class="row-label">
+            规则名称
+          </text>
+          <input
+            v-model="name"
+            class="row-input"
+            placeholder="如：总部固定班次"
+            :placeholder-class="'row-placeholder'"
+            maxlength="20" />
+        </view>
+
+        <view class="row--block">
+          <view class="field-head">
+            <text class="row-label">
+              适用部门
+            </text>
+            <text class="field-hint">
+              已选 {{ scope.length }} 个
+            </text>
+          </view>
+
+          <view :class="['select', deptOpen && 'select--open']" @click="deptOpen = !deptOpen">
+            <text :class="['select-value', !scope.length && 'select-placeholder']">
+              {{ scopeText }}
+            </text>
+            <text :class="['select-arrow', deptOpen && 'select-arrow--up']">
+              ⌄
+            </text>
+          </view>
+
+          <view v-if="deptOpen" class="dept-panel">
+            <view class="dept-grid">
+              <view
+                v-for="dept in DEPTS"
+                :key="dept"
+                :class="['dept-option', scope.includes(dept) && 'dept-option--on']"
+                @click="toggleDept(dept)"
+              >
+                <text class="dept-name">
+                  {{ dept }}
+                </text>
+                <text v-if="scope.includes(dept)" class="dept-check">
+                  ✓
+                </text>
+              </view>
+            </view>
+            <view class="dept-actions">
+              <text class="dept-action" @click="scope = [...DEPTS]">
+                全选
+              </text>
+              <text class="dept-action" @click="scope = []">
+                清空
+              </text>
+              <text class="dept-action dept-action--primary" @click="deptOpen = false">
+                完成
+              </text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 考勤模式 -->
+      <view class="card">
+        <text class="card-title">
+          考勤模式
+        </text>
+
+        <view
+          v-for="item in MODE_OPTIONS"
+          :key="item.value"
+          :class="['mode', mode === item.value && 'mode--active']"
+          @click="selectMode(item.value)"
+        >
+          <view class="mode-main">
+            <view class="mode-head">
+              <text :class="['mode-name', mode === item.value && 'mode-name--active']">
+                {{ item.label }}
+              </text>
+              <text :class="['mode-badge', `mode-badge--${item.value}`]">
+                {{ item.value === 'fixed' ? '按点打卡' : item.value === 'free' ? '按工时' : '按排班' }}
+              </text>
+            </view>
+            <text class="mode-desc">
+              {{ item.desc }}
+            </text>
+          </view>
+          <view :class="['radio', mode === item.value && 'radio--on']" />
+        </view>
+      </view>
+
+      <!-- 班次设置：固定班次（多班次 + 各选工作日）/ 排班制（班次库） -->
+      <view v-if="mode !== 'free'" class="card">
+        <view class="card-head">
+          <text class="card-title">
+            班次设置
+          </text>
+          <text class="card-hint">
+            {{ shifts.length }} 个班次
+          </text>
+        </view>
+
+        <view v-if="!shifts.length" class="slot-empty">
+          {{ mode === 'fixed' ? '还没有班次，先添加班次，再给每个班次勾选工作日' : '还没有班次，先添加班次，再到日历里按日期排班' }}
+        </view>
+
+        <view v-for="(slot, index) in shifts" :key="index" class="shift-slot">
+          <view class="slot-head">
+            <input
+              :value="slot.name"
+              class="slot-name"
+              placeholder="班次名称"
+              :placeholder-class="'row-placeholder'"
+              maxlength="8"
+              @input="onSlotName(index, $event)" />
+            <view class="slot-ops">
+              <text :class="['cross-chip', isCrossShift(slot) && 'cross-chip--on']">
+                {{ isCrossShift(slot) ? '跨天' : '当日' }}
+              </text>
+              <text class="slot-remove" @click="removeShift(index)">
+                ×
+              </text>
+            </view>
+          </view>
+
+          <!-- 固定班次：每个班次单独选工作日 -->
+          <view v-if="mode === 'fixed'" class="slot-days-block">
+            <view class="slot-caption">
+              <text class="slot-label">
+                工作日
+              </text>
+              <text class="slot-caption-hint">
+                {{ workDaysText(slot.work_days) }}
+              </text>
+            </view>
+            <view class="slot-days">
+              <text
+                v-for="day in WEEKDAY_OPTIONS"
+                :key="day.value"
+                :class="[
+                  'slot-day',
+                  (slot.work_days || []).includes(day.value) && 'slot-day--on',
+                  !!dayLockedBy(day.value, index) && 'slot-day--locked',
+                ]"
+                @click="toggleSlotDay(index, day.value)"
+              >
+                {{ day.label }}
+              </text>
+            </view>
+          </view>
+
+          <view class="slot-times">
+            <text class="slot-label">
+              时间
+            </text>
+            <picker mode="time" :value="slot.start" @change="onSlotTime(index, 'start', $event)">
+              <view class="slot-time">
+                {{ slot.start }}
+              </view>
+            </picker>
+            <text class="slot-sep">
+              →
+            </text>
+            <picker mode="time" :value="slot.end" @change="onSlotTime(index, 'end', $event)">
+              <view class="slot-time">
+                {{ slot.end }}
+              </view>
+            </picker>
+          </view>
+
+          <view class="slot-rest">
+            <text class="slot-rest-label">
+              休息
+            </text>
+            <picker
+              mode="time"
+              :value="restParts(slot).start"
+              :start="isCrossShift(slot) ? '00:00' : slot.start"
+              :end="isCrossShift(slot) ? '23:59' : slot.end"
+              @change="onSlotRest(index, 'start', $event)"
+            >
+              <view :class="['slot-rest-time', !restParts(slot).enabled && 'slot-time--off']">
+                {{ restParts(slot).start }}
+              </view>
+            </picker>
+            <text class="slot-sep">
+              →
+            </text>
+            <picker
+              mode="time"
+              :value="restParts(slot).end"
+              :start="isCrossShift(slot) ? '00:00' : slot.start"
+              :end="isCrossShift(slot) ? '23:59' : slot.end"
+              @change="onSlotRest(index, 'end', $event)"
+            >
+              <view :class="['slot-rest-time', !restParts(slot).enabled && 'slot-time--off']">
+                {{ restParts(slot).end }}
+              </view>
+            </picker>
+            <view
+              :class="['switch', 'slot-rest-switch', restParts(slot).enabled && 'switch--on']"
+              @click="toggleSlotRest(index)"
+            >
+              <view class="switch-dot" />
+            </view>
+          </view>
+        </view>
+
+        <view
+          :class="['add-shift', mode === 'fixed' && allDaysUsed && 'add-shift--off']"
+          @click="addShift"
+        >
+          {{ mode === 'fixed' && allDaysUsed ? '7 天已排满，无法新增班次' : '+ 添加班次' }}
+        </view>
+
+        <!-- 固定班次：弹性打卡（规则级） -->
+        <template v-if="mode === 'fixed'">
+          <view class="slot-divider" />
+          <view class="row">
+            <view class="row-main">
+              <text class="row-label">
+                弹性打卡
+              </text>
+              <text class="row-hint">
+                允许在上下班时间前后一定区间内打卡
+              </text>
+            </view>
+            <view :class="['switch', flex && 'switch--on']" @click="flex = !flex">
+              <view class="switch-dot" />
+            </view>
+          </view>
+
+          <view v-if="flex" class="row--block">
+            <text class="row-label">
+              弹性区间
+            </text>
+            <view class="chips">
+              <text
+                v-for="minute in FLEX_MINUTES"
+                :key="minute"
+                :class="['chip', flexMinutes === minute && 'chip--active']"
+                @click="flexMinutes = minute"
+              >
+                {{ minute }} 分钟
+              </text>
+            </view>
+          </view>
+        </template>
+
+        <!-- 排班制：最小交接间隔 -->
+        <view v-if="mode === 'shift'" class="row--block">
+          <text class="row-label">
+            最小交接间隔
+          </text>
+          <text class="row-hint">
+            相邻班次至少留出的间隔，避免夜班与次日班次无缝衔接
+          </text>
+          <view class="chips">
+            <text
+              v-for="minute in HANDOVERS"
+              :key="minute"
+              :class="['chip', handoverMinutes === minute && 'chip--active']"
+              @click="handoverMinutes = minute"
+            >
+              {{ minute }} 分钟
+            </text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 自由打卡 -->
+      <view v-if="mode === 'free'" class="card">
+        <text class="card-title">
+          自由打卡设置
+        </text>
+
+        <view class="row--block">
+          <view class="field-head">
+            <text class="row-label">
+              每日应出勤工时
+            </text>
+            <text class="field-hint">
+              0.5 - 24 小时
+            </text>
+          </view>
+          <text class="row-hint">
+            当日累计工时达标即记为正常出勤，不判定迟到早退
+          </text>
+          <view class="stepper">
+            <view class="stepper-btn" @click="stepHours(-0.5)">
+              −
+            </view>
+            <view class="stepper-value">
+              <input
+                type="digit"
+                :value="String(workHours)"
+                class="stepper-input"
+                @input="onWorkHoursInput"
+                @blur="normalizeWorkHours" />
+              <text class="stepper-unit">
+                小时
+              </text>
+            </view>
+            <view class="stepper-btn" @click="stepHours(0.5)">
+              +
+            </view>
+          </view>
+          <text class="row-hint">
+            支持自定义，例如 7.5 小时、11 小时，按 0.5 小时步进
+          </text>
+        </view>
+
+        <view class="row--block">
+          <text class="row-label">
+            每日打卡次数
+          </text>
+          <view class="chips">
+            <text
+              v-for="times in FREE_TIMES"
+              :key="times"
+              :class="['chip', freeTimes === times && 'chip--active']"
+              @click="freeTimes = times"
+            >
+              {{ times }} 次
+            </text>
+          </view>
+        </view>
+
+        <picker mode="time" :value="latest" @change="onLatestChange">
+          <view class="row">
+            <text class="row-label">
+              最晚下班打卡
+            </text>
+            <text class="row-value">
+              {{ latest }}
+            </text>
+          </view>
+        </picker>
+      </view>
+
+      <!-- 工作日（自由打卡） -->
+      <view v-if="mode === 'free'" class="card">
+        <view class="card-head">
+          <text class="card-title">
+            工作日
+          </text>
+          <text class="card-hint">
+            {{ workDaysText(workDays) }}
+          </text>
+        </view>
+
+        <view class="weekdays">
+          <view
+            v-for="day in WEEKDAY_OPTIONS"
+            :key="day.value"
+            :class="['weekday', workDays.includes(day.value) && 'weekday--on']"
+            @click="toggleWorkDay(day.value)"
+          >
+            {{ day.label }}
+          </view>
+        </view>
+
+        <view class="weekday-actions">
+          <text class="weekday-action" @click="workDays = [1, 2, 3, 4, 5]">
+            周一至周五
+          </text>
+          <text class="weekday-action" @click="workDays = [1, 2, 3, 4, 5, 6, 7]">
+            每天
+          </text>
+          <text class="weekday-action" @click="workDays = []">
+            清空
+          </text>
+        </view>
+
+        <text class="row-hint">
+          仅所选工作日需要打卡，其余日期按休息处理；跨天班次按上班当天算
+        </text>
+      </view>
+
+      <!-- 排班表：按人排班 -->
+      <view v-if="mode === 'shift'" class="card">
+        <view class="card-head">
+          <text class="card-title">
+            排班表
+          </text>
+          <view class="member-entry" @click="memberOpen = !memberOpen">
+            <text class="card-hint">
+              {{ members.length }} 人 · {{ assignments.length }} 人次
+            </text>
+            <text :class="['member-arrow', memberOpen && 'member-arrow--up']">
+              ⌄
+            </text>
+          </view>
+        </view>
+
+        <view v-if="memberOpen" class="member-panel">
+          <scroll-view scroll-y class="member-scroll">
+            <view class="member-grid">
+              <view
+                v-for="member in candidateMembers"
+                :key="member"
+                :class="['member-option', members.includes(member) && 'member-option--on']"
+                @click="toggleMember(member)"
+              >
+                <text class="member-name">
+                  {{ member }}
+                </text>
+                <text v-if="members.includes(member)" class="member-check">
+                  ✓
+                </text>
+              </view>
+            </view>
+          </scroll-view>
+          <text class="member-tip">
+            勾选参与排班的人员，取消会同时清掉 TA 的排班
+          </text>
+        </view>
+
+        <view class="roster-nav">
+          <view class="cal-nav">
+            <view class="cal-arrow" @click="shiftRange(-1)">
+              ‹
+            </view>
+            <text class="cal-title">
+              {{ rangeLabel }}
+            </text>
+            <view class="cal-arrow" @click="shiftRange(1)">
+              ›
+            </view>
+          </view>
+          <view class="range-tabs">
+            <text
+              :class="['range-tab', viewMode === 'week' && 'range-tab--on']"
+              @click="viewMode = 'week'"
+            >
+              周
+            </text>
+            <text
+              :class="['range-tab', viewMode === 'month' && 'range-tab--on']"
+              @click="viewMode = 'month'"
+            >
+              月
+            </text>
+          </view>
+        </view>
+
+        <view v-if="!shifts.length" class="slot-empty">
+          先在「班次设置」里添加班次，再给人员排班
+        </view>
+        <view v-else-if="!members.length" class="slot-empty">
+          该规则还没有排班人员，请先选择适用部门
+        </view>
+        <template v-else>
+          <RosterTable
+            :members="members"
+            :dates="dates"
+            :assignments="assignments"
+            :shifts="shifts"
+            :selected="selectedCells"
+            :cross-over="crossOver"
+            editable
+            @cell-click="toggleCell"
+          />
+
+          <view class="cal-actions">
+            <text class="cal-meta">
+              已选 {{ selectedCells.length }} 个单元格
+            </text>
+            <text v-if="selectedCells.length" class="cal-clear" @click="clearSelection">
+              清除选择
+            </text>
+          </view>
+          <view class="cal-picks">
+            <text
+              v-for="slot in shifts"
+              :key="slot.name"
+              :class="['cal-pick', pendingShifts.includes(slot.name) && 'cal-pick--on']"
+              @click="togglePick(slot.name)"
+            >
+              {{ slot.name }}
+            </text>
+            <text
+              :class="['cal-pick', 'cal-pick--rest', pendingShifts.includes(REST_SHIFT) && 'cal-pick--on']"
+              @click="togglePick(REST_SHIFT)"
+            >
+              休息
+            </text>
+          </view>
+          <view class="confirm-bar">
+            <text class="confirm-tip">
+              {{ pendingShifts.length ? `将 ${selectedCells.length || 0} 个单元格设为「${pendingShifts.join('、')}」` : '先选班次，再点确定' }}
+            </text>
+            <view
+              :class="['confirm', (!selectedCells.length || !pendingShifts.length) && 'confirm--off']"
+              @click="commitShift"
+            >
+              确定
+            </view>
+          </view>
+        </template>
+      </view>
+
+      <!-- 打卡要求 -->
+      <view class="card">
+        <text class="card-title">
+          打卡要求
+        </text>
+
+        <view class="row--block">
+          <text class="row-label">
+            打卡方式
+          </text>
+          <view class="chips">
+            <text
+              v-for="way in WAYS"
+              :key="way"
+              :class="['chip', ways.includes(way) && 'chip--active']"
+              @click="toggleWay(way)"
+            >
+              {{ way }}
+            </text>
+          </view>
+        </view>
+
+        <view class="row--block">
+          <text class="row-label">
+            打卡范围
+          </text>
+          <view class="chips">
+            <text
+              v-for="range in RANGES"
+              :key="range"
+              :class="['chip', gpsRange === range && 'chip--active']"
+              @click="gpsRange = range"
+            >
+              {{ range }} 米
+            </text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 其他 -->
+      <view class="card">
+        <text class="card-title">
+          补卡与异常
+        </text>
+        <view class="row--block">
+          <text class="row-label">
+            每月补卡次数
+          </text>
+          <view class="chips">
+            <text
+              v-for="count in MAKE_UPS"
+              :key="count"
+              :class="['chip', makeUp === count && 'chip--active']"
+              @click="makeUp = count"
+            >
+              {{ count }} 次
+            </text>
+          </view>
+        </view>
+      </view>
+
+      <view class="spacer" />
+
+      <!-- 保存 -->
+      <view class="footer-bar">
+        <view :class="['save', saving && 'save--disabled']" @click="save">
+          {{ saving ? '保存中…' : '保存' }}
+        </view>
+      </view>
+    </view>
+  </AuthLayout>
+</template>
+
+<style lang="scss">
+.page {
+  min-height: 100%;
+  padding-bottom: calc(180px + env(safe-area-inset-bottom, 0px));
+  background-color: #f5f6fa;
+}
+
+/* 表单卡片 */
+.card {
+  margin: 16px 16px 0;
+  padding: 20px 24px 6px;
+  border-radius: 18px;
+  background-color: #fff;
+  box-shadow: 0 8px 24px rgba(23, 23, 64, 0.05);
+}
+
+.card-title {
+  display: block;
+  padding-bottom: 6px;
+  font-size: 27px;
+  font-weight: 700;
+  color: #1c1c2e;
+}
+
+.card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.card-hint {
+  font-size: 20px;
+  color: #9aa0b4;
+}
+
+/* 考勤模式 */
+.mode {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 14px;
+  padding: 20px;
+  border: 1px solid #eceef5;
+  border-radius: 16px;
+  background-color: #fbfbfe;
+}
+
+.mode--active {
+  border-color: #c7d0ff;
+  background-color: #f5f7ff;
+}
+
+.mode-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.mode-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mode-name {
+  font-size: 25px;
+  font-weight: 600;
+  color: #23263a;
+}
+
+.mode-name--active {
+  color: #4f46e5;
+}
+
+.mode-badge {
+  padding: 2px 10px;
+  border-radius: 6px;
+  font-size: 17px;
+}
+
+.mode-badge--fixed {
+  color: #4f46e5;
+  background-color: #eef2ff;
+}
+
+.mode-badge--free {
+  color: #0d9488;
+  background-color: #ecfdf5;
+}
+
+.mode-badge--shift {
+  color: #b45309;
+  background-color: #fff7ed;
+}
+
+.mode-desc {
+  display: block;
+  margin-top: 8px;
+  font-size: 19px;
+  line-height: 1.5;
+  color: #9aa0b4;
+}
+
+.radio {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: 2px solid #dfe3ee;
+  border-radius: 50%;
+  background-color: #fff;
+}
+
+.radio--on {
+  border-color: #4f46e5;
+  border-width: 10px;
+  background-color: #fff;
+}
+
+/* 排班班次 */
+.shift-slot {
+  margin-top: 16px;
+  padding: 20px 20px 10px;
+  border-radius: 18px;
+  background-color: #f7f8fc;
+}
+
+.slot-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.slot-name {
+  flex: 1;
+  min-width: 0;
+  height: 46px;
+  font-size: 25px;
+  font-weight: 600;
+  color: #1c1c2e;
+}
+
+.slot-ops {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cross-chip {
+  padding: 4px 12px;
+  border-radius: 6px;
+  background-color: #fff;
+  font-size: 17px;
+  color: #8a90a3;
+}
+
+.cross-chip--on {
+  background-color: #fff5ea;
+  color: #b45309;
+}
+
+.slot-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  font-size: 26px;
+  line-height: 1;
+  color: #b3b8c8;
+}
+
+/* #ifdef WEB */
+.slot-remove:active {
+  background-color: #eff1f8;
+}
+
+/* #endif */
+
+/* 工作日：说明行 + 一排轻量圆形格子 */
+.slot-days-block {
+  margin-top: 16px;
+}
+
+.slot-caption {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.slot-label {
+  flex-shrink: 0;
+  font-size: 18px;
+  color: #9aa0b4;
+}
+
+.slot-caption-hint {
+  font-size: 18px;
+  color: #9aa0b4;
+}
+
+.slot-days {
+  display: flex;
+  gap: 10px;
+}
+
+.slot-day {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 76px;
+  border-radius: 16px;
+  background-color: #fff;
+  font-size: 22px;
+  color: #8a90a3;
+  transition:
+  background-color 0.15s ease,
+  color 0.15s ease;
+
+  /* 已被其它班次占用的日子不可选 */
+}
+
+.slot-day--on {
+  background-color: #4f46e5;
+  font-weight: 600;
+  color: #fff;
+}
+
+.slot-day--locked {
+  background-color: #e9ebf2;
+  color: #aab0c0;
+}
+
+/* #ifdef WEB */
+.slot-day:active {
+  opacity: 0.86;
+}
+
+/* #endif */
+
+.slot-times {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.slot-time {
+  padding: 8px 18px;
+  border-radius: 12px;
+  background-color: #fff;
+  font-size: 25px;
+  font-weight: 600;
+  color: #23263a;
+  font-variant-numeric: tabular-nums;
+}
+
+.slot-sep {
+  font-size: 18px;
+  color: #c2c6d4;
+}
+
+.add-shift {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 76px;
+  margin-top: 14px;
+  border: 1px dashed #d5daf0;
+  border-radius: 14px;
+  background-color: #fbfbff;
+  font-size: 21px;
+  color: #4f46e5;
+}
+
+/* #ifdef WEB */
+.add-shift:active {
+  background-color: #f3f5ff;
+}
+
+/* #endif */
+.add-shift--off {
+  border-color: #e7e9f3;
+  background-color: #fbfbfd;
+  color: #b8bece;
+}
+
+.slot-empty {
+  margin-top: 14px;
+  padding: 26px 20px;
+  border: 1px dashed #d5daf0;
+  border-radius: 14px;
+  text-align: center;
+  font-size: 20px;
+  line-height: 1.6;
+  color: #9aa0b4;
+}
+
+/* 排班表导航与人员面板 */
+.roster-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0 2px;
+}
+
+/* #ifdef WEB */
+.roster-nav .cal-nav {
+  padding: 8px 0;
+  gap: 24px;
+}
+
+/* #endif */
+
+.range-tabs {
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: 999px;
+  background-color: #f4f5fb;
+}
+
+.range-tab {
+  padding: 8px 22px;
+  border-radius: 999px;
+  font-size: 19px;
+  color: #6b7080;
+}
+
+.range-tab--on {
+  background-color: #fff;
+  color: #4f46e5;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(23, 23, 64, 0.08);
+}
+
+.member-entry {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.member-arrow {
+  font-size: 20px;
+  line-height: 1;
+  color: #9aa0b4;
+  transition: transform 0.18s ease;
+}
+
+.member-arrow--up {
+  transform: rotate(180deg);
+}
+
+.member-panel {
+  margin-top: 12px;
+  padding: 8px 8px 4px;
+  border: 1px solid #eceef5;
+  border-radius: 14px;
+  background-color: #fbfbfe;
+}
+
+.member-scroll {
+  height: 400px;
+  padding-bottom: 10px;
+}
+
+.member-grid {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.member-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 50%;
+  height: 64px;
+  padding: 0 12px;
+  border-radius: 10px;
+}
+
+.member-option--on {
+  background-color: #eef2ff;
+}
+
+/* #ifdef WEB */
+.member-option--on .member-name {
+  color: #4f46e5;
+  font-weight: 600;
+}
+
+/* #endif */
+
+.member-name {
+  font-size: 21px;
+  color: #3a3f52;
+}
+
+.member-check {
+  font-size: 19px;
+  color: #4f46e5;
+}
+
+.member-tip {
+  display: block;
+  padding: 8px 12px 10px;
+  font-size: 17px;
+  color: #9aa0b4;
+}
+
+/* 排班日历 */
+.cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 36px;
+  padding: 18px 0 12px;
+}
+
+.cal-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background-color: #f4f5fb;
+  font-size: 30px;
+  line-height: 1;
+  color: #4f46e5;
+}
+
+/* #ifdef WEB */
+.cal-arrow:active {
+  background-color: #eef2ff;
+}
+
+/* #endif */
+
+.cal-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1c1c2e;
+}
+
+.cal-week {
+  display: flex;
+  padding-bottom: 6px;
+}
+
+.cal-week-text {
+  flex: 1;
+  text-align: center;
+  font-size: 18px;
+  color: #9aa0b4;
+}
+
+.cal-grid {
+  display: flex;
+  flex-wrap: wrap;
+  padding-bottom: 6px;
+}
+
+.cal-grid--disabled {
+  opacity: 0.38;
+}
+
+.cal-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 14.285%;
+  height: 62px;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  background-clip: padding-box;
+}
+
+.cal-cell--blank {
+  visibility: hidden;
+}
+
+.cal-cell--on {
+  background-color: #4f46e5;
+}
+
+.cal-day {
+  font-size: 21px;
+  color: #23263a;
+  font-variant-numeric: tabular-nums;
+}
+
+.cal-day--on {
+  font-weight: 700;
+  color: #fff;
+}
+
+.cal-tag {
+  height: 18px;
+  font-size: 15px;
+  line-height: 18px;
+  color: #7c8bd6;
+}
+
+.cal-tag--on {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.cal-tag--cont {
+  color: #b45309;
+}
+
+.cal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0 4px;
+  border-top: 1px solid #f1f2f7;
+}
+
+.cal-meta {
+  font-size: 21px;
+  color: #6b7080;
+}
+
+.cal-clear {
+  font-size: 20px;
+  color: #9aa0b4;
+}
+
+.cal-picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 0 12px;
+}
+
+.cal-pick {
+  padding: 12px 24px;
+  border: 1px solid #e2e6f4;
+  border-radius: 999px;
+  background-color: #fff;
+  font-size: 20px;
+  color: #4a4f60;
+}
+
+.cal-pick--rest {
+  color: #6b7080;
+}
+
+.cal-pick--on {
+  border-color: #4f46e5;
+  background-color: #4f46e5;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* #ifdef WEB */
+.cal-pick:active {
+  opacity: 0.85;
+}
+
+/* #endif */
+
+.cal-tip {
+  padding: 18px 0 20px;
+  text-align: center;
+  font-size: 20px;
+  color: #9aa0b4;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 20px 0;
+  border-bottom: 1px solid #f1f2f7;
+}
+
+/* #ifdef WEB */
+.row:last-child {
+  border-bottom: none;
+}
+
+/* #endif */
+
+.row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.row-label {
+  flex-shrink: 0;
+  font-size: 24px;
+  color: #23263a;
+}
+
+.row-hint {
+  display: block;
+  font-size: 19px;
+  color: #9aa0b4;
+}
+
+.row-value {
+  font-size: 25px;
+  font-weight: 600;
+  color: #4f46e5;
+  font-variant-numeric: tabular-nums;
+}
+
+.row-input {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  height: 44px;
+  font-size: 25px;
+  color: #23263a;
+  text-align: right;
+}
+
+.row-placeholder {
+  color: #b3b8c8;
+}
+
+.row--block {
+  padding: 20px 0;
+  border-bottom: 1px solid #f1f2f7;
+}
+
+/* #ifdef WEB */
+.row--block:last-child {
+  border-bottom: none;
+}
+
+/* #endif */
+/* #ifdef WEB */
+.row--block .row-hint {
+  margin-top: 6px;
+}
+
+/* #endif */
+
+/* 选项 chips */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.chip {
+  padding: 10px 22px;
+  border-radius: 999px;
+  background-color: #f4f5fb;
+  font-size: 21px;
+  color: #6b7080;
+}
+
+.chip--active {
+  background-color: #eef2ff;
+  color: #4f46e5;
+  font-weight: 600;
+}
+
+/* 工作日选择 */
+.weekdays {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.weekday {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 72px;
+  border-radius: 14px;
+  background-color: #f4f5f9;
+  font-size: 21px;
+  color: #8a90a3;
+}
+
+.weekday--on {
+  background-color: #4f46e5;
+  font-weight: 600;
+  color: #fff;
+}
+
+/* #ifdef WEB */
+.weekday:active {
+  opacity: 0.86;
+}
+
+/* #endif */
+
+.weekday-actions {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin-top: 14px;
+}
+
+.weekday-action {
+  font-size: 19px;
+  color: #4f46e5;
+}
+
+/* #ifdef WEB */
+.weekday-actions + .row-hint {
+  margin-top: 12px;
+}
+
+/* #endif */
+
+/* 工时步进器：一个整体控件，减号 / 数值 / 加号 */
+.stepper {
+  display: flex;
+  align-items: stretch;
+  height: 88px;
+  margin-top: 18px;
+  border: 1px solid #e8eaf3;
+  border-radius: 14px;
+  background-color: #fff;
+  overflow: hidden;
+}
+
+.stepper-btn {
+  flex: 0 0 92px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  line-height: 1;
+  color: #4f46e5;
+}
+
+/* #ifdef WEB */
+.stepper-btn:active {
+  background-color: #f3f5ff;
+}
+
+/* #endif */
+
+.stepper-value {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-left: 1px solid #eef0f7;
+  border-right: 1px solid #eef0f7;
+}
+
+.stepper-input {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 96px;
+  width: 96px;
+  height: 100%;
+  text-align: right;
+  font-size: 27px;
+  font-weight: 600;
+  color: #23263a;
+  font-variant-numeric: tabular-nums;
+}
+
+.stepper-unit {
+  font-size: 21px;
+  color: #8a90a3;
+}
+
+/* 部门下拉 */
+.field-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.field-hint {
+  font-size: 19px;
+  color: #9aa0b4;
+}
+
+.select {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  height: 76px;
+  margin-top: 14px;
+  padding: 0 18px;
+  border: 1px solid #e5e8f2;
+  border-radius: 14px;
+  background-color: #fafbff;
+}
+
+.select--open {
+  border-color: #c7d0ff;
+  background-color: #fff;
+}
+
+.select-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 23px;
+  color: #23263a;
+}
+
+.select-placeholder {
+  color: #b3b8c8;
+}
+
+.select-arrow {
+  flex-shrink: 0;
+  font-size: 24px;
+  line-height: 1;
+  color: #8a90a3;
+  transition: transform 0.18s ease;
+}
+
+.select-arrow--up {
+  transform: rotate(180deg);
+}
+
+.dept-panel {
+  margin-top: 12px;
+  padding: 10px 10px 6px;
+  border: 1px solid #eceef5;
+  border-radius: 14px;
+  background-color: #fff;
+  box-shadow: 0 10px 24px rgba(23, 23, 64, 0.06);
+}
+
+.dept-grid {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.dept-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 50%;
+  height: 62px;
+  padding: 0 12px;
+  border-radius: 10px;
+}
+
+.dept-option--on {
+  background-color: #eef2ff;
+}
+
+/* #ifdef WEB */
+.dept-option--on .dept-name {
+  color: #4f46e5;
+  font-weight: 600;
+}
+
+/* #endif */
+
+.dept-name {
+  font-size: 21px;
+  color: #3a3f52;
+}
+
+.dept-check {
+  flex-shrink: 0;
+  font-size: 20px;
+  color: #4f46e5;
+}
+
+.dept-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 26px;
+  margin-top: 6px;
+  padding: 12px 8px 8px;
+  border-top: 1px dashed #f1f2f7;
+}
+
+.dept-action {
+  font-size: 21px;
+  color: #8a90a3;
+}
+
+.dept-action--primary {
+  color: #4f46e5;
+  font-weight: 600;
+}
+
+/* 开关 */
+.switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 86px;
+  height: 50px;
+  border-radius: 999px;
+  background-color: #e5e7f0;
+  transition: background-color 0.18s ease;
+}
+
+.switch--on {
+  background-color: #4f46e5;
+}
+
+.switch-dot {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #fff;
+  box-shadow: 0 2px 6px rgba(23, 23, 64, 0.18);
+  transition: transform 0.18s ease;
+}
+
+/* #ifdef WEB */
+.switch--on .switch-dot {
+  transform: translateX(36px);
+}
+
+/* #endif */
+
+/* 底部保存 */
+.spacer {
+  height: 20px;
+}
+
+.footer-bar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 60;
+  padding: 16px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(180deg, rgba(245, 246, 250, 0) 0%, #f5f6fa 45%);
+}
+
+.save {
+  padding: 24px 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #3b4fe0 0%, #7c6cf6 100%);
+  box-shadow: 0 12px 24px rgba(59, 79, 224, 0.24);
+  text-align: center;
+  font-size: 28px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.save--disabled {
+  opacity: 0.6;
+  box-shadow: none;
+}
+
+/* #ifdef WEB */
+.save:active {
+  opacity: 0.85;
+}
+
+/* #endif */
+
+/* 休息时段自定义 */
+.rest-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.rest-switch {
+  margin-left: auto;
+}
+
+.slot-time--off {
+  opacity: 0.4;
+}
+
+/* 选好班次后确认 */
+.confirm-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0 14px;
+  border-top: 1px dashed #f1f2f7;
+}
+
+.confirm-tip {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 19px;
+  color: #9aa0b4;
+}
+
+.confirm {
+  flex-shrink: 0;
+  padding: 14px 44px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #3b4fe0 0%, #7c6cf6 100%);
+  box-shadow: 0 8px 18px rgba(59, 79, 224, 0.24);
+  font-size: 22px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.confirm--off {
+  opacity: 0.4;
+  box-shadow: none;
+}
+
+/* #ifdef WEB */
+.confirm:active {
+  opacity: 0.85;
+}
+
+/* #endif */
+
+/* 班次休息时间 */
+.slot-divider {
+  margin: 6px 0 2px;
+  border-top: 1px dashed #e9ecf5;
+}
+
+.slot-rest {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 14px 0 10px;
+  border-top: 1px dashed #e9ecf5;
+}
+
+.slot-rest-label {
+  flex-shrink: 0;
+  font-size: 18px;
+  color: #9aa0b4;
+}
+
+.slot-rest-time {
+  padding: 7px 16px;
+  border-radius: 12px;
+  background-color: #fff;
+  font-size: 21px;
+  color: #5b6172;
+  font-variant-numeric: tabular-nums;
+}
+
+.slot-rest-switch {
+  margin-left: auto;
+  width: 72px;
+  height: 42px;
+}
+
+/* #ifdef WEB */
+.slot-rest-switch .switch-dot {
+  top: 4px;
+  left: 4px;
+  width: 34px;
+  height: 34px;
+}
+
+/* #endif */
+/* #ifdef WEB */
+.slot-rest-switch.switch--on .switch-dot {
+  transform: translateX(30px);
+}
+
+/* #endif */
+</style>

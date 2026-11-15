@@ -1,0 +1,177 @@
+<script setup lang="ts">
+defineProps({
+  item: { type: Object },
+  showCategory: { type: Boolean, default: true },
+})
+
+const emit = defineEmits([])
+
+/** 状态 → 标签配色 */
+function tone(status: string) {
+  if (status === '待审批')
+    return 'wait'
+  if (status === '审批中')
+    return 'progressing'
+  if (status === '已通过')
+    return 'pass'
+  if (status === '已退回')
+    return 'back'
+  return 'muted'
+}
+
+</script>
+
+<template>
+  <view class="card" @click="emit('view', item)">
+    <view class="card-head">
+      <view class="card-heading">
+        <text v-if="showCategory" class="card-cat">
+          {{ item.biz_category }}
+        </text>
+        <text class="card-title">
+          {{ item.biz_title }}
+        </text>
+      </view>
+      <text :class="['tag', `tag--${tone(item.status)}`]">
+        {{ item.status }}
+      </text>
+    </view>
+
+    <view class="card-meta">
+      <text class="card-no">
+        {{ item.biz_no }}
+      </text>
+      <text class="card-dot">
+        ·
+      </text>
+      <text>{{ item.team_name }}</text>
+    </view>
+
+    <view class="card-foot">
+      <text class="card-time">
+        {{ item.ctime }}
+      </text>
+      <text class="card-link">
+        查看详情
+      </text>
+    </view>
+  </view>
+</template>
+
+<style lang="scss">
+.card {
+  margin: 14px 16px 0;
+  padding: 20px 24px 16px;
+  border-radius: 18px;
+  background-color: #fff;
+  box-shadow: 0 8px 24px rgba(23, 23, 64, 0.05);
+}
+
+/* #ifdef WEB */
+.card:active {
+  opacity: 0.85;
+}
+
+/* #endif */
+
+.card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.card-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.card-cat {
+  flex-shrink: 0;
+  padding: 3px 10px;
+  border-radius: 6px;
+  background-color: #eef2ff;
+  font-size: 18px;
+  color: #4f46e5;
+}
+
+.card-title {
+  font-size: 27px;
+  font-weight: 600;
+  color: #1c1c2e;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.tag {
+  flex-shrink: 0;
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-size: 19px;
+}
+
+.tag--wait {
+  color: #b45309;
+  background-color: #fffbeb;
+}
+
+.tag--progressing {
+  color: #1d4ed8;
+  background-color: #eff6ff;
+}
+
+.tag--pass {
+  color: #0d9488;
+  background-color: #ecfdf5;
+}
+
+.tag--back {
+  color: #b91c1c;
+  background-color: #fef2f2;
+}
+
+.tag--muted {
+  color: #6b7080;
+  background-color: #f2f3f7;
+}
+
+.card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 21px;
+  color: #9aa0b4;
+}
+
+.card-no {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.4px;
+}
+
+.card-dot {
+  color: #c8ccd8;
+}
+
+.card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed #f1f2f7;
+  font-size: 20px;
+}
+
+.card-time {
+  color: #9aa0b4;
+}
+
+.card-link {
+  color: #4f46e5;
+  font-weight: 500;
+}
+</style>

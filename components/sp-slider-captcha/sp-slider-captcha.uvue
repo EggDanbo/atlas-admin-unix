@@ -1,0 +1,593 @@
+<script setup lang="ts">
+import type { CaptchaData, CaptchaDataResponse, SliderCaptchaExpose, TrailPoint, VerifyResult } from './types/index.ts'
+import { computed, ref } from 'vue'
+import sliderCaptchaApi from '@/api/identity/sliderCaptcha.ts'
+import { spSliderCaptchaProps } from './props.ts'
+
+const props = defineProps(spSliderCaptchaProps)
+
+const emit = defineEmits(['close', 'fail', 'locked', 'success'])
+
+// ========== 状态管理 ==========
+const show = ref(false)
+const loading = ref(false)
+const verifying = ref(false)
+const captchaData = ref<CaptchaData | null>(null)
+const loadTime = ref(0)
+
+// 滑块状态
+const sliderX = ref(0)
+const isDragging = ref(false)
+const startX = ref(0)
+const startY = ref(0)
+const trail = ref<TrailPoint[]>([])
+const trailStartTime = ref(0)
+
+// 验证结果状态
+const verifyStatus = ref<'idle' | 'success' | 'fail' | 'locked'>('idle')
+const verifyMessage = ref('')
+
+// Promise 回调
+let resolveVerify: ((token: string) => void) | null = null
+let rejectVerify: ((error: Error) => void) | null = null
+
+// ========== 计算属性 ==========
+const sliderSize = computed(() => props.sliderWidth + props.protrusionRadius * 2)
+const maxSliderX = computed(() => props.width - sliderSize.value)
+const clampedSliderX = computed(() => Math.max(0, Math.min(sliderX.value, maxSliderX.value)))
+
+// ========== 工具函数 ==========
+function clearPromiseCallbacks() {
+  resolveVerify = null
+  rejectVerify = null
+}
+
+function resetSlider() {
+  sliderX.value = 0
+  trail.value = []
+}
+
+function resetVerifyState() {
+  resetSlider()
+  verifyStatus.value = 'idle'
+  verifyMessage.value = ''
+}
+
+function isExpired() {
+  return Date.now() - loadTime.value > props.captchaExpiration * 1000
+}
+
+function isVerifyResult(data: unknown): data is VerifyResult {
+  return typeof data === 'object' && data !== null && 'success' in data
+}
+
+function getFailMessage(reason: number | string): string {
+  const messages: Record<number | string, string> = {
+    0: '验证失败，请重试',
+    1: '验证码不存在',
+    2: '验证码已过期',
+    3: '滑块位置错误',
+    4: '轨迹验证失败',
+    5: '参数错误',
+    6: '服务异常',
+    tooslow: '滑动过慢，请重试',
+    toofast: '滑动过快，请重试',
+    locked: '操作过于频繁，请稍后再试',
+  }
+  return messages[reason] || '验证失败，请重试'
+}
+
+// ========== 核心业务逻辑 ==========
+async function loadCaptcha() {
+  loading.value = true
+  try {
+    const result = await sliderCaptchaApi.getCaptcha()
+    if (result.isSuccess && result.data) {
+      const data = result.data as CaptchaDataResponse
+      captchaData.value = {
+        key: data.key || data.Key || data.id || data.Id || '',
+        background: data.background || data.Background || data.backgroundimage || data.BackgroundImage || '',
+        slider: data.slider || data.Slider || data.sliderimage || data.SliderImage || '',
+        y: data.y ?? data.Y ?? data.slidery ?? data.SliderY ?? 0,
+      }
+      loadTime.value = Date.now()
+    }
+    else {
+      verifyMessage.value = '验证码加载失败'
+      verifyStatus.value = 'fail'
+    }
+  }
+  catch {
+    verifyMessage.value = '验证码加载失败'
+    verifyStatus.value = 'fail'
+  }
+  finally {
+    loading.value = false
+  }
+}
+
+async function refreshCaptcha() {
+  resetVerifyState()
+  await loadCaptcha()
+}
+
+function handleVerifyFail(reason: number | string, message?: string) {
+  const isLocked = reason === 7 || reason === 'locked'
+  if (isLocked) {
+    verifyStatus.value = 'locked'
+    verifyMessage.value = message || '操作过于频繁，请稍后再试'
+    emit('locked', verifyMessage.value)
+    rejectVerify?.(new Error(verifyMessage.value))
+    clearPromiseCallbacks()
+    return
+  }
+
+  verifyStatus.value = 'fail'
+  verifyMessage.value = message || getFailMessage(reason)
+  emit('fail', reason)
+
+  if (isExpired()) {
+    refreshCaptcha()
+  }
+  else {
+    setTimeout(resetSlider, 300)
+    setTimeout(resetVerifyState, 1500)
+  }
+}
+
+function handleVerifySuccess(token: string) {
+  verifyStatus.value = 'success'
+  emit('success', token)
+  resolveVerify?.(token)
+  clearPromiseCallbacks()
+  if (props.autoClose) {
+    setTimeout(close, props.successDuration)
+  }
+}
+
+function handleVerifyResult(result: VerifyResult) {
+  if (result.success) {
+    handleVerifySuccess(result.verifytoken || '')
+  }
+  else {
+    handleVerifyFail(result.reason || 0, result.message)
+  }
+}
+
+async function submitVerify() {
+  if (!captchaData.value)
+    return
+
+  verifying.value = true
+  const sliderTime = trail.value.at(-1)?.t ?? 0
+  const slideX = Math.round(clampedSliderX.value + props.protrusionRadius)
+
+  try {
+    const result = await sliderCaptchaApi.verify(
+      captchaData.value.key,
+      slideX,
+      sliderTime,
+      trail.value,
+    )
+
+    if (result.isSuccess && isVerifyResult(result.data)) {
+      handleVerifyResult(result.data)
+    }
+    else {
+      handleVerifyFail(6)
+    }
+  }
+  catch {
+    handleVerifyFail(6)
+  }
+  finally {
+    verifying.value = false
+  }
+}
+
+// ========== 触摸事件处理（兼容小程序和 H5） ==========
+function onTouchStart(e: TouchEvent) {
+  if (verifyStatus.value !== 'idle' || !captchaData.value)
+    return
+
+  const touch = e.touches[0]
+  isDragging.value = true
+  startX.value = touch.clientX - sliderX.value
+  startY.value = touch.clientY
+  trailStartTime.value = Date.now()
+  trail.value = [{ x: Math.round(sliderX.value), y: 0, t: 0 }]
+}
+
+function onTouchMove(e: TouchEvent) {
+  if (!isDragging.value)
+    return
+
+  e.preventDefault?.()
+  const touch = e.touches[0]
+  sliderX.value = Math.max(0, Math.min(touch.clientX - startX.value, maxSliderX.value))
+
+  // 节流采集轨迹点（约 16ms 间隔）
+  const now = Date.now()
+  const lastPoint = trail.value.at(-1)
+  if (trail.value.length < props.maxTrailPoints && (!lastPoint || now - (trailStartTime.value + lastPoint.t) > 16)) {
+    trail.value.push({
+      x: Math.round(sliderX.value),
+      y: Math.round(touch.clientY - startY.value),
+      t: now - trailStartTime.value,
+    })
+  }
+}
+
+async function onTouchEnd() {
+  if (!isDragging.value)
+    return
+
+  isDragging.value = false
+  if (captchaData.value && trail.value.length > 0) {
+    await submitVerify()
+  }
+}
+
+// ========== 公开方法 ==========
+function open() {
+  show.value = true
+  resetVerifyState()
+  loadCaptcha()
+}
+
+function close() {
+  show.value = false
+  emit('close')
+  if (rejectVerify) {
+    rejectVerify(new Error('验证已取消'))
+    clearPromiseCallbacks()
+  }
+}
+
+function verify(): Promise<string> {
+  return new Promise((resolve, reject) => {
+    resolveVerify = resolve
+    rejectVerify = reject
+    open()
+  })
+}
+
+defineExpose<SliderCaptchaExpose>({ verify, close })
+
+</script>
+
+<template>
+  <view v-if="show" class="captcha-overlay" :style="{ padding: '20px' }">
+    <view class="captcha-dialog" :style="{ maxWidth: `${width + 40}px` }">
+      <!-- 头部 -->
+      <view class="captcha-header" :style="{ padding: '12px 12px 0' }">
+        <text class="captcha-title" :style="{ fontSize: '15px' }">
+          {{ title }}
+        </text>
+        <view class="captcha-close" :style="{ fontSize: '20px', padding: '0 4px' }" @click="close">
+          ×
+        </view>
+      </view>
+
+      <!-- 验证区域 -->
+      <view
+        class="captcha-area"
+        :style="{
+          width: `${width}px`,
+          height: `${height}px`,
+          margin: '8px auto 0',
+          borderRadius: '8px',
+          border: '1px solid #e0e0e0',
+        }"
+      >
+        <!-- 加载中 -->
+        <view v-if="loading" class="captcha-loading">
+          <text>加载中...</text>
+        </view>
+
+        <!-- 验证码图片 -->
+        <template v-else-if="captchaData">
+          <image :src="captchaData.background" class="captcha-bg" mode="aspectFill" draggable="false" />
+
+          <!-- 刷新按钮 -->
+          <view
+            :class="['refresh-btn', (verifying || verifyStatus === 'locked') && 'disabled']"
+            :style="{ top: '8px', right: '8px', width: '28px', height: '28px', fontSize: '16px' }"
+            @click="(!verifying && verifyStatus !== 'locked') && refreshCaptcha()"
+          >
+            ↻
+          </view>
+
+          <!-- 滑块图 -->
+          <image
+            :src="captchaData.slider"
+            class="captcha-slider"
+            :style="{
+              top: `${captchaData.y - protrusionRadius}px`,
+              left: `${clampedSliderX}px`,
+              width: `${sliderSize}px`,
+              height: `${sliderSize}px`,
+            }"
+            mode="aspectFit"
+            draggable="false"
+          />
+
+          <!-- 验证结果遮罩 -->
+          <view
+            v-if="verifyStatus === 'fail' || verifyStatus === 'locked'"
+            :class="['captcha-result-mask', `is-${verifyStatus}`]"
+          >
+            <view class="result-content">
+              <text :class="['result-icon', (verifyStatus === 'fail' ? 'is-fail' : 'is-locked')]" :style="{ fontSize: '32px', marginBottom: '8px' }">
+                {{ verifyStatus === 'fail' ? '✕' : '🔒' }}
+              </text>
+              <text class="result-text" :style="{ fontSize: '13px' }">
+                {{ verifyMessage }}
+              </text>
+            </view>
+          </view>
+        </template>
+
+        <!-- 加载失败 -->
+        <view v-else class="captcha-error">
+          <text>加载失败</text>
+          <text class="retry-text" @click="refreshCaptcha">
+            重试
+          </text>
+        </view>
+      </view>
+
+      <!-- 滑块轨道 -->
+      <view
+        class="slider-track"
+        :style="{
+          width: `${width}px`,
+          height: '42px',
+          margin: '16px auto 12px',
+          borderRadius: '8px',
+          border: '1px solid #e0e0e0',
+        }"
+      >
+        <view v-if="sliderX === 0 && verifyStatus === 'idle'" class="slider-bg">
+          <text class="slider-hint" :style="{ fontSize: '13px' }">
+            向右拖动完成验证
+          </text>
+        </view>
+
+        <view class="slider-fill" :style="{ width: `${clampedSliderX + handleSize / 2}px` }" />
+
+        <!-- 滑块手柄（使用 view + touch 事件，兼容小程序） -->
+        <view
+          :class="['slider-handle', isDragging && 'is-dragging', verifyStatus === 'success' && 'is-success']"
+          :style="{
+            width: `${handleSize}px`,
+            height: `${handleSize}px`,
+            transform: `translateX(${clampedSliderX}px)`,
+          }"
+          @touchstart="onTouchStart"
+          @touchmove="onTouchMove"
+          @touchend="onTouchEnd"
+          @touchcancel="onTouchEnd"
+        >
+          <text
+            :class="['handle-icon', verifyStatus === 'success' && 'is-success']"
+            :style="{ fontSize: '18px' }"
+          >
+            {{ verifyStatus === 'success' ? '✓' : verifying ? '⟳' : '›' }}
+          </text>
+        </view>
+      </view>
+    </view>
+  </view>
+</template>
+
+<style lang="scss">
+/* 所有尺寸相关的样式通过内联 style 设置，CSS 只处理布局和装饰 */
+/* 内联 style 用小写 px，不会被 postcss-pxtransform 转换 */
+
+.captcha-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: $z-modal;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.captcha-dialog {
+  width: 100%;
+  max-height: 85%;
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.captcha-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.captcha-title {
+  font-weight: bold;
+  color: #333;
+}
+
+.captcha-close {
+  color: #999;
+  cursor: pointer;
+}
+
+.captcha-area {
+  position: relative;
+  overflow: hidden;
+  background: #f5f5f5;
+}
+
+.captcha-loading,
+.captcha-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: $text-color-secondary;
+  gap: 8px;
+}
+
+.retry-text {
+  color: $primary-color;
+  cursor: pointer;
+  margin-left: 4px;
+}
+
+.captcha-bg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.captcha-slider {
+  position: absolute;
+  left: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.refresh-btn {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.2);
+  color: #fff;
+  cursor: pointer;
+}
+
+.disabled {
+  opacity: 0.5;
+}
+
+.captcha-result-mask {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.result-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #333;
+}
+
+.result-icon {
+}
+
+.result-icon.is-fail {
+  color: #dc2626;
+}
+
+.result-icon.is-locked {
+  color: #f59e0b;
+}
+
+.slider-track {
+  position: relative;
+  background: repeating-linear-gradient(-45deg, #e8e8e8, #e8e8e8 10px, #f0f0f0 10px, #f0f0f0 20px);
+}
+
+.slider-bg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+.slider-hint {
+  color: #000;
+  animation: hint-breathe 2s ease-in-out infinite;
+}
+
+@keyframes hint-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.slider-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-radius: 7px 0 0 7px;
+  opacity: 0.15;
+  pointer-events: none;
+  background-color: $primary-color;
+}
+
+.slider-handle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  cursor: grab;
+  box-shadow:
+  0 2px 8px rgba(0, 0, 0, 0.1),
+  0 1px 3px rgba(0, 0, 0, 0.06);
+  transition:
+  border-color 0.2s,
+  box-shadow 0.2s;
+  touch-action: none;
+  user-select: none;
+}
+
+.slider-handle.is-dragging {
+  cursor: grabbing;
+  border-color: #bbb;
+  box-shadow:
+  0 6px 16px rgba(0, 0, 0, 0.15),
+  0 3px 8px rgba(0, 0, 0, 0.1);
+  transition: none;
+}
+
+.slider-handle.is-success {
+  background: $primary-color;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: none;
+}
+
+.handle-icon {
+  color: #555;
+  text-align: center;
+}
+
+.handle-icon.is-success {
+  color: #fff;
+}
+</style>

@@ -1,0 +1,433 @@
+<script setup lang="ts">
+import type { DashboardSummary } from '@/api/dashboard.ts'
+
+import { computed, ref } from 'vue'
+import AuthLayout from '@/components/auth-layout/auth-layout.uvue'
+import PageNavbar from '@/components/page-navbar/page-navbar.uvue'
+import dashboardApi from '@/api/dashboard.ts'
+
+const summary = ref<DashboardSummary | null>(null)
+const loading = ref(true)
+
+async function load() {
+  loading.value = true
+  const { isSuccess, data } = await dashboardApi.summary()
+  if (isSuccess && data)
+    summary.value = data
+  loading.value = false
+}
+
+onPageShow(() => void load())
+
+const trend = computed(() => summary.value?.trend || [])
+const maxTrend = computed(() => Math.max(...trend.value.map(d => d.value), 1))
+const depts = computed(() => summary.value?.depts || [])
+const maxDept = computed(() => Math.max(...depts.value.map(d => d.total), 1))
+const types = computed(() => summary.value?.types || [])
+
+const today = computed(() => {
+  const now = new Date()
+  return `${now.getMonth() + 1} 月 ${now.getDate()} 日`
+})
+
+</script>
+
+<template>
+  <AuthLayout>
+    <view class="sp-page page">
+      <PageNavbar title="数据看板" />
+
+      <!-- 概览 -->
+      <view class="hero">
+        <view class="hero-top">
+          <text class="hero-label">
+            运营概览
+          </text>
+          <text class="hero-date">
+            {{ today }}
+          </text>
+        </view>
+        <view class="hero-main">
+          <text class="hero-value">
+            {{ summary?.pending ?? 0 }}
+          </text>
+          <text class="hero-unit">
+            单待处理
+          </text>
+        </view>
+        <text class="hero-hint">
+          审批通过率 {{ summary?.rate ?? 0 }}% · 共 {{ summary?.kpis[1]?.value ?? 0 }} 张单据
+        </text>
+      </view>
+
+      <!-- 指标 -->
+      <view class="grid">
+        <view v-for="kpi in summary?.kpis || []" :key="kpi.label" class="tile">
+          <view class="tile-value">
+            <text>{{ kpi.value }}</text>
+            <text class="tile-unit">
+              {{ kpi.unit }}
+            </text>
+          </view>
+          <text class="tile-label">
+            {{ kpi.label }}
+          </text>
+        </view>
+      </view>
+
+      <!-- 走势 -->
+      <view class="card">
+        <view class="card-head">
+          <text class="card-title">
+            近 7 日单据量
+          </text>
+          <text class="card-hint">
+            单位：单
+          </text>
+        </view>
+        <view v-if="loading && !trend.length" class="tip">
+          加载中…
+        </view>
+        <view v-else class="chart">
+          <view v-for="day in trend" :key="day.label" class="bar">
+            <text class="bar-value">
+              {{ day.value }}
+            </text>
+            <view class="bar-track">
+              <view class="bar-fill" :style="{ height: `${Math.round((day.value / maxTrend) * 100)}%` }" />
+            </view>
+            <text class="bar-label">
+              {{ day.label }}
+            </text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 部门分布 -->
+      <view class="card">
+        <view class="card-head">
+          <text class="card-title">
+            部门分布
+          </text>
+          <text class="card-hint">
+            {{ depts.length }} 个部门
+          </text>
+        </view>
+        <view v-for="dept in depts" :key="dept.name" class="row">
+          <view class="row-head">
+            <text class="row-name">
+              {{ dept.name }}
+            </text>
+            <text class="row-value">
+              {{ dept.total }} 单 · 待处理 {{ dept.pending }}
+            </text>
+          </view>
+          <view class="track">
+            <view class="fill" :style="{ width: `${Math.round((dept.total / maxDept) * 100)}%` }" />
+          </view>
+        </view>
+      </view>
+
+      <!-- 单据类型 -->
+      <view class="card">
+        <view class="card-head">
+          <text class="card-title">
+            单据类型 TOP5
+          </text>
+          <text class="card-hint">
+            占比
+          </text>
+        </view>
+        <view v-for="type in types" :key="type.name" class="type-row">
+          <text class="type-name">
+            {{ type.name }}
+          </text>
+          <view class="type-track">
+            <view class="type-fill" :style="{ width: `${type.ratio}%` }" />
+          </view>
+          <text class="type-value">
+            {{ type.value }}
+          </text>
+        </view>
+      </view>
+
+      <view class="sp-footnote">
+        <text class="sp-footnote-text">
+          数据由本地引擎实时汇总 · 仅用于演示
+        </text>
+      </view>
+    </view>
+  </AuthLayout>
+</template>
+
+<style lang="scss">
+.page {
+  min-height: 100%;
+  padding-bottom: calc(26px + env(safe-area-inset-bottom, 0px));
+  background-color: #f5f6fa;
+}
+
+/* 概览卡 */
+.hero {
+  margin: 16px 16px 0;
+  padding: 24px 26px 22px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #3b4fe0 0%, #7c6cf6 100%);
+  box-shadow: 0 16px 30px rgba(59, 79, 224, 0.24);
+}
+
+.hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hero-label {
+  padding: 4px 12px;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.18);
+  font-size: 19px;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.hero-date {
+  font-size: 20px;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.hero-main {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.hero-value {
+  font-size: 66px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+}
+
+.hero-unit {
+  font-size: 22px;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.hero-hint {
+  display: block;
+  margin-top: 12px;
+  font-size: 20px;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* 指标 */
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 16px 16px 0;
+}
+
+.tile {
+  flex: 1 1 calc(50% - 7px);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px 22px;
+  border-radius: 18px;
+  background-color: #fff;
+  box-shadow: 0 8px 24px rgba(23, 23, 64, 0.05);
+}
+
+.tile-value {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: #1c1c2e;
+}
+
+.tile-unit {
+  font-size: 20px;
+  font-weight: 400;
+  color: #9aa0b4;
+}
+
+.tile-label {
+  font-size: 21px;
+  color: #9aa0b4;
+}
+
+/* 卡片 */
+.card {
+  margin: 16px 16px 0;
+  padding: 20px 24px 14px;
+  border-radius: 18px;
+  background-color: #fff;
+  box-shadow: 0 8px 24px rgba(23, 23, 64, 0.05);
+}
+
+.card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 12px;
+}
+
+.card-title {
+  font-size: 27px;
+  font-weight: 700;
+  color: #1c1c2e;
+}
+
+.card-hint {
+  font-size: 20px;
+  color: #9aa0b4;
+}
+
+.tip {
+  padding: 30px 0;
+  text-align: center;
+  font-size: 22px;
+  color: #9aa0b4;
+}
+
+/* 柱状图 */
+.chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  height: 280px;
+  padding: 6px 4px 0;
+}
+
+.bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  height: 100%;
+}
+
+.bar-value {
+  font-size: 19px;
+  color: #6b7080;
+}
+
+.bar-track {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+  border-radius: 8px;
+  background-color: #f5f6fa;
+  overflow: hidden;
+}
+
+.bar-fill {
+  width: 100%;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #7c6cf6 0%, #4f46e5 100%);
+  transition: height 0.3s ease;
+}
+
+.bar-label {
+  font-size: 19px;
+  color: #9aa0b4;
+}
+
+/* 部门分布 */
+.row {
+  padding: 12px 0 14px;
+  border-bottom: 1px solid #f4f5f9;
+}
+
+/* #ifdef WEB */
+.row:last-child {
+  border-bottom: none;
+}
+
+/* #endif */
+
+.row-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 10px;
+}
+
+.row-name {
+  font-size: 23px;
+  color: #23263a;
+}
+
+.row-value {
+  font-size: 20px;
+  color: #9aa0b4;
+}
+
+.track {
+  height: 10px;
+  border-radius: 5px;
+  background-color: #f2f3f8;
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #4f46e5 0%, #8b5cf6 100%);
+}
+
+/* 类型占比 */
+.type-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f4f5f9;
+}
+
+/* #ifdef WEB */
+.type-row:last-child {
+  border-bottom: none;
+}
+
+/* #endif */
+
+.type-name {
+  flex-shrink: 0;
+  width: 190px;
+  font-size: 22px;
+  color: #23263a;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.type-track {
+  flex: 1;
+  height: 10px;
+  border-radius: 5px;
+  background-color: #f2f3f8;
+  overflow: hidden;
+}
+
+.type-fill {
+  height: 100%;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #a5b4fc 0%, #6366f1 100%);
+}
+
+.type-value {
+  flex-shrink: 0;
+  width: 40px;
+  text-align: right;
+  font-size: 21px;
+  color: #6b7080;
+}
+</style>

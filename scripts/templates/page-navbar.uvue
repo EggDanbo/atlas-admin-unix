@@ -1,0 +1,77 @@
+<script setup lang="uts">
+import { ref } from 'vue'
+import { safeBack } from '@/utils/auth.uts'
+import { getCurrentPageInfo } from '@/utils/router.uts'
+
+/**
+ * 页面自定义导航栏
+ *
+ * 原 Taro 版在 H5 用 NutUI nut-navbar 顶替原生导航栏（页面 navigationStyle: custom）；
+ * uni-app x 里所有页面都配成 custom，因此这里改成自绘导航栏，各端表现一致。
+ */
+const props = defineProps({
+  title: { type: String, default: '' },
+})
+
+const entryMode = ref('normal')
+
+const info = getCurrentPageInfo()
+if (info.params['mode'] === 'external')
+  entryMode.value = 'external'
+
+function handleBack() {
+  safeBack(entryMode.value === 'external' ? 'external' : undefined)
+}
+</script>
+
+<template>
+  <view class="sp-navbar">
+    <view class="sp-navbar-back" @click="handleBack">
+      <text class="sp-navbar-back-icon">
+        ‹
+      </text>
+    </view>
+    <text class="sp-navbar-title">
+      {{ props.title }}
+    </text>
+    <view class="sp-navbar-holder" />
+  </view>
+</template>
+
+<style lang="scss">
+.sp-navbar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  height: 88px;
+  padding: 0 16px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #eef0f6;
+}
+
+.sp-navbar-back {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.sp-navbar-back-icon {
+  font-size: 48px;
+  line-height: 48px;
+  color: #23263a;
+}
+
+.sp-navbar-title {
+  font-size: 30px;
+  font-weight: 600;
+  color: #23263a;
+}
+
+.sp-navbar-holder {
+  width: 64px;
+}
+</style>

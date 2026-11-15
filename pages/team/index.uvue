@@ -1,0 +1,256 @@
+<script setup lang="ts">
+import { computed, ref } from 'vue'
+import AuthLayout from '@/components/auth-layout/auth-layout.uvue'
+import PageNavbar from '@/components/page-navbar/page-navbar.uvue'
+import { showToast } from '@/components/sp-toast/toast.ts'
+import { user as organUser } from '@/api/organ/index.ts'
+
+const members = ref<Recordable[]>([])
+const keyword = ref('')
+const loading = ref(true)
+
+async function load() {
+  loading.value = true
+  const { isSuccess, data } = await organUser.search({ page: 1, pagesize: 50 })
+  if (isSuccess && data)
+    members.value = data.list || []
+  loading.value = false
+}
+
+onPageShow(() => void load())
+
+const filtered = computed(() => {
+  const kw = keyword.value.trim()
+  if (!kw)
+    return members.value
+  return members.value.filter(m =>
+    `${m.name}${m.position}${m.team_name}${m.code}`.includes(kw),
+  )
+})
+
+const activeCount = computed(() => members.value.filter(m => m.stoped !== 1).length)
+
+function isDisabled(member: Recordable) {
+  return member.stoped === 1
+}
+
+function initial(name: string) {
+  return (name || '·').charAt(0)
+}
+
+function openMember(member: Recordable) {
+  uni.showModal({
+    title: member.name,
+    content: [
+      `${member.team_name} · ${member.room_name}`,
+      `职位：${member.position}`,
+      `工号：${member.code}`,
+      `手机：${member.mobile}`,
+    ].join('\n'),
+    confirmText: '呼叫',
+    cancelText: '关闭',
+  }).then((res) => {
+    if (res.confirm)
+      showToast`正在呼叫 ${member.name}`
+  })
+}
+
+</script>
+
+<template>
+  <AuthLayout>
+    <view class="sp-page page">
+      <PageNavbar title="成员管理" />
+
+      <SpSearchBar v-model="keyword" placeholder="搜索姓名、职位或工号" />
+
+      <view class="summary">
+        <text class="summary-main">
+          共 {{ members.length }} 人
+        </text>
+        <text class="summary-sub">
+          在职 {{ activeCount }} · 停用 {{ members.length - activeCount }}
+        </text>
+      </view>
+
+      <view class="card">
+        <view v-if="loading" class="tip">
+          加载中…
+        </view>
+        <SpEmpty v-else-if="!filtered.length" description="没有匹配的成员" />
+        <template v-else>
+          <view
+            v-for="member in filtered"
+            :key="member.user_id"
+            class="row"
+            @click="openMember(member)"
+          >
+            <view :class="['avatar', isDisabled(member) && 'avatar--off']">
+              <text>{{ initial(member.name) }}</text>
+            </view>
+            <view class="row-main">
+              <view class="row-head">
+                <text :class="['name', isDisabled(member) && 'name--off']">
+                  {{ member.name }}
+                </text>
+                <text :class="['tag', isDisabled(member) ? 'tag--off' : 'tag--on']">
+                  {{ isDisabled(member) ? '已停用' : '在职' }}
+                </text>
+              </view>
+              <text class="meta">
+                {{ member.team_name }} · {{ member.position }}
+              </text>
+            </view>
+            <text class="code">
+              {{ member.code }}
+            </text>
+          </view>
+        </template>
+      </view>
+
+      <view class="sp-footnote">
+        <text class="sp-footnote-text">
+          点击成员查看工号与联系方式 · 仅用于演示
+        </text>
+      </view>
+    </view>
+  </AuthLayout>
+</template>
+
+<style lang="scss">
+.page {
+  min-height: 100%;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  background-color: #f5f6fa;
+}
+
+/* 搜索 */
+.summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 16px 16px 4px;
+}
+
+.summary-main {
+  font-size: 23px;
+  font-weight: 600;
+  color: #23263a;
+}
+
+.summary-sub {
+  font-size: 20px;
+  color: #9aa0b4;
+}
+
+/* 成员列表 */
+.card {
+  margin: 8px 16px 0;
+  padding: 0 24px;
+  border-radius: 18px;
+  background-color: #fff;
+  box-shadow: 0 8px 24px rgba(23, 23, 64, 0.05);
+}
+
+.tip {
+  padding: 34px 0;
+  text-align: center;
+  font-size: 22px;
+  color: #9aa0b4;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 20px 0;
+  border-bottom: 1px solid #f1f2f7;
+}
+
+/* #ifdef WEB */
+.row:last-child {
+  border-bottom: none;
+}
+
+/* #endif */
+/* #ifdef WEB */
+.row:active {
+  opacity: 0.72;
+}
+
+/* #endif */
+
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #eef2ff 0%, #e5e9ff 100%);
+  font-size: 26px;
+  font-weight: 600;
+  color: #4f46e5;
+}
+
+.avatar--off {
+  background: #f2f3f7;
+  color: #b3b8c8;
+}
+
+.row-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.row-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.name {
+  font-size: 25px;
+  font-weight: 600;
+  color: #1c1c2e;
+}
+
+.name--off {
+  color: #9aa0b4;
+}
+
+.tag {
+  padding: 2px 10px;
+  border-radius: 6px;
+  font-size: 18px;
+}
+
+.tag--on {
+  color: #0d9488;
+  background-color: #ecfdf5;
+}
+
+.tag--off {
+  color: #6b7080;
+  background-color: #f2f3f7;
+}
+
+.meta {
+  font-size: 21px;
+  color: #9aa0b4;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.code {
+  flex-shrink: 0;
+  font-size: 19px;
+  color: #c1c6d4;
+  letter-spacing: 0.4px;
+}
+</style>

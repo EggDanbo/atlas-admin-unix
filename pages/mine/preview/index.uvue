@@ -1,0 +1,145 @@
+<script setup lang="ts">
+import PageNavbar from '@/components/page-navbar/page-navbar.uvue'
+import { isWeb } from '@/utils/platform.ts'
+
+/**
+ * 文件预览页（降级实现）
+ *
+ * 原 Taro 版用 @file-viewer（PDF/Office 渲染，强依赖浏览器 DOM / Web Worker / WASM），
+ * 无法编译到 uni-app x 的 App 与小程序端，这里改为平台原生能力：
+ * - App / 小程序：uni.openDocument 交给系统文档查看器
+ * - Web：新窗口打开链接（浏览器自带 PDF 预览）
+ * 如需在 Web 端还原完整渲染体验，可在本页用 Web 条件编译单独挂载 file-viewer。
+ */
+const fileUrl = ref('')
+const fileName = ref('文档预览')
+const tip = ref('')
+
+onLoad((options: any) => {
+  const raw = options?.url != null ? String(options.url) : ''
+  fileUrl.value = raw.length > 0 ? decodeURIComponent(raw) : ''
+  const name = options?.name != null ? String(options.name) : ''
+  if (name.length > 0)
+    fileName.value = decodeURIComponent(name)
+  openFile()
+})
+
+function openFile() {
+  if (fileUrl.value.length === 0) {
+    tip.value = '缺少文件地址'
+    return
+  }
+
+  // #ifdef WEB
+  window.open(fileUrl.value, '_blank')
+  tip.value = '已在新窗口打开文件预览'
+  return
+  // #endif
+
+  uni.showLoading({ title: '打开中', mask: true })
+  uni.downloadFile({
+    url: fileUrl.value,
+    success: (res: any) => {
+      if (res.statusCode !== 200) {
+        tip.value = '文件下载失败'
+        return
+      }
+      uni.openDocument({
+        filePath: res.tempFilePath,
+        showMenu: true,
+        fail: () => {
+          tip.value = '当前文件类型不支持内置打开'
+        },
+      })
+    },
+    fail: () => {
+      tip.value = '文件下载失败'
+    },
+    complete: () => {
+      uni.hideLoading()
+    },
+  })
+}
+</script>
+
+<template>
+  <view class="sp-page page">
+    <PageNavbar title="文件预览" />
+
+    <view class="body">
+      <text class="name">
+        {{ fileName }}
+      </text>
+      <text class="url">
+        {{ fileUrl }}
+      </text>
+      <view class="btn" @click="openFile">
+        <text class="btn-text">
+          重新打开
+        </text>
+      </view>
+      <text v-if="tip.length > 0" class="tip">
+        {{ tip }}
+      </text>
+      <text v-if="!isWeb()" class="hint">
+        移动端由系统文档查看器接管，Web 端由浏览器接管
+      </text>
+    </view>
+  </view>
+</template>
+
+<style lang="scss">
+.page {
+  min-height: 100%;
+  background-color: #f5f6fa;
+}
+
+.body {
+  padding: 40px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.name {
+  font-size: 30px;
+  font-weight: 600;
+  color: #23263a;
+}
+
+.url {
+  font-size: 22px;
+  color: #9aa0b4;
+  text-align: center;
+}
+
+.btn {
+  margin-top: 12px;
+  padding: 18px 48px;
+  border-radius: 44px;
+  background-color: #4f46e5;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-text {
+  font-size: 26px;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.tip {
+  font-size: 24px;
+  color: #16a34a;
+}
+
+.hint {
+  margin-top: 8px;
+  font-size: 21px;
+  color: #b3b8c8;
+  text-align: center;
+}
+</style>

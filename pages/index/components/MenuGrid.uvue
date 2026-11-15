@@ -1,0 +1,150 @@
+<script setup lang="ts">
+import { routes } from '@/utils/router'
+
+interface MenuItem {
+  glyph: string
+  label: string
+  color: string
+  bg: string
+  url: string
+}
+
+/**
+ * 管理端菜单
+ *
+ * 移动端只保留「必须在手机上完成」的动作：审批、单据、组织、考勤、看板、消息。
+ * 台账录入、报表设计、权限配置这类重操作留给 PC 后台。
+ */
+const menuList: MenuItem[] = [
+  { icon: Setting, label: '考勤规则', color: '#4f46e5', bg: '#eef2ff', url: routes.ruleList },
+  { icon: Order, label: '我的申请', color: '#e11d48', bg: '#fff1f2', url: routes.myApply },
+  { icon: Edit, label: '请假申请', color: '#0d9488', bg: '#ecfdf5', url: routes.applyLeave },
+  { icon: People, label: '组织通讯录', color: '#d97706', bg: '#fffbeb', url: routes.contact },
+  { icon: My, label: '成员管理', color: '#7c3aed', bg: '#f5f3ff', url: routes.team },
+  { icon: Date, label: '考勤统计', color: '#0891b2', bg: '#ecfeff', url: routes.checkinStats },
+  { icon: Marshalling, label: '数据看板', color: '#0284c7', bg: '#eff6ff', url: routes.board },
+  { icon: Notice, label: '消息中心', color: '#be185d', bg: '#fdf2f8', url: routes.userMessage },
+]
+
+function handleMenuClick(item: MenuItem) {
+  uni.navigateTo({ url: item.url })
+}
+
+</script>
+
+<template>
+  <view class="section">
+    <view class="section-head">
+      <text class="section-title">
+        管理菜单
+      </text>
+      <text class="section-hint">
+        考勤 · 单据 · 数据
+      </text>
+    </view>
+
+    <view class="grid">
+      <view
+        v-for="item in menuList"
+        :key="item.label"
+        class="tile"
+        @click="handleMenuClick(item)"
+      >
+        <view class="tile-icon" :style="{ backgroundColor: item.bg }">
+          <text class="tile-glyph" :style="{ color: item.color }">
+            {{ item.glyph }}
+          </text>
+        </view>
+        <text class="tile-label">
+          {{ item.label }}
+        </text>
+      </view>
+    </view>
+  </view>
+</template>
+
+<style lang="scss">
+.section {
+  margin: 16px 16px 0;
+  padding: 20px 18px 6px;
+  border-radius: 18px;
+  background-color: #fff;
+  box-shadow: 0 8px 24px rgba(23, 23, 64, 0.05);
+}
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0 4px 12px;
+}
+
+.section-title {
+  font-size: 30px;
+  font-weight: 700;
+  color: #1c1c2e;
+}
+
+.section-hint {
+  font-size: 20px;
+  color: #9aa0b4;
+}
+
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 25%;
+  padding: 10px 0 16px;
+}
+
+/* #ifdef WEB */
+.tile:active {
+  opacity: 0.7;
+}
+
+/* #endif */
+
+.tile-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 76px;
+  height: 76px;
+  border-radius: 22px;
+}
+
+.badge {
+  position: absolute;
+  top: -8px;
+  right: -10px;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background-color: #e11d48;
+  box-shadow: 0 2px 6px rgba(225, 29, 72, 0.35);
+  font-size: 17px;
+  line-height: 30px;
+  color: #fff;
+  text-align: center;
+}
+
+.tile-glyph {
+  font-size: 38px;
+  line-height: 42px;
+}
+
+.tile-label {
+  font-size: 20px;
+  color: #23263a;
+  text-align: center;
+}
+</style>

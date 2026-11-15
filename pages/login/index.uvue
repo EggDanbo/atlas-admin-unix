@@ -1,0 +1,491 @@
+<script setup lang="ts">
+import { computed, onMounted, ref } from 'vue'
+import SpSliderCaptcha from '@/components/sp-slider-captcha/sp-slider-captcha.uvue'
+import SpToast from '@/components/sp-toast/sp-toast.uvue'
+import { PASSWORD_LOGIN } from '@/constants/config.ts'
+import { useAppInfoStore } from '@/store/appinfo'
+import { useAuthStore } from '@/store/auth'
+import { isWeapp } from '@/utils/platform'
+import PasswordLogin from './components/PasswordLogin.uvue'
+import SmsLogin from './components/SmsLogin.uvue'
+
+const authStore = useAuthStore()
+const appInfoStore = useAppInfoStore()
+// appInfo 是异步加载的，必须用 computed 保持响应，否则页脚会一直显示兜底版本号
+const logincaptcha = computed(() => appInfoStore.logincaptcha)
+const appname = computed(() => appInfoStore.appname || 'Atlas 工作台')
+const version = computed(() => {
+  const raw = String(appInfoStore.version || '1.0.0001')
+  return /^v/i.test(raw) ? raw : `v${raw}`
+})
+
+const formError = ref('')
+const loading = ref(false)
+const captchaRef = ref<InstanceType<typeof SpSliderCaptcha>>()
+
+// 滑块验证函数，传递给 PasswordLogin
+function captchaVerify() {
+  return captchaRef.value!.verify()
+}
+
+// 是否显示各登录方式
+const showPhoneLogin = computed(() => isWeapp())
+const showSmsLogin = computed(() => !!authStore.key)
+// 演示环境没有真实微信 OAuth：微信 / 企业微信里也保留账号密码登录，
+// 否则从微信打开只能看到一句提示，进不去也退不出来
+const showPasswordLogin = computed(() => PASSWORD_LOGIN && !isWeapp())
+const showWechatOnlyTip = computed(() => !isWeapp() && !PASSWORD_LOGIN)
+
+// 前置检查：等待 appInfo 和 key 都加载完毕
+const appInfoReady = ref(false)
+onMounted(async () => {
+  await Promise.all([
+    appInfoStore.asyncAppInfo(),
+    authStore.ensureKey(),
+  ])
+  appInfoReady.value = true
+})
+
+// ==================== 事件处理 ====================
+
+function handleError(msg: string) {
+  formError.value = msg
+}
+
+function handleLoadingChange(val: boolean) {
+  loading.value = val
+}
+
+async function handleGetPhoneNumber(e: any) {
+  const phoneCode = e.detail?.code
+  if (!phoneCode) {
+    formError.value = '获取手机号授权失败'
+    return
+  }
+
+  try {
+    const { code: loginCode } = await uni.login()
+    loading.value = true
+    const { isSuccess, message } = await authStore.login({
+      type: 'phone',
+      phoneCode,
+      loginCode,
+    })
+    if (!isSuccess)
+      formError.value = message || '登录失败'
+  }
+  catch {
+    formError.value = '登录失败'
+  }
+  finally {
+    loading.value = false
+  }
+}
+
+</script>
+
+<template>
+  <view class="login-page">
+    <!-- 装饰层 -->
+    <view class="login-deco">
+      <view class="login-deco__circle login-deco__circle--a" />
+      <view class="login-deco__circle login-deco__circle--b" />
+      <view class="login-deco__dot login-deco__dot--1" />
+      <view class="login-deco__dot login-deco__dot--2" />
+      <view class="login-deco__dot login-deco__dot--3" />
+    </view>
+
+    <!-- 头部 -->
+    <view class="login-header">
+      <view class="login-logo">
+        <view class="login-logo-mark">
+          <text class="login-logo-bar login-logo-bar--1" />
+          <text class="login-logo-bar login-logo-bar--2" />
+          <text class="login-logo-bar login-logo-bar--3" />
+        </view>
+      </view>
+      <text class="login-title">
+        {{ appname }}
+      </text>
+      <text class="login-sub">
+        一体化管理系统 · 移动端
+      </text>
+    </view>
+
+    <!-- 非微信环境提示 -->
+    <view v-if="showWechatOnlyTip" class="login-card">
+      <text class="login-card__tip">
+        请在微信中打开
+      </text>
+    </view>
+
+    <!-- 登录表单（等待 appInfo 加载完毕，确保 logincaptcha 值准确） -->
+    <view v-else-if="appInfoReady" class="login-card">
+      <text v-if="formError" class="login-card__error">
+        {{ formError }}
+      </text>
+
+      <!-- 微信手机号一键登录（仅小程序） -->
+      <template v-if="showPhoneLogin">
+        <view class="sp-btn login-card__btn sp-btn--block" @getphonenumber="handleGetPhoneNumber">
+        <text class="sp-btn-text">
+          微信手机号快捷登录
+        </text>
+      </view>
+        <view class="login-divider">
+          <text class="login-divider__text">
+            其他登录方式
+          </text>
+        </view>
+      </template>
+
+      <!-- 短信验证码登录 -->
+      <SmsLogin
+        v-if="showSmsLogin"
+        :loading="loading"
+        @error="handleError"
+        @loading-change="handleLoadingChange"
+      />
+
+      <!-- 密码登录 -->
+      <template v-if="showPasswordLogin">
+        <view v-if="showSmsLogin" class="login-divider">
+          <text class="login-divider__text">
+            或
+          </text>
+        </view>
+        <PasswordLogin
+          :loading="loading"
+          :logincaptcha="logincaptcha"
+          :captcha-verify="captchaVerify"
+          @error="handleError"
+          @loading-change="handleLoadingChange"
+        />
+      </template>
+    </view>
+
+    <view class="login-demo">
+      <text class="login-demo__title">
+        演示环境
+      </text>
+      <text class="login-demo__text">
+        账号 demo · 密码 123456（任意密码均可登录）
+      </text>
+    </view>
+
+    <view class="login-foot">
+      <text class="login-foot__ver">
+        {{ appname }} · {{ version }}
+      </text>
+    </view>
+
+    <!-- 滑块验证（根层级，避免被 login-card 层叠上下文影响） -->
+    <SpSliderCaptcha v-if="logincaptcha" ref="captchaRef" />
+    <SpToast />
+  </view>
+</template>
+
+<style lang="scss">
+/* ── 动画 ── */
+@keyframes login-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes login-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(50px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes login-head-in {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes login-drift {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(10px, -8px);
+  }
+}
+
+@keyframes login-dot-pulse {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* ── 页面 — 流动渐变 ── */
+.login-page {
+  min-height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(-45deg, #3b4fe0 0%, #5b45e0 24%, #2c2a6b 48%, #8b5cf6 72%, #1e1b4b 100%);
+  background-size: 400% 400%;
+  animation: login-flow 16s ease infinite;
+  overflow: hidden;
+}
+
+/* ── 装饰层 ── */
+.login-deco {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.login-deco__circle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.login-deco__circle--a {
+  width: 300px;
+  height: 300px;
+  top: -80px;
+  right: -60px;
+  animation: login-drift 14s ease-in-out infinite;
+}
+
+.login-deco__circle--b {
+  width: 200px;
+  height: 200px;
+  top: 240px;
+  left: -50px;
+  animation: login-drift 11s ease-in-out 2s infinite reverse;
+}
+
+.login-deco__dot {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.login-deco__dot--1 {
+  width: 6px;
+  height: 6px;
+  top: 200px;
+  right: 80px;
+  animation: login-dot-pulse 4s ease-in-out infinite;
+}
+
+.login-deco__dot--2 {
+  width: 4px;
+  height: 4px;
+  top: 320px;
+  right: 140px;
+  animation: login-dot-pulse 5s ease-in-out 1s infinite;
+}
+
+.login-deco__dot--3 {
+  width: 8px;
+  height: 8px;
+  top: 280px;
+  left: 120px;
+  animation: login-dot-pulse 6s ease-in-out 2s infinite;
+}
+
+/* ── 头部 ── */
+.login-header {
+  position: relative;
+  z-index: 1;
+  padding-top: 120px;
+  padding-bottom: 60px;
+  text-align: center;
+  animation: login-head-in 0.6s ease-out 0.1s both;
+}
+
+.login-logo {
+  width: 108px;
+  height: 108px;
+  margin: 0 auto 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 2px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 16px 40px rgba(12, 10, 40, 0.35);
+}
+
+.login-logo-mark {
+  width: 64px;
+  height: 64px;
+  padding: 10px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #3b4fe0 0%, #8b5cf6 100%);
+}
+
+.login-logo-bar {
+  display: block;
+  width: 12px;
+  border-radius: 6px 6px 2px 2px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.login-logo-bar--1 {
+  height: 18px;
+}
+
+.login-logo-bar--2 {
+  height: 30px;
+}
+
+.login-logo-bar--3 {
+  height: 42px;
+  background: #5eead4;
+}
+
+.login-title {
+  display: block;
+  font-size: 44px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #fff;
+}
+
+.login-sub {
+  display: block;
+  margin-top: 12px;
+  font-size: 24px;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.66);
+}
+
+/* ── 毛玻璃卡片 ── */
+.login-card {
+  position: relative;
+  z-index: 1;
+  margin: 0 36px;
+  padding: 44px 32px 36px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  animation: login-card-in 0.7s ease-out 0.3s both;
+}
+
+.login-card__btn {
+  margin-top: 40px;
+  height: 88px;
+  border-radius: 8px;
+  font-size: 30px;
+  font-weight: 600;
+  background: #fff;
+  color: $primary-color;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transition: transform 0.15s ease;
+}
+
+/* #ifdef WEB */
+.login-card__btn:active {
+  transform: scale(0.97);
+}
+
+/* #endif */
+
+.login-card__error {
+  display: block;
+  margin-bottom: 16px;
+  font-size: 24px;
+  color: $danger-color;
+}
+
+/* ── 底部 ── */
+.login-demo {
+  position: relative;
+  z-index: 1;
+  margin: 28px 36px 0;
+  padding: 20px 24px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px dashed rgba(255, 255, 255, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.login-demo__title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #5eead4;
+}
+
+.login-demo__text {
+  font-size: 22px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.login-foot {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 32px);
+}
+
+.login-foot__ver {
+  font-size: 22px;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+/* ── 分隔线 ── */
+.login-divider {
+  display: flex;
+  align-items: center;
+  margin: 16px 0;
+}
+
+.login-divider__text {
+  font-size: 22px;
+  color: $text-color-secondary;
+  padding: 0 16px;
+}
+
+/* ── 非微信环境提示 ── */
+.login-card__tip {
+  display: block;
+  text-align: center;
+  font-size: $font-size-md;
+  color: $text-color-secondary;
+  padding: 20px 0;
+}
+</style>

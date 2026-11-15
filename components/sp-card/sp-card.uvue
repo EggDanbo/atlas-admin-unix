@@ -1,0 +1,95 @@
+<script setup lang="ts">
+import { computed, getCurrentInstance } from 'vue'
+
+const props = defineProps({
+  title: { type: String, default: '' },
+  hint: { type: String, default: '' },
+  variant: { type: String, default: 'form' },
+})
+
+const instance = getCurrentInstance()
+const slots = computed(() => instance?.slots ?? {})
+const hasHead = computed(() => !!(props.title || props.hint || slots.value.title || slots.value.extra))
+
+</script>
+
+<template>
+  <view :class="['card', `card--${variant}`]">
+    <view v-if="hasHead" class="head">
+      <text v-if="title || slots.title" data-role="card-title" class="title">
+        <slot name="title">
+          {{ title }}
+        </slot>
+      </text>
+      <slot name="extra">
+        <text v-if="hint" class="hint">
+          {{ hint }}
+        </text>
+      </slot>
+    </view>
+    <slot />
+  </view>
+</template>
+
+<style lang="scss">
+.card {
+  margin: 16px 16px 0;
+  border-radius: 18px;
+  background-color: #fff;
+  box-shadow: 0 8px 24px rgba(23, 23, 64, 0.05);
+}
+
+/* 表单卡：内部是「标签 + 输入」行 */
+.card--form {
+  padding: 4px 20px;
+}
+
+/* 详情卡：内部是「标签 + 值」行，标题下留白更宽松 */
+.card--detail {
+  padding: 20px 24px 6px;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* #ifdef WEB */
+.card--form .head {
+  padding: 20px 4px 4px;
+}
+
+/* #endif */
+
+/* #ifdef WEB */
+.card--detail .head {
+  padding-bottom: 6px;
+}
+
+/* #endif */
+
+.title {
+  flex-shrink: 0;
+  font-size: 27px;
+  font-weight: 700;
+  color: #1c1c2e;
+}
+
+.hint {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 18px;
+  color: #a8aec0;
+}
+
+/* #ifdef WEB */
+.card--detail .hint {
+  font-size: 20px;
+  color: #9aa0b4;
+}
+
+/* #endif */
+</style>

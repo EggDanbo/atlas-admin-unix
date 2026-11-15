@@ -1,0 +1,159 @@
+<script setup lang="ts">
+import { watch } from 'vue'
+import AuthLayout from '@/components/auth-layout/auth-layout.uvue'
+import { useAuthStore } from '@/store/auth'
+import { routes } from '@/utils/router'
+import { storage } from '@/utils/storage'
+import MenuGrid from './components/MenuGrid.uvue'
+import TodoList from './components/TodoList.uvue'
+import UserCard from './components/UserCard.uvue'
+
+const authStore = useAuthStore()
+
+// 首页是应用入口：确认登录态，未登录直接进入登录页。
+//
+// 但登录页挂载时会走 ensureKey（微信 / 企业微信分支曾整页跳回应用根路径），
+// 首页再把人弹回登录页，就形成「首页 → 登录页 → 首页」的无限刷新。
+// 现在 ensureKey 已不再整页跳转，这里再补一层冷却：短时间内重复触发说明在回环，
+// 直接停在未登录引导，绝不无限跳。
+const GUARD_KEY = 'login_guard_at'
+const GUARD_COOLDOWN = 8000
+let redirecting = false
+
+/** 刚刚跳过登录页？用于兜底阻断回环 */
+function recentlyRedirected() {
+  const last = storage.get<number>(GUARD_KEY)
+  return !!last && Date.now() - last < GUARD_COOLDOWN
+}
+
+function ensureLoggedIn() {
+  if (authStore.status !== 'guest' || redirecting || recentlyRedirected())
+    return
+  redirecting = true
+  storage.set(GUARD_KEY, Date.now())
+  uni.reLaunch({
+    url: routes.login,
+    complete: () => {
+      redirecting = false
+    },
+  })
+}
+
+watch(() => authStore.status, (status) => {
+  if (status === 'guest')
+    ensureLoggedIn()
+}, { immediate: true })
+
+onPageShow(() => ensureLoggedIn())
+
+function goCheckin() {
+  // 打卡已不是 tabBar 页面，用 navigateTo 打开（switchTab 会失败）
+  uni.navigateTo({ url: routes.checkin })
+}
+
+function goRules() {
+  uni.navigateTo({ url: routes.ruleList })
+}
+
+</script>
+
+<template>
+  <view class="sp-page page">
+    <AuthLayout>
+      <UserCard />
+
+      <view class="actions">
+        <view class="action action--checkin" @click="goCheckin">
+          <text class="action-kicker">
+            考勤
+          </text>
+          <text class="action-title">
+            去打卡
+          </text>
+          <text class="action-desc">
+            总部固定班次 · 09:00
+          </text>
+        </view>
+        <view class="action action--expense" @click="goRules">
+          <text class="action-kicker">
+            规则
+          </text>
+          <text class="action-title">
+            考勤规则
+          </text>
+          <text class="action-desc">
+            固定 · 自由 · 排班
+          </text>
+        </view>
+      </view>
+
+      <TodoList />
+      <MenuGrid />
+
+      <view class="sp-footnote">
+        <text class="sp-footnote-text">
+          数据由本地引擎生成 · 仅用于演示
+        </text>
+      </view>
+    </AuthLayout>
+  </view>
+</template>
+
+<style lang="scss">
+.page {
+  min-height: 100%;
+  padding: 12px 0 calc(16px + env(safe-area-inset-bottom, 0px));
+  background: #f5f6fa;
+}
+
+.actions {
+  display: flex;
+  gap: 16px;
+  margin: 14px 16px 0;
+}
+
+.action {
+  flex: 1;
+  padding: 18px 20px 16px;
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* #ifdef WEB */
+.action:active {
+  opacity: 0.8;
+}
+
+/* #endif */
+.action--checkin {
+  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(13, 148, 136, 0.24);
+}
+
+.action--expense {
+  background: linear-gradient(135deg, #4338ca 0%, #7c6cf6 100%);
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(79, 70, 229, 0.24);
+}
+
+.action-kicker {
+  font-size: 19px;
+  letter-spacing: 2px;
+  opacity: 0.72;
+}
+
+.action-title {
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.action-desc {
+  font-size: 19px;
+  opacity: 0.7;
+}
+</style>

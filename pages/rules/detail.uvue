@@ -1,0 +1,693 @@
+<script setup lang="ts">
+import type { AttendanceRule } from '@/api/rules.ts'
+
+import { computed, ref } from 'vue'
+import AuthLayout from '@/components/auth-layout/auth-layout.uvue'
+import PageNavbar from '@/components/page-navbar/page-navbar.uvue'
+import { showToast } from '@/components/sp-toast/toast.ts'
+import rulesApi from '@/api/rules.ts'
+import { addDays, isCrossShift, modeDesc, modeLabel, monthDates, monthLabelOf, rosterCrossOver, rosterStats, shiftHours, shiftRestLabel, startOfWeek, weekDates, workDaysText } from '@/utils/attendance'
+import { getCurrentPageInfo, routes } from '@/utils/router'
+import RosterTable from './components/RosterTable.uvue'
+
+const id = getCurrentPageInfo().params.id || ''
+
+const rule = ref<AttendanceRule | null>(null)
+const loading = ref(true)
+const acting = ref(false)
+
+async function load() {
+  if (!id) {
+    loading.value = false
+    return
+  }
+  const { isSuccess, data } = await rulesApi.get(id)
+  loading.value = false
+  if (isSuccess && data)
+    rule.value = data
+}
+
+onPageShow(() => void load())
+
+const freeRows = computed(() => {
+  const r = rule.value
+  if (!r)
+    return []
+  return [
+    { label: '工作日', value: workDaysText(r.work_days), strong: false },
+    { label: '每日应出勤', value: `${r.work_hours} 小时`, strong: true },
+    { label: '每日打卡次数', value: `${r.free_times} 次`, strong: true },
+    { label: '最晚下班打卡', value: `${r.latest} 前`, strong: false },
+    { label: '迟到判定', value: '不做迟到判定，仅统计工时', strong: false },
+  ]
+})
+
+const cursor = ref(new Date())
+const viewMode = ref<'week' | 'month'>('week')
+
+const dates = computed(() => viewMode.value === 'week'
+  ? weekDates(startOfWeek(cursor.value))
+  : monthDates(cursor.value.getFullYear(), cursor.value.getMonth()))
+
+const rangeLabel = computed(() => {
+  if (viewMode.value === 'month')
+    return `${cursor.value.getFullYear()} 年 ${cursor.value.getMonth() + 1} 月`
+  const list = dates.value
+  const first = monthLabelOf(list[0])
+  if (list[6].slice(5, 7) !== list[0].slice(5, 7))
+    return `${first} - ${Number(list[6].slice(5, 7))} 月`
+  return first
+})
+
+const weekStats = computed(() => rosterStats(rule.value?.assignments, dates.value))
+const crossOver = computed(() => rosterCrossOver(rule.value?.assignments, rule.value?.shifts || []))
+
+const handoverText = computed(() => {
+  const minutes = rule.value?.handover_minutes || 0
+  return minutes > 0 ? `${minutes} 分钟` : '不要求间隔'
+})
+
+function shiftRange(delta: number) {
+  if (viewMode.value === 'week')
+    cursor.value = addDays(cursor.value, delta * 7)
+  else
+    cursor.value = new Date(cursor.value.getFullYear(), cursor.value.getMonth() + delta, 1)
+}
+
+const basicRows = computed(() => {
+  const r = rule.value
+  if (!r)
+    return []
+  return [
+    { label: '规则人数', value: `${r.member_count} 人` },
+    { label: '打卡范围', value: r.mode === 'free' ? `不限制（${r.gps_range} 米内更精确）` : `${r.gps_range} 米` },
+    { label: '办公地点', value: r.address },
+    { label: '每月补卡', value: `${r.make_up} 次` },
+  ]
+})
+
+function goEdit() {
+  uni.navigateTo({ url: `${routes.ruleEdit}?id=${id}` })
+}
+
+async function handleToggle() {
+  if (!rule.value || acting.value)
+    return
+  const turningOff = rule.value.status === 1
+  const { confirm } = await uni.showModal({
+    title: turningOff ? '停用规则' : '启用规则',
+    content: turningOff
+      ? '停用后该规则下的员工将无法按此班次打卡，确认停用？'
+      : '启用后该规则立即对适用人员生效。',
+    confirmText: turningOff ? '停用' : '启用',
+    confirmColor: turningOff ? '#dc2626' : '#4f46e5',
+  })
+  if (!confirm)
+    return
+
+  acting.value = true
+  const { isSuccess, message } = await rulesApi.toggle(id)
+  acting.value = false
+  showToast(isSuccess ? (turningOff ? '已停用' : '已启用') : (message || '操作失败'))
+  if (isSuccess)
+    await load()
+}
+
+</script>
+
+<template>
+  <AuthLayout>
+    <view class="sp-page page">
+      <PageNavbar title="规则详情" />
+
+      <view v-if="loading" class="tip">
+        加载中…
+      </view>
+
+      <SpEmpty v-else-if="!rule" description="规则不存在或已被删除" />
+
+      <template v-else>
+        <!-- 概览 -->
+        <view class="hero">
+          <view class="hero-top">
+            <text class="hero-label">
+              考勤规则 · {{ modeLabel(rule.mode) }}
+            </text>
+            <text :class="['hero-status', rule.status === 1 ? 'hero-status--on' : 'hero-status--off']">
+              {{ rule.status === 1 ? '启用中' : '已停用' }}
+            </text>
+          </view>
+          <text class="hero-name">
+            {{ rule.name }}
+          </text>
+          <text class="hero-meta">
+            适用 {{ rule.scope }} · {{ rule.member_count }} 人
+          </text>
+          <text class="hero-desc">
+            {{ modeDesc(rule.mode) }}
+          </text>
+        </view>
+
+        <!-- 固定班次 -->
+        <SpCard
+          v-if="rule.mode === 'fixed' || !rule.mode"
+          title="班次设置"
+          :hint="`${rule.shifts.length} 个班次`"
+          variant="detail"
+        >
+          <view class="slots">
+            <view v-for="slot in rule.shifts" :key="slot.name" class="slot">
+              <view class="slot-main">
+                <view class="slot-title">
+                  <text class="slot-name">
+                    {{ slot.name }}
+                  </text>
+                  <text v-if="isCrossShift(slot)" class="slot-cross">
+                    次日
+                  </text>
+                </view>
+                <text class="slot-time">
+                  {{ workDaysText(slot.work_days) }} · {{ slot.start }} - {{ slot.end }}
+                </text>
+                <text class="slot-time">
+                  休息 {{ shiftRestLabel(slot) }}
+                </text>
+              </view>
+              <text class="slot-hours">
+                {{ shiftHours(slot) }}
+              </text>
+            </view>
+          </view>
+
+          <SpKvRow
+            label="弹性打卡"
+            :value="rule.flex ? `开启 · 前后 ${rule.flex_minutes} 分钟` : '关闭'"
+          />
+        </SpCard>
+
+        <!-- 自由打卡 -->
+        <SpCard
+          v-else-if="rule.mode === 'free'"
+          title="自由打卡设置"
+          hint="不限定上下班时间"
+          variant="detail"
+        >
+          <SpKvRow
+            v-for="row in freeRows"
+            :key="row.label"
+            :label="row.label"
+            :value="row.value"
+            :strong="row.strong"
+          />
+        </SpCard>
+
+        <!-- 排班制 -->
+        <SpCard
+          v-else
+          title="排班设置"
+          :hint="`共 ${rule.shifts.length} 个班次`"
+          variant="detail"
+        >
+          <view class="slots">
+            <view v-for="slot in rule.shifts" :key="slot.name" class="slot">
+              <view class="slot-main">
+                <view class="slot-title">
+                  <text class="slot-name">
+                    {{ slot.name }}
+                  </text>
+                  <text v-if="isCrossShift(slot)" class="slot-cross">
+                    次日
+                  </text>
+                </view>
+                <text class="slot-time">
+                  {{ slot.start }} - {{ slot.end }} · 休息 {{ shiftRestLabel(slot) }}
+                </text>
+              </view>
+              <text class="slot-hours">
+                {{ shiftHours(slot) }}
+              </text>
+            </view>
+          </view>
+
+          <view class="divider" />
+
+          <view class="cal-head">
+            <text class="cal-title">
+              排班表
+            </text>
+            <text class="cal-hint">
+              {{ rule.members.length }} 人 · {{ rule.assignments.length }} 人次
+            </text>
+          </view>
+
+          <view class="roster-nav">
+            <view class="cal-nav">
+              <view class="cal-arrow" @click="shiftRange(-1)">
+                ‹
+              </view>
+              <text class="cal-month">
+                {{ rangeLabel }}
+              </text>
+              <view class="cal-arrow" @click="shiftRange(1)">
+                ›
+              </view>
+            </view>
+            <view class="range-tabs">
+              <text
+                :class="['range-tab', viewMode === 'week' && 'range-tab--on']"
+                @click="viewMode = 'week'"
+              >
+                周
+              </text>
+              <text
+                :class="['range-tab', viewMode === 'month' && 'range-tab--on']"
+                @click="viewMode = 'month'"
+              >
+                月
+              </text>
+            </view>
+          </view>
+
+          <RosterTable
+            :members="rule.members"
+            :dates="dates"
+            :assignments="rule.assignments"
+            :shifts="rule.shifts"
+            :cross-over="crossOver"
+          />
+
+          <view class="cal-summary">
+            <text class="cal-summary-text">
+              {{ viewMode === 'week' ? '本周' : '本月' }}已排 {{ weekStats.scheduled }} 人天 · 休息 {{ weekStats.rest }}
+            </text>
+            <text class="cal-summary-text">
+              交接间隔 {{ handoverText }}
+            </text>
+          </view>
+        </SpCard>
+
+        <!-- 打卡要求 -->
+        <SpCard title="打卡要求" :hint="`${rule.ways.length} 种方式`" variant="detail">
+          <view class="ways">
+            <text v-for="way in rule.ways" :key="way" class="way">
+              {{ way }}
+            </text>
+          </view>
+
+          <SpKvRow
+            v-for="row in basicRows"
+            :key="row.label"
+            :label="row.label"
+            :value="row.value"
+          />
+        </SpCard>
+
+        <!-- 说明 -->
+        <view class="note">
+          <text class="note-line">
+            · 规则对适用部门全员生效，员工可在打卡页看到对应班次
+          </text>
+          <text v-if="rule.mode === 'free'" class="note-line">
+            · 自由打卡不判定迟到早退，当日累计工时达标即记为正常出勤
+          </text>
+          <text v-else-if="rule.mode === 'shift'" class="note-line">
+            · 班次按人员逐日安排，员工可在打卡页查看当日班次
+          </text>
+          <text v-else class="note-line">
+            · 修改班次后立即生效，历史打卡记录不受影响
+          </text>
+          <text class="note-line">
+            · 最后更新 {{ rule.utime }} · 创建于 {{ rule.ctime }}
+          </text>
+        </view>
+
+        <!-- 操作 -->
+        <view class="actions">
+          <view :class="['btn', 'btn--ghost', acting && 'btn--disabled']" @click="handleToggle">
+            {{ rule.status === 1 ? '停用规则' : '启用规则' }}
+          </view>
+          <view class="btn btn--primary" @click="goEdit">
+            修改规则
+          </view>
+        </view>
+      </template>
+    </view>
+  </AuthLayout>
+</template>
+
+<style lang="scss">
+.page {
+  min-height: 100%;
+  padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+  background-color: #f5f6fa;
+}
+
+.tip {
+  padding: 60px 0;
+  text-align: center;
+  font-size: 22px;
+  color: #9aa0b4;
+}
+
+/* 概览 */
+.hero {
+  margin: 16px 16px 0;
+  padding: 26px 26px 24px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #3b4fe0 0%, #7c6cf6 100%);
+  box-shadow: 0 16px 30px rgba(59, 79, 224, 0.24);
+}
+
+.hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hero-label {
+  padding: 4px 12px;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.18);
+  font-size: 19px;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.hero-status {
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 19px;
+  font-weight: 600;
+  background-color: rgba(255, 255, 255, 0.92);
+}
+
+.hero-status--on {
+  color: #0d9488;
+}
+
+.hero-status--off {
+  color: #6b7080;
+}
+
+.hero-name {
+  display: block;
+  margin-top: 18px;
+  font-size: 36px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.hero-meta {
+  display: block;
+  margin-top: 8px;
+  font-size: 21px;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.hero-desc {
+  display: block;
+  margin-top: 12px;
+  font-size: 19px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* 排班班次列表 */
+.slots {
+  padding-top: 14px;
+}
+
+.slot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 12px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background-color: #f7f8fc;
+}
+
+.slot-main {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.slot-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.slot-name {
+  font-size: 23px;
+  font-weight: 600;
+  color: #23263a;
+}
+
+.slot-cross {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background-color: #fff7ed;
+  font-size: 17px;
+  color: #b45309;
+}
+
+.slot-time {
+  font-size: 22px;
+  color: #6b7080;
+  font-variant-numeric: tabular-nums;
+}
+
+.slot-hours {
+  flex-shrink: 0;
+  font-size: 20px;
+  color: #4f46e5;
+}
+
+/* 卡片 */
+.ways {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 16px 0 6px;
+}
+
+.way {
+  padding: 8px 18px;
+  border-radius: 10px;
+  background-color: #eef2ff;
+  font-size: 21px;
+  color: #4f46e5;
+}
+
+/* 说明 */
+.note {
+  margin: 20px 16px 0;
+}
+
+.note-line {
+  display: block;
+  font-size: 20px;
+  line-height: 1.8;
+  color: #9aa0b4;
+}
+
+/* 操作 */
+.actions {
+  display: flex;
+  gap: 14px;
+  margin: 16px 16px 0;
+}
+
+.btn {
+  flex: 1;
+  padding: 22px 0;
+  border-radius: 999px;
+  text-align: center;
+  font-size: 26px;
+  font-weight: 600;
+}
+
+.btn--ghost {
+  border: 1px solid #e5e7f0;
+  background-color: #fff;
+  color: #4a4f60;
+}
+
+/* #ifdef WEB */
+.btn--ghost:active {
+  background-color: #f7f8fc;
+}
+
+/* #endif */
+.btn--primary {
+  background: linear-gradient(135deg, #3b4fe0 0%, #7c6cf6 100%);
+  color: #fff;
+  box-shadow: 0 10px 22px rgba(59, 79, 224, 0.26);
+}
+
+.btn--disabled {
+  opacity: 0.5;
+}
+
+/* 排班日历 */
+.divider {
+  margin: 6px 0 0;
+  border-top: 1px solid #f1f2f7;
+}
+
+.cal-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-top: 18px;
+}
+
+.cal-title {
+  font-size: 25px;
+  font-weight: 600;
+  color: #1c1c2e;
+}
+
+.cal-hint {
+  font-size: 20px;
+  color: #9aa0b4;
+}
+
+.cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  padding: 14px 0 8px;
+}
+
+.cal-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background-color: #f4f5fb;
+  font-size: 26px;
+  line-height: 1;
+  color: #4f46e5;
+}
+
+.cal-month {
+  font-size: 22px;
+  font-weight: 600;
+  color: #23263a;
+}
+
+.cal-week {
+  display: flex;
+  padding-bottom: 4px;
+}
+
+.cal-week-text {
+  flex: 1;
+  text-align: center;
+  font-size: 18px;
+  color: #9aa0b4;
+}
+
+.cal-grid {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.cal-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 14.285%;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  height: 58px;
+  border-radius: 10px;
+}
+
+.cal-cell--blank {
+  visibility: hidden;
+}
+
+.cal-cell--on {
+  background-color: #f3f5ff;
+}
+
+.cal-day {
+  font-size: 20px;
+  color: #23263a;
+  font-variant-numeric: tabular-nums;
+}
+
+.cal-tag {
+  height: 18px;
+  font-size: 14px;
+  line-height: 18px;
+  color: #5b6bd6;
+}
+
+.cal-tag--cont {
+  color: #b45309;
+}
+
+.cal-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 12px 0 14px;
+  padding-top: 12px;
+  border-top: 1px dashed #f1f2f7;
+}
+
+.cal-summary-text {
+  font-size: 19px;
+  color: #9aa0b4;
+}
+
+/* 排班表导航 */
+.roster-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0 2px;
+}
+
+/* #ifdef WEB */
+.roster-nav .cal-nav {
+  padding: 8px 0;
+  gap: 24px;
+}
+
+/* #endif */
+
+.range-tabs {
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: 999px;
+  background-color: #f4f5fb;
+}
+
+.range-tab {
+  padding: 8px 22px;
+  border-radius: 999px;
+  font-size: 19px;
+  color: #6b7080;
+}
+
+.range-tab--on {
+  background-color: #fff;
+  color: #4f46e5;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(23, 23, 64, 0.08);
+}
+</style>

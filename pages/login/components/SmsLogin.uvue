@@ -1,0 +1,161 @@
+<script setup lang="ts">
+import { onUnmounted, reactive, ref } from 'vue'
+import wechatAuth from '@/api/identity/wechat.ts'
+import wechatWorkAuth from '@/api/identity/wechatwork.ts'
+import { useAuthStore } from '@/store/auth'
+import { isH5Wecom, isWeapp } from '@/utils/platform'
+
+defineProps({
+  loading: { type: Boolean },
+})
+
+const emit = defineEmits(['error', 'loading-change'])
+
+const authStore = useAuthStore()
+
+const smsForm = reactive({
+  mobile: '',
+  code: '',
+})
+const smsCountdown = ref(0)
+const smsSending = ref(false)
+let smsTimer: number | null = null
+
+onUnmounted(() => {
+  if (smsTimer) {
+    clearInterval(smsTimer)
+    smsTimer = null
+  }
+})
+
+async function sendSmsCode() {
+  if (!smsForm.mobile) {
+    emit('error', '请输入手机号')
+    return
+  }
+  if (!authStore.key) {
+    emit('error', '获取身份信息失败，请返回重试')
+    return
+  }
+
+  emit('error', '')
+  const api = isWeapp()
+    ? authStore.key ? wechatAuth.sendAppVerifyCode : null
+    : isH5Wecom()
+      ? wechatWorkAuth.sendVerifyCode
+      : wechatAuth.sendVerifyCode
+
+  if (!api)
+    return
+
+  smsSending.value = true
+  try {
+    const { isSuccess, message } = await api({ key: authStore.key, mobile: smsForm.mobile })
+    if (isSuccess) {
+      smsCountdown.value = 60
+      smsTimer = setInterval(() => {
+        smsCountdown.value--
+        if (smsCountdown.value <= 0) {
+          clearInterval(smsTimer!)
+          smsTimer = null
+        }
+      }, 1000)
+    }
+    else {
+      emit('error', message || '发送验证码失败')
+    }
+  }
+  finally {
+    smsSending.value = false
+  }
+}
+
+async function handleSmsLogin() {
+  if (!smsForm.mobile || !smsForm.code) {
+    emit('error', '请输入手机号和验证码')
+    return
+  }
+  emit('error', '')
+  emit('loading-change', true)
+  try {
+    const { isSuccess, message } = await authStore.login({
+      type: 'sms',
+      mobile: smsForm.mobile,
+      verifyCode: smsForm.code,
+    })
+    if (!isSuccess)
+      emit('error', message || '登录失败')
+  }
+  finally {
+    emit('loading-change', false)
+  }
+}
+
+</script>
+
+<template>
+  <view class="sms-login">
+    <view class="sms-field">
+      <input class="sp-input" v-model="smsForm.mobile" placeholder="请输入手机号" type="number" maxlength="11" />
+    </view>
+    <view class="sms-field">
+      <view class="sms-code-row">
+        <input class="sp-input" v-model="smsForm.code" placeholder="请输入验证码" type="number" maxlength="6" />
+        <view
+          :class="['sms-send', (smsCountdown > 0 || smsSending) ? 'sms-send--disabled' : '']"
+          @click="sendSmsCode()"
+        >
+          <text class="sms-send-text">
+            {{ smsCountdown > 0 ? `${smsCountdown}s` : smsSending ? '发送中...' : '获取验证码' }}
+          </text>
+        </view>
+      </view>
+    </view>
+
+    <view class="sp-btn sms-btn sp-btn--block" @click="handleSmsLogin">
+        <text class="sp-btn-text">
+          验证码登录
+        </text>
+      </view>
+  </view>
+</template>
+
+<style lang="scss">
+.sms-field {
+  position: relative;
+  margin-bottom: 24px;
+  background: $bg-color;
+  border-radius: 8px;
+  padding: 0 12px;
+}
+
+.sms-send {
+  font-size: 24px;
+  color: $primary-color;
+  white-space: nowrap;
+  padding: 0 8px;
+}
+
+.sms-send--disabled {
+  color: $text-color-placeholder;
+}
+
+.sms-btn {
+  margin-top: 40px;
+  height: 88px;
+  border-radius: 8px;
+  font-size: 30px;
+  font-weight: 600;
+  background: #fff;
+  color: $primary-color;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transition: transform 0.15s ease;
+}
+
+/* #ifdef WEB */
+.sms-btn:active {
+  transform: scale(0.97);
+}
+
+/* #endif */
+</style>

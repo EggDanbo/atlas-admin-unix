@@ -1,0 +1,384 @@
+<script setup lang="ts">
+import { computed, ref } from 'vue'
+import AuthLayout from '@/components/auth-layout/auth-layout.uvue'
+import PageNavbar from '@/components/page-navbar/page-navbar.uvue'
+import { showToast } from '@/components/sp-toast/toast.ts'
+import { apply as workflowApply } from '@/api/workflow/index.ts'
+import { safeBack } from '@/utils/auth'
+import { getCurrentPageInfo } from '@/utils/router'
+
+const id = getCurrentPageInfo().params.id || ''
+
+const detail = ref<Recordable | null>(null)
+const loading = ref(true)
+
+async function load() {
+  if (!id) {
+    loading.value = false
+    return
+  }
+  loading.value = true
+  const { isSuccess, data } = await workflowApply.get(id)
+  if (isSuccess && data)
+    detail.value = data
+  loading.value = false
+}
+
+onPageShow(() => void load())
+
+const steps = computed(() => detail.value?.steps || [])
+
+const canRevoke = computed(() => !!detail.value && ['待审批', '审批中'].includes(detail.value.status))
+
+function tone(status: string) {
+  if (status === '待审批')
+    return 'wait'
+  if (status === '审批中')
+    return 'progressing'
+  if (status === '已通过')
+    return 'pass'
+  if (status === '已退回')
+    return 'back'
+  return 'muted'
+}
+
+const infoRows = computed(() => {
+  const d = detail.value
+  if (!d)
+    return []
+  return [
+    { label: '单据类型', value: d.biz_title },
+    { label: '单据编号', value: d.biz_no },
+    { label: '发起人', value: d.user_name },
+    { label: '所属部门', value: d.team_name },
+    { label: '发起时间', value: d.ctime },
+    { label: '最近更新', value: d.utime || '—' },
+  ]
+})
+
+function handleRevoke() {
+  uni.showModal({
+    title: '撤回申请',
+    content: '撤回后该单据不再流转，如需继续办理要重新发起。',
+    confirmText: '确认撤回',
+    confirmColor: '#dc2626',
+  }).then(async (res) => {
+    if (!res.confirm)
+      return
+    const { isSuccess, message } = await workflowApply.revoke(id)
+    showToast(isSuccess ? '已撤回' : (message || '撤回失败'))
+    if (isSuccess) {
+      await load()
+      setTimeout(safeBack, 800)
+    }
+  })
+}
+
+</script>
+
+<template>
+  <AuthLayout>
+    <view class="sp-page page">
+      <PageNavbar title="申请详情" />
+
+      <view v-if="loading" class="tip">
+        加载中…
+      </view>
+
+      <SpEmpty v-else-if="!detail" description="单据不存在或已被删除" />
+
+      <template v-else>
+        <!-- 概览 -->
+        <view class="hero">
+          <view class="hero-top">
+            <text class="hero-cat">
+              {{ detail.biz_category }}
+            </text>
+            <text :class="['hero-status', `hero-status--${tone(detail.status)}`]">
+              {{ detail.status }}
+            </text>
+          </view>
+          <text class="hero-title">
+            {{ detail.biz_title }}
+          </text>
+          <text class="hero-no">
+            {{ detail.biz_no }}
+          </text>
+        </view>
+
+        <!-- 基本信息 -->
+        <SpCard title="基本信息" variant="detail">
+          <SpKvRow
+            v-for="row in infoRows"
+            :key="row.label"
+            :label="row.label"
+            :value="row.value"
+          />
+        </SpCard>
+
+        <!-- 审批流程 -->
+        <SpCard title="审批流程" :hint="detail.status" variant="detail">
+          <view
+            v-for="(step, index) in steps"
+            :key="step.name"
+            :class="['step', index === steps.length - 1 && 'step--last']"
+          >
+            <view class="step-rail">
+              <view :class="['dot', `dot--${step.state}`]" />
+              <view v-if="index !== steps.length - 1" class="line" />
+            </view>
+            <view class="step-body">
+              <view class="step-head">
+                <text :class="['step-name', step.state === 'pending' && 'step-name--muted']">
+                  {{ step.name }}
+                </text>
+                <text class="step-time">
+                  {{ step.time }}
+                </text>
+              </view>
+              <text v-if="step.handler" class="step-handler">
+                {{ step.handler }}
+              </text>
+              <text v-if="step.remark" :class="['step-remark', step.state === 'error' && 'step-remark--error']">
+                {{ step.remark }}
+              </text>
+            </view>
+          </view>
+        </SpCard>
+
+        <!-- 撤回 -->
+        <view v-if="canRevoke" class="actions">
+          <view class="revoke" @click="handleRevoke">
+            撤回申请
+          </view>
+          <text class="actions-hint">
+            仅「待审批 / 审批中」的单据可撤回
+          </text>
+        </view>
+
+        <view class="sp-footnote">
+          <text class="sp-footnote-text">
+            数据由本地引擎生成 · 仅用于演示
+          </text>
+        </view>
+      </template>
+    </view>
+  </AuthLayout>
+</template>
+
+<style lang="scss">
+.page {
+  min-height: 100%;
+  padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+  background-color: #f5f6fa;
+}
+
+.tip {
+  padding: 60px 0;
+  text-align: center;
+  font-size: 22px;
+  color: #9aa0b4;
+}
+
+/* 概览卡 */
+.hero {
+  margin: 16px 16px 0;
+  padding: 26px 26px 24px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #3b4fe0 0%, #7c6cf6 100%);
+  box-shadow: 0 16px 30px rgba(59, 79, 224, 0.24);
+}
+
+.hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hero-cat {
+  padding: 4px 12px;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.18);
+  font-size: 19px;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.hero-status {
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 19px;
+  font-weight: 600;
+  background-color: rgba(255, 255, 255, 0.92);
+  color: #4f46e5;
+}
+
+.hero-status--wait {
+  color: #b45309;
+}
+
+.hero-status--progressing {
+  color: #1d4ed8;
+}
+
+.hero-status--pass {
+  color: #0d9488;
+}
+
+.hero-status--back {
+  color: #b91c1c;
+}
+
+.hero-status--muted {
+  color: #6b7080;
+}
+
+.hero-title {
+  display: block;
+  margin-top: 18px;
+  font-size: 36px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.hero-no {
+  display: block;
+  margin-top: 8px;
+  font-size: 21px;
+  color: rgba(255, 255, 255, 0.78);
+  letter-spacing: 0.4px;
+}
+
+/* 卡片 */
+/* 审批流 */
+.step {
+  display: flex;
+  gap: 18px;
+  padding-top: 18px;
+}
+
+.step-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 22px;
+}
+
+.dot {
+  width: 18px;
+  height: 18px;
+  margin-top: 8px;
+  border-radius: 50%;
+  background-color: #d8dbe6;
+  flex-shrink: 0;
+}
+
+.dot--done {
+  background-color: #4f46e5;
+}
+
+.dot--active {
+  background-color: #f59e0b;
+  box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.16);
+}
+
+.dot--error {
+  background-color: #dc2626;
+  box-shadow: 0 0 0 6px rgba(220, 38, 38, 0.14);
+}
+
+.dot--canceled {
+  background-color: #e5e7ef;
+  border: 2px solid #d8dbe6;
+}
+
+.line {
+  flex: 1;
+  width: 2px;
+  margin: 6px 0 0;
+  background-color: #eef0f6;
+}
+
+.step-body {
+  flex: 1;
+  padding-bottom: 20px;
+  min-width: 0;
+}
+
+.step-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.step-name {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1c1c2e;
+}
+
+.step-name--muted {
+  font-weight: 400;
+  color: #b3b8c8;
+}
+
+.step-time {
+  flex-shrink: 0;
+  font-size: 19px;
+  color: #b3b8c8;
+}
+
+.step-handler {
+  display: block;
+  margin-top: 6px;
+  font-size: 21px;
+  color: #6b7080;
+}
+
+.step-remark {
+  display: block;
+  margin-top: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background-color: #f7f8fc;
+  font-size: 21px;
+  line-height: 1.5;
+  color: #6b7080;
+}
+
+.step-remark--error {
+  background-color: #fef2f2;
+  color: #b91c1c;
+}
+
+/* 操作 */
+.actions {
+  margin: 22px 16px 0;
+}
+
+.revoke {
+  padding: 22px 0;
+  border-radius: 999px;
+  border: 1px solid #fecaca;
+  background-color: #fff;
+  text-align: center;
+  font-size: 26px;
+  font-weight: 600;
+  color: #dc2626;
+}
+
+/* #ifdef WEB */
+.revoke:active {
+  background-color: #fef2f2;
+}
+
+/* #endif */
+
+.actions-hint {
+  display: block;
+  margin-top: 12px;
+  text-align: center;
+  font-size: 19px;
+  color: #b3b8c8;
+}
+</style>

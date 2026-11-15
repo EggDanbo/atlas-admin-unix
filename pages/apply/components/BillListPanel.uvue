@@ -1,0 +1,215 @@
+<script setup lang="ts">
+import type { FilterOption } from '@/components/sp-filter-select/types.ts'
+
+import { onMounted, ref } from 'vue'
+import SpListStatus from '@/components/sp-list-status/sp-list-status.uvue'
+import { useListPage } from '@/composables/list'
+import { apply as workflowApply } from '@/api/workflow/index.ts'
+import { routes } from '@/utils/router'
+import ApplyBillCard from './ApplyBillCard.uvue'
+
+const props = defineProps({
+  module: { type: String, default: undefined },
+  placeholder: { type: String, default: '搜索单号或类型' },
+  emptyText: { type: String, default: '没有符合条件的申请单据' },
+  showCategory: { type: Boolean, default: true },
+  withFab: { type: Boolean, default: false },
+  footnote: { type: String, default: '数据由本地引擎生成 · 仅用于演示' },
+})
+
+/** 状态筛选项：key 为空表示全部 */
+const STATUS_OPTIONS: FilterOption[] = [
+  { key: '', label: '全部状态' },
+  { key: 'wait', label: '待审批' },
+  { key: 'progressing', label: '审批中' },
+  { key: 'pass', label: '已通过' },
+  { key: 'back', label: '已退回' },
+]
+
+const active = ref('')
+const keyword = ref('')
+
+const { list, total, loading, finished, isEmpty, queryModel, search, loadMore } = useListPage({
+  api: {
+    search: params => workflowApply.search(params),
+  },
+  createQueryModel: () => ({
+    module: props.module,
+    status: undefined as string | undefined,
+    filter: undefined as string | undefined,
+  }),
+  idField: 'id',
+  immediate: false,
+})
+
+function reload() {
+  keyword.value = ''
+  active.value = ''
+  queryModel.status = undefined
+  queryModel.filter = undefined
+  search()
+}
+
+// 首次进入由组件自己拉一次；页面级的 show / 触底再通过 expose 调用
+onMounted(() => search())
+
+defineExpose({ refresh: () => search(), loadMore })
+
+function onStatusChange(option: FilterOption) {
+  queryModel.status = option.key || undefined
+  search()
+}
+
+function onSearch() {
+  queryModel.filter = keyword.value.trim() || undefined
+  search()
+}
+
+function clearKeyword() {
+  keyword.value = ''
+  if (queryModel.filter) {
+    queryModel.filter = undefined
+    search()
+  }
+}
+
+function handleView(item: Recordable) {
+  uni.navigateTo({ url: `${routes.myApplyDetail}?id=${item.id}` })
+}
+
+function handleCreate() {
+  uni.navigateTo({ url: `${routes.apply}?type=leave` })
+}
+
+</script>
+
+<template>
+  <!-- 搜索 + 状态筛选 -->
+  <view class="toolbar">
+    <SpSearchBar
+      v-model="keyword"
+      :inset="false"
+      :placeholder="placeholder"
+      @confirm="onSearch"
+      @clear="clearKeyword"
+    />
+
+    <view class="filter-bar">
+      <SpFilterSelect
+        v-model="active"
+        :options="STATUS_OPTIONS"
+        @change="onStatusChange"
+      />
+
+      <text class="filter-count">
+        共 {{ total }} 条
+      </text>
+    </view>
+  </view>
+
+  <view class="list">
+    <SpListStatus
+      :loading="loading"
+      :finished="finished || (total > 0 && list.length >= total)"
+      :is-empty="isEmpty"
+      :has-data="list.length > 0"
+      :empty-text="emptyText"
+    >
+      <ApplyBillCard
+        v-for="item in list"
+        :key="item.id"
+        :item="item"
+        :show-category="showCategory"
+        @view="handleView"
+      />
+    </SpListStatus>
+  </view>
+
+  <!-- 空态时给一个重置入口 -->
+  <view v-if="!loading && !list.length" class="refresh" @click="reload">
+    重置筛选
+  </view>
+
+  <view class="sp-footnote">
+    <text class="sp-footnote-text">
+      {{ footnote }}
+    </text>
+  </view>
+
+  <!-- 悬浮新增 -->
+  <view v-if="withFab" class="fab" @click="handleCreate">
+    <text class="fab-plus">
+      +
+    </text>
+  </view>
+</template>
+
+<style lang="scss">
+/* 申请/请假列表共用的工具条、筛选、列表与悬浮按钮 */
+
+/* 顶部工具条 */
+.toolbar {
+  position: relative;
+  z-index: 50;
+  padding: 16px 16px 0;
+}
+
+/* 搜索框：整块作为点击区，内层 input 垂直居中 */
+/* 状态筛选 */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+.filter-count {
+  font-size: 20px;
+  color: #9aa0b4;
+}
+
+/* 下拉面板 */
+/* 列表 */
+.list {
+  margin-top: 6px;
+}
+
+.refresh {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 22px;
+  color: #4f46e5;
+}
+
+/* 悬浮新增 */
+.fab {
+  position: fixed;
+  right: 32px;
+  bottom: calc(48px + env(safe-area-inset-bottom, 0px));
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 108px;
+  height: 108px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b4fe0 0%, #7c6cf6 100%);
+  box-shadow: 0 14px 28px rgba(59, 79, 224, 0.4);
+}
+
+/* #ifdef WEB */
+.fab:active {
+  opacity: 0.85;
+  transform: scale(0.96);
+}
+
+/* #endif */
+
+.fab-plus {
+  margin-top: -6px;
+  font-size: 60px;
+  font-weight: 300;
+  line-height: 1;
+  color: #fff;
+}
+</style>
