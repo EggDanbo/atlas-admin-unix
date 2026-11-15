@@ -92,54 +92,58 @@ function typeLabel(types: number) {
 
 <style lang="scss">
 .section {
-  margin: 14px 16px 0;
-  padding: 18px 20px 4px;
+  margin: 14rpx 16rpx 0;
+  padding: 18rpx 20rpx 4rpx;
   background: #fff;
-  border-radius: 18px;
-  box-shadow: 0 8px 24px rgba(23, 23, 64, 0.05);
+  border-radius: 18rpx;
+  box-shadow: 0 8rpx 24rpx rgba(23, 23, 64, 0.05);
 }
 
 .section-head {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 6px;
+  padding-bottom: 6rpx;
 }
 
 .head-left {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 12px;
+  gap: 12rpx;
 }
 
 .section-title {
-  font-size: 30px;
+  font-size: 30rpx;
   font-weight: 700;
   color: #1c1c2e;
 }
 
 .section-count {
-  min-width: 34px;
-  height: 34px;
-  padding: 0 10px;
-  border-radius: 17px;
+  min-width: 34rpx;
+  height: 34rpx;
+  padding: 0 10rpx;
+  border-radius: 17rpx;
   background: #eef2ff;
   color: #4f46e5;
-  font-size: 20px;
+  font-size: 20rpx;
   font-weight: 600;
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
 }
 
 .head-more {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 4px;
+  gap: 4rpx;
 }
 
 .head-more-text {
-  font-size: 21px;
+  font-size: 21rpx;
   color: #9aa0b4;
 }
 
@@ -150,10 +154,11 @@ function typeLabel(types: number) {
 
 .item {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 16px;
-  padding: 12px 0;
-  border-bottom: 1px solid #f1f2f7;
+  gap: 16rpx;
+  padding: 12rpx 0;
+  border-bottom: 1rpx solid #f1f2f7;
 }
 
 /* #ifdef WEB */
@@ -170,20 +175,20 @@ function typeLabel(types: number) {
 /* #endif */
 
 .dot {
-  width: 12px;
-  height: 12px;
+  width: 12rpx;
+  height: 12rpx;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
 .dot--todo {
   background: #4f46e5;
-  box-shadow: 0 0 0 6px #eef2ff;
+  box-shadow: 0 0 0 6rpx #eef2ff;
 }
 
 .dot--msg {
   background: #d97706;
-  box-shadow: 0 0 0 6px #fffbeb;
+  box-shadow: 0 0 0 6rpx #fffbeb;
 }
 
 .item-main {
@@ -191,17 +196,18 @@ function typeLabel(types: number) {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 6rpx;
 }
 
 .item-title-row {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 10px;
+  gap: 10rpx;
 }
 
 .item-title {
-  font-size: 25px;
+  font-size: 25rpx;
   font-weight: 500;
   color: #23263a;
   overflow: hidden;
@@ -211,15 +217,15 @@ function typeLabel(types: number) {
 
 .item-tag {
   flex-shrink: 0;
-  padding: 2px 10px;
-  border-radius: 6px;
+  padding: 2rpx 10rpx;
+  border-radius: 6rpx;
   background: #f5f6fa;
   color: #8a8fa3;
-  font-size: 18px;
+  font-size: 18rpx;
 }
 
 .item-desc {
-  font-size: 20px;
+  font-size: 20rpx;
   color: #9aa0b4;
 }
 </style>

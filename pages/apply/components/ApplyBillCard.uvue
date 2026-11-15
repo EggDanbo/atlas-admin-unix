@@ -60,11 +60,11 @@ function tone(status: string) {
 
 <style lang="scss">
 .card {
-  margin: 14px 16px 0;
-  padding: 20px 24px 16px;
-  border-radius: 18px;
+  margin: 14rpx 16rpx 0;
+  padding: 20rpx 24rpx 16rpx;
+  border-radius: 18rpx;
   background-color: #fff;
-  box-shadow: 0 8px 24px rgba(23, 23, 64, 0.05);
+  box-shadow: 0 8rpx 24rpx rgba(23, 23, 64, 0.05);
 }
 
 /* #ifdef WEB */
@@ -76,29 +76,31 @@ function tone(status: string) {
 
 .card-head {
   display: flex;
+  flex-direction: row;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
+  gap: 16rpx;
 }
 
 .card-heading {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 10px;
+  gap: 10rpx;
   min-width: 0;
 }
 
 .card-cat {
   flex-shrink: 0;
-  padding: 3px 10px;
-  border-radius: 6px;
+  padding: 3rpx 10rpx;
+  border-radius: 6rpx;
   background-color: #eef2ff;
-  font-size: 18px;
+  font-size: 18rpx;
   color: #4f46e5;
 }
 
 .card-title {
-  font-size: 27px;
+  font-size: 27rpx;
   font-weight: 600;
   color: #1c1c2e;
   overflow: hidden;
@@ -108,9 +110,9 @@ function tone(status: string) {
 
 .tag {
   flex-shrink: 0;
-  padding: 4px 12px;
-  border-radius: 8px;
-  font-size: 19px;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  font-size: 19rpx;
 }
 
 .tag--wait {
@@ -140,16 +142,17 @@ function tone(status: string) {
 
 .card-meta {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 8px;
-  margin-top: 10px;
-  font-size: 21px;
+  gap: 8rpx;
+  margin-top: 10rpx;
+  font-size: 21rpx;
   color: #9aa0b4;
 }
 
 .card-no {
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.4rpx;
 }
 
 .card-dot {
@@ -158,12 +161,13 @@ function tone(status: string) {
 
 .card-foot {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px dashed #f1f2f7;
-  font-size: 20px;
+  margin-top: 14rpx;
+  padding-top: 12rpx;
+  border-top: 1rpx dashed #f1f2f7;
+  font-size: 20rpx;
 }
 
 .card-time {

@@ -34,23 +34,24 @@ defineProps({
 
 <style lang="scss">
 .item {
-  padding: 0 4px;
+  padding: 0 4rpx;
 
   /* 行与行之间的分隔线：用「后续兄弟」选择器，中间夹着强度条等元素时也能命中 */
 }
 
 /* #ifdef WEB */
 .item ~ .item {
-  border-top: 1px solid #f3f4f9;
+  border-top: 1rpx solid #f3f4f9;
 }
 
 /* #endif */
 
 .row {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 16px;
-  min-height: 94px;
+  gap: 16rpx;
+  min-height: 94rpx;
 }
 
 /* #ifdef WEB */
@@ -62,36 +63,36 @@ defineProps({
 
 .label {
   flex-shrink: 0;
-  width: 150px;
-  font-size: 24px;
+  width: 150rpx;
+  font-size: 24rpx;
   color: #23263a;
 }
 
 .req {
-  margin-left: 4px;
-  font-size: 22px;
+  margin-left: 4rpx;
+  font-size: 22rpx;
   color: #f43f5e;
 }
 
 .arrow {
   flex-shrink: 0;
-  width: 14px;
-  height: 14px;
-  margin-left: 4px;
-  border-top: 2px solid #c3c8d6;
-  border-right: 2px solid #c3c8d6;
+  width: 14rpx;
+  height: 14rpx;
+  margin-left: 4rpx;
+  border-top: 2rpx solid #c3c8d6;
+  border-right: 2rpx solid #c3c8d6;
   transform: rotate(45deg);
 }
 
 .error {
-  padding: 8px 4px 14px;
-  font-size: 19px;
+  padding: 8rpx 4rpx 14rpx;
+  font-size: 19rpx;
   color: #f43f5e;
 }
 
 .success {
-  padding: 8px 4px 14px;
-  font-size: 19px;
+  padding: 8rpx 4rpx 14rpx;
+  font-size: 19rpx;
   color: #0d9488;
 }
 </style>

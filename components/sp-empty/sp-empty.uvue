@@ -24,47 +24,47 @@ defineProps({
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 72px 0 80px;
+  padding: 72rpx 0 80rpx;
 }
 
 .sp-empty__icon {
   position: relative;
-  width: 150px;
-  height: 116px;
-  margin-bottom: 26px;
-  border-radius: 26px;
+  width: 150rpx;
+  height: 116rpx;
+  margin-bottom: 26rpx;
+  border-radius: 26rpx;
   background: linear-gradient(180deg, #f8f9fe 0%, #eef0fa 100%);
-  border: 1px solid #e9ecf8;
+  border: 1rpx solid #e9ecf8;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 10rpx;
 }
 
 .sp-empty__tray {
   position: absolute;
-  bottom: 18px;
-  width: 74px;
-  height: 14px;
-  border-radius: 7px;
+  bottom: 18rpx;
+  width: 74rpx;
+  height: 14rpx;
+  border-radius: 7rpx;
   background: #dde2f3;
 }
 
 .sp-empty__line {
-  width: 58px;
-  height: 9px;
-  border-radius: 5px;
+  width: 58rpx;
+  height: 9rpx;
+  border-radius: 5rpx;
   background: #d3d9ec;
 }
 
 .sp-empty__line--short {
-  width: 38px;
+  width: 38rpx;
   background: #e2e6f4;
 }
 
 .sp-empty__text {
-  font-size: 24px;
+  font-size: 24rpx;
   color: #9aa0b4;
 }
 </style>

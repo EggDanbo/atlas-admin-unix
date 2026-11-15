@@ -62,27 +62,28 @@ function handleClear() {
 <style lang="scss">
 .search {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 14px;
-  height: 76px;
-  padding: 0 22px;
-  border-radius: 18px;
-  border: 1px solid #edeff6;
+  gap: 14rpx;
+  height: 76rpx;
+  padding: 0 22rpx;
+  border-radius: 18rpx;
+  border: 1rpx solid #edeff6;
   background-color: #fff;
-  box-shadow: 0 6px 18px rgba(23, 23, 64, 0.04);
+  box-shadow: 0 6rpx 18rpx rgba(23, 23, 64, 0.04);
 }
 
 /* 页面顶层使用时自带左右留白；放进工具栏时由父级控制 */
 .search--inset {
-  margin: 16px 16px 0;
+  margin: 16rpx 16rpx 0;
 }
 
 .search-icon {
   position: relative;
   flex-shrink: 0;
-  width: 24px;
-  height: 24px;
-  border: 2px solid #b6bccd;
+  width: 24rpx;
+  height: 24rpx;
+  border: 2rpx solid #b6bccd;
   border-radius: 50%;
 }
 
@@ -90,11 +91,11 @@ function handleClear() {
 .search-icon::after {
   content: '';
   position: absolute;
-  right: -6px;
-  bottom: -2px;
-  width: 10px;
-  height: 2px;
-  border-radius: 2px;
+  right: -6rpx;
+  bottom: -2rpx;
+  width: 10rpx;
+  height: 2rpx;
+  border-radius: 2rpx;
   background-color: #b6bccd;
   transform: rotate(45deg);
 }
@@ -104,9 +105,10 @@ function handleClear() {
 .search-input {
   flex: 1;
   display: flex;
+  flex-direction: row;
   align-items: center;
   height: 100%;
-  font-size: 24px;
+  font-size: 24rpx;
   color: #23263a;
 }
 
@@ -116,11 +118,12 @@ function handleClear() {
 
 .search-clear {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 32px;
-  height: 32px;
+  width: 32rpx;
+  height: 32rpx;
   border-radius: 50%;
   background-color: #eef0f6;
 }
@@ -133,7 +136,7 @@ function handleClear() {
 /* #endif */
 
 .search-clear-icon {
-  font-size: 24px;
+  font-size: 24rpx;
   line-height: 1;
   color: #8a90a3;
 }

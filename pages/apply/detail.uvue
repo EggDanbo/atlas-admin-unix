@@ -169,44 +169,45 @@ function handleRevoke() {
 <style lang="scss">
 .page {
   min-height: 100%;
-  padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(28rpx + env(safe-area-inset-bottom, 0));
   background-color: #f5f6fa;
 }
 
 .tip {
-  padding: 60px 0;
+  padding: 60rpx 0;
   text-align: center;
-  font-size: 22px;
+  font-size: 22rpx;
   color: #9aa0b4;
 }
 
 /* 概览卡 */
 .hero {
-  margin: 16px 16px 0;
-  padding: 26px 26px 24px;
-  border-radius: 22px;
+  margin: 16rpx 16rpx 0;
+  padding: 26rpx 26rpx 24rpx;
+  border-radius: 22rpx;
   background: linear-gradient(135deg, #3b4fe0 0%, #7c6cf6 100%);
-  box-shadow: 0 16px 30px rgba(59, 79, 224, 0.24);
+  box-shadow: 0 16rpx 30rpx rgba(59, 79, 224, 0.24);
 }
 
 .hero-top {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
 }
 
 .hero-cat {
-  padding: 4px 12px;
-  border-radius: 8px;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
   background-color: rgba(255, 255, 255, 0.18);
-  font-size: 19px;
+  font-size: 19rpx;
   color: rgba(255, 255, 255, 0.92);
 }
 
 .hero-status {
-  padding: 4px 14px;
-  border-radius: 999px;
-  font-size: 19px;
+  padding: 4rpx 14rpx;
+  border-radius: 999rpx;
+  font-size: 19rpx;
   font-weight: 600;
   background-color: rgba(255, 255, 255, 0.92);
   color: #4f46e5;
@@ -234,39 +235,40 @@ function handleRevoke() {
 
 .hero-title {
   display: block;
-  margin-top: 18px;
-  font-size: 36px;
+  margin-top: 18rpx;
+  font-size: 36rpx;
   font-weight: 700;
   color: #fff;
 }
 
 .hero-no {
   display: block;
-  margin-top: 8px;
-  font-size: 21px;
+  margin-top: 8rpx;
+  font-size: 21rpx;
   color: rgba(255, 255, 255, 0.78);
-  letter-spacing: 0.4px;
+  letter-spacing: 0.4rpx;
 }
 
 /* 卡片 */
 /* 审批流 */
 .step {
   display: flex;
-  gap: 18px;
-  padding-top: 18px;
+  flex-direction: row;
+  gap: 18rpx;
+  padding-top: 18rpx;
 }
 
 .step-rail {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 22px;
+  width: 22rpx;
 }
 
 .dot {
-  width: 18px;
-  height: 18px;
-  margin-top: 8px;
+  width: 18rpx;
+  height: 18rpx;
+  margin-top: 8rpx;
   border-radius: 50%;
   background-color: #d8dbe6;
   flex-shrink: 0;
@@ -278,41 +280,42 @@ function handleRevoke() {
 
 .dot--active {
   background-color: #f59e0b;
-  box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.16);
+  box-shadow: 0 0 0 6rpx rgba(245, 158, 11, 0.16);
 }
 
 .dot--error {
   background-color: #dc2626;
-  box-shadow: 0 0 0 6px rgba(220, 38, 38, 0.14);
+  box-shadow: 0 0 0 6rpx rgba(220, 38, 38, 0.14);
 }
 
 .dot--canceled {
   background-color: #e5e7ef;
-  border: 2px solid #d8dbe6;
+  border: 2rpx solid #d8dbe6;
 }
 
 .line {
   flex: 1;
-  width: 2px;
-  margin: 6px 0 0;
+  width: 2rpx;
+  margin: 6rpx 0 0;
   background-color: #eef0f6;
 }
 
 .step-body {
   flex: 1;
-  padding-bottom: 20px;
+  padding-bottom: 20rpx;
   min-width: 0;
 }
 
 .step-head {
   display: flex;
+  flex-direction: row;
   align-items: baseline;
   justify-content: space-between;
-  gap: 16px;
+  gap: 16rpx;
 }
 
 .step-name {
-  font-size: 24px;
+  font-size: 24rpx;
   font-weight: 600;
   color: #1c1c2e;
 }
@@ -324,24 +327,24 @@ function handleRevoke() {
 
 .step-time {
   flex-shrink: 0;
-  font-size: 19px;
+  font-size: 19rpx;
   color: #b3b8c8;
 }
 
 .step-handler {
   display: block;
-  margin-top: 6px;
-  font-size: 21px;
+  margin-top: 6rpx;
+  font-size: 21rpx;
   color: #6b7080;
 }
 
 .step-remark {
   display: block;
-  margin-top: 8px;
-  padding: 10px 14px;
-  border-radius: 10px;
+  margin-top: 8rpx;
+  padding: 10rpx 14rpx;
+  border-radius: 10rpx;
   background-color: #f7f8fc;
-  font-size: 21px;
+  font-size: 21rpx;
   line-height: 1.5;
   color: #6b7080;
 }
@@ -353,16 +356,16 @@ function handleRevoke() {
 
 /* 操作 */
 .actions {
-  margin: 22px 16px 0;
+  margin: 22rpx 16rpx 0;
 }
 
 .revoke {
-  padding: 22px 0;
-  border-radius: 999px;
-  border: 1px solid #fecaca;
+  padding: 22rpx 0;
+  border-radius: 999rpx;
+  border: 1rpx solid #fecaca;
   background-color: #fff;
   text-align: center;
-  font-size: 26px;
+  font-size: 26rpx;
   font-weight: 600;
   color: #dc2626;
 }
@@ -376,9 +379,9 @@ function handleRevoke() {
 
 .actions-hint {
   display: block;
-  margin-top: 12px;
+  margin-top: 12rpx;
   text-align: center;
-  font-size: 19px;
+  font-size: 19rpx;
   color: #b3b8c8;
 }
 </style>

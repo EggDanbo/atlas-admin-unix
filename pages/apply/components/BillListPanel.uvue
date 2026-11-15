@@ -151,50 +151,52 @@ function handleCreate() {
 .toolbar {
   position: relative;
   z-index: 50;
-  padding: 16px 16px 0;
+  padding: 16rpx 16rpx 0;
 }
 
 /* 搜索框：整块作为点击区，内层 input 垂直居中 */
 /* 状态筛选 */
 .filter-bar {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  margin-top: 16px;
+  margin-top: 16rpx;
 }
 
 .filter-count {
-  font-size: 20px;
+  font-size: 20rpx;
   color: #9aa0b4;
 }
 
 /* 下拉面板 */
 /* 列表 */
 .list {
-  margin-top: 6px;
+  margin-top: 6rpx;
 }
 
 .refresh {
-  margin-top: 20px;
+  margin-top: 20rpx;
   text-align: center;
-  font-size: 22px;
+  font-size: 22rpx;
   color: #4f46e5;
 }
 
 /* 悬浮新增 */
 .fab {
   position: fixed;
-  right: 32px;
-  bottom: calc(48px + env(safe-area-inset-bottom, 0px));
+  right: 32rpx;
+  bottom: calc(48rpx + env(safe-area-inset-bottom, 0));
   z-index: 80;
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  width: 108px;
-  height: 108px;
+  width: 108rpx;
+  height: 108rpx;
   border-radius: 50%;
   background: linear-gradient(135deg, #3b4fe0 0%, #7c6cf6 100%);
-  box-shadow: 0 14px 28px rgba(59, 79, 224, 0.4);
+  box-shadow: 0 14rpx 28rpx rgba(59, 79, 224, 0.4);
 }
 
 /* #ifdef WEB */
@@ -206,8 +208,8 @@ function handleCreate() {
 /* #endif */
 
 .fab-plus {
-  margin-top: -6px;
-  font-size: 60px;
+  margin-top: -6rpx;
+  font-size: 60rpx;
   font-weight: 300;
   line-height: 1;
   color: #fff;

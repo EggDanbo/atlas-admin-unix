@@ -1290,47 +1290,49 @@ async function save() {
 <style lang="scss">
 .page {
   min-height: 100%;
-  padding-bottom: calc(180px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(180rpx + env(safe-area-inset-bottom, 0));
   background-color: #f5f6fa;
 }
 
 /* 表单卡片 */
 .card {
-  margin: 16px 16px 0;
-  padding: 20px 24px 6px;
-  border-radius: 18px;
+  margin: 16rpx 16rpx 0;
+  padding: 20rpx 24rpx 6rpx;
+  border-radius: 18rpx;
   background-color: #fff;
-  box-shadow: 0 8px 24px rgba(23, 23, 64, 0.05);
+  box-shadow: 0 8rpx 24rpx rgba(23, 23, 64, 0.05);
 }
 
 .card-title {
   display: block;
-  padding-bottom: 6px;
-  font-size: 27px;
+  padding-bottom: 6rpx;
+  font-size: 27rpx;
   font-weight: 700;
   color: #1c1c2e;
 }
 
 .card-head {
   display: flex;
+  flex-direction: row;
   align-items: baseline;
   justify-content: space-between;
 }
 
 .card-hint {
-  font-size: 20px;
+  font-size: 20rpx;
   color: #9aa0b4;
 }
 
 /* 考勤模式 */
 .mode {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 20px;
-  margin-top: 14px;
-  padding: 20px;
-  border: 1px solid #eceef5;
-  border-radius: 16px;
+  gap: 20rpx;
+  margin-top: 14rpx;
+  padding: 20rpx;
+  border: 1rpx solid #eceef5;
+  border-radius: 16rpx;
   background-color: #fbfbfe;
 }
 
@@ -1346,12 +1348,13 @@ async function save() {
 
 .mode-head {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 12px;
+  gap: 12rpx;
 }
 
 .mode-name {
-  font-size: 25px;
+  font-size: 25rpx;
   font-weight: 600;
   color: #23263a;
 }
@@ -1361,9 +1364,9 @@ async function save() {
 }
 
 .mode-badge {
-  padding: 2px 10px;
-  border-radius: 6px;
-  font-size: 17px;
+  padding: 2rpx 10rpx;
+  border-radius: 6rpx;
+  font-size: 17rpx;
 }
 
 .mode-badge--fixed {
@@ -1383,62 +1386,64 @@ async function save() {
 
 .mode-desc {
   display: block;
-  margin-top: 8px;
-  font-size: 19px;
+  margin-top: 8rpx;
+  font-size: 19rpx;
   line-height: 1.5;
   color: #9aa0b4;
 }
 
 .radio {
   flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  border: 2px solid #dfe3ee;
+  width: 36rpx;
+  height: 36rpx;
+  border: 2rpx solid #dfe3ee;
   border-radius: 50%;
   background-color: #fff;
 }
 
 .radio--on {
   border-color: #4f46e5;
-  border-width: 10px;
+  border-width: 10rpx;
   background-color: #fff;
 }
 
 /* 排班班次 */
 .shift-slot {
-  margin-top: 16px;
-  padding: 20px 20px 10px;
-  border-radius: 18px;
+  margin-top: 16rpx;
+  padding: 20rpx 20rpx 10rpx;
+  border-radius: 18rpx;
   background-color: #f7f8fc;
 }
 
 .slot-head {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 12rpx;
 }
 
 .slot-name {
   flex: 1;
   min-width: 0;
-  height: 46px;
-  font-size: 25px;
+  height: 46rpx;
+  font-size: 25rpx;
   font-weight: 600;
   color: #1c1c2e;
 }
 
 .slot-ops {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 10px;
+  gap: 10rpx;
 }
 
 .cross-chip {
-  padding: 4px 12px;
-  border-radius: 6px;
+  padding: 4rpx 12rpx;
+  border-radius: 6rpx;
   background-color: #fff;
-  font-size: 17px;
+  font-size: 17rpx;
   color: #8a90a3;
 }
 
@@ -1449,12 +1454,13 @@ async function save() {
 
 .slot-remove {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: 38rpx;
+  height: 38rpx;
   border-radius: 50%;
-  font-size: 26px;
+  font-size: 26rpx;
   line-height: 1;
   color: #b3b8c8;
 }
@@ -1468,42 +1474,45 @@ async function save() {
 
 /* 工作日：说明行 + 一排轻量圆形格子 */
 .slot-days-block {
-  margin-top: 16px;
+  margin-top: 16rpx;
 }
 
 .slot-caption {
   display: flex;
+  flex-direction: row;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 12rpx;
 }
 
 .slot-label {
   flex-shrink: 0;
-  font-size: 18px;
+  font-size: 18rpx;
   color: #9aa0b4;
 }
 
 .slot-caption-hint {
-  font-size: 18px;
+  font-size: 18rpx;
   color: #9aa0b4;
 }
 
 .slot-days {
   display: flex;
-  gap: 10px;
+  flex-direction: row;
+  gap: 10rpx;
 }
 
 .slot-day {
   flex: 1;
   min-width: 0;
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  height: 76px;
-  border-radius: 16px;
+  height: 76rpx;
+  border-radius: 16rpx;
   background-color: #fff;
-  font-size: 22px;
+  font-size: 22rpx;
   color: #8a90a3;
   transition:
   background-color 0.15s ease,
@@ -1532,36 +1541,38 @@ async function save() {
 
 .slot-times {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 12px;
-  margin-top: 18px;
+  gap: 12rpx;
+  margin-top: 18rpx;
 }
 
 .slot-time {
-  padding: 8px 18px;
-  border-radius: 12px;
+  padding: 8rpx 18rpx;
+  border-radius: 12rpx;
   background-color: #fff;
-  font-size: 25px;
+  font-size: 25rpx;
   font-weight: 600;
   color: #23263a;
   font-variant-numeric: tabular-nums;
 }
 
 .slot-sep {
-  font-size: 18px;
+  font-size: 18rpx;
   color: #c2c6d4;
 }
 
 .add-shift {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  height: 76px;
-  margin-top: 14px;
-  border: 1px dashed #d5daf0;
-  border-radius: 14px;
+  height: 76rpx;
+  margin-top: 14rpx;
+  border: 1rpx dashed #d5daf0;
+  border-radius: 14rpx;
   background-color: #fbfbff;
-  font-size: 21px;
+  font-size: 21rpx;
   color: #4f46e5;
 }
 
@@ -1578,12 +1589,12 @@ async function save() {
 }
 
 .slot-empty {
-  margin-top: 14px;
-  padding: 26px 20px;
-  border: 1px dashed #d5daf0;
-  border-radius: 14px;
+  margin-top: 14rpx;
+  padding: 26rpx 20rpx;
+  border: 1rpx dashed #d5daf0;
+  border-radius: 14rpx;
   text-align: center;
-  font-size: 20px;
+  font-size: 20rpx;
   line-height: 1.6;
   color: #9aa0b4;
 }
@@ -1591,32 +1602,34 @@ async function save() {
 /* 排班表导航与人员面板 */
 .roster-nav {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 8px 0 2px;
+  gap: 12rpx;
+  padding: 8rpx 0 2rpx;
 }
 
 /* #ifdef WEB */
 .roster-nav .cal-nav {
-  padding: 8px 0;
-  gap: 24px;
+  padding: 8rpx 0;
+  gap: 24rpx;
 }
 
 /* #endif */
 
 .range-tabs {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  padding: 4px;
-  border-radius: 999px;
+  padding: 4rpx;
+  border-radius: 999rpx;
   background-color: #f4f5fb;
 }
 
 .range-tab {
-  padding: 8px 22px;
-  border-radius: 999px;
-  font-size: 19px;
+  padding: 8rpx 22rpx;
+  border-radius: 999rpx;
+  font-size: 19rpx;
   color: #6b7080;
 }
 
@@ -1624,17 +1637,18 @@ async function save() {
   background-color: #fff;
   color: #4f46e5;
   font-weight: 600;
-  box-shadow: 0 2px 6px rgba(23, 23, 64, 0.08);
+  box-shadow: 0 2rpx 6rpx rgba(23, 23, 64, 0.08);
 }
 
 .member-entry {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 6px;
+  gap: 6rpx;
 }
 
 .member-arrow {
-  font-size: 20px;
+  font-size: 20rpx;
   line-height: 1;
   color: #9aa0b4;
   transition: transform 0.18s ease;
@@ -1645,31 +1659,33 @@ async function save() {
 }
 
 .member-panel {
-  margin-top: 12px;
-  padding: 8px 8px 4px;
-  border: 1px solid #eceef5;
-  border-radius: 14px;
+  margin-top: 12rpx;
+  padding: 8rpx 8rpx 4rpx;
+  border: 1rpx solid #eceef5;
+  border-radius: 14rpx;
   background-color: #fbfbfe;
 }
 
 .member-scroll {
-  height: 400px;
-  padding-bottom: 10px;
+  height: 400rpx;
+  padding-bottom: 10rpx;
 }
 
 .member-grid {
   display: flex;
+  flex-direction: row;
   flex-wrap: wrap;
 }
 
 .member-option {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
   width: 50%;
-  height: 64px;
-  padding: 0 12px;
-  border-radius: 10px;
+  height: 64rpx;
+  padding: 0 12rpx;
+  border-radius: 10rpx;
 }
 
 .member-option--on {
@@ -1685,40 +1701,42 @@ async function save() {
 /* #endif */
 
 .member-name {
-  font-size: 21px;
+  font-size: 21rpx;
   color: #3a3f52;
 }
 
 .member-check {
-  font-size: 19px;
+  font-size: 19rpx;
   color: #4f46e5;
 }
 
 .member-tip {
   display: block;
-  padding: 8px 12px 10px;
-  font-size: 17px;
+  padding: 8rpx 12rpx 10rpx;
+  font-size: 17rpx;
   color: #9aa0b4;
 }
 
 /* 排班日历 */
 .cal-nav {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 36px;
-  padding: 18px 0 12px;
+  gap: 36rpx;
+  padding: 18rpx 0 12rpx;
 }
 
 .cal-arrow {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  width: 52px;
-  height: 52px;
+  width: 52rpx;
+  height: 52rpx;
   border-radius: 50%;
   background-color: #f4f5fb;
-  font-size: 30px;
+  font-size: 30rpx;
   line-height: 1;
   color: #4f46e5;
 }
@@ -1731,27 +1749,29 @@ async function save() {
 /* #endif */
 
 .cal-title {
-  font-size: 24px;
+  font-size: 24rpx;
   font-weight: 600;
   color: #1c1c2e;
 }
 
 .cal-week {
   display: flex;
-  padding-bottom: 6px;
+  flex-direction: row;
+  padding-bottom: 6rpx;
 }
 
 .cal-week-text {
   flex: 1;
   text-align: center;
-  font-size: 18px;
+  font-size: 18rpx;
   color: #9aa0b4;
 }
 
 .cal-grid {
   display: flex;
+  flex-direction: row;
   flex-wrap: wrap;
-  padding-bottom: 6px;
+  padding-bottom: 6rpx;
 }
 
 .cal-grid--disabled {
@@ -1763,11 +1783,11 @@ async function save() {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 4rpx;
   width: 14.285%;
-  height: 62px;
-  border: 2px solid transparent;
-  border-radius: 10px;
+  height: 62rpx;
+  border: 2rpx solid transparent;
+  border-radius: 10rpx;
   background-clip: padding-box;
 }
 
@@ -1780,7 +1800,7 @@ async function save() {
 }
 
 .cal-day {
-  font-size: 21px;
+  font-size: 21rpx;
   color: #23263a;
   font-variant-numeric: tabular-nums;
 }
@@ -1791,9 +1811,9 @@ async function save() {
 }
 
 .cal-tag {
-  height: 18px;
-  font-size: 15px;
-  line-height: 18px;
+  height: 18rpx;
+  font-size: 15rpx;
+  line-height: 18rpx;
   color: #7c8bd6;
 }
 
@@ -1807,35 +1827,37 @@ async function save() {
 
 .cal-actions {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 0 4px;
-  border-top: 1px solid #f1f2f7;
+  padding: 16rpx 0 4rpx;
+  border-top: 1rpx solid #f1f2f7;
 }
 
 .cal-meta {
-  font-size: 21px;
+  font-size: 21rpx;
   color: #6b7080;
 }
 
 .cal-clear {
-  font-size: 20px;
+  font-size: 20rpx;
   color: #9aa0b4;
 }
 
 .cal-picks {
   display: flex;
+  flex-direction: row;
   flex-wrap: wrap;
-  gap: 10px;
-  padding: 10px 0 12px;
+  gap: 10rpx;
+  padding: 10rpx 0 12rpx;
 }
 
 .cal-pick {
-  padding: 12px 24px;
-  border: 1px solid #e2e6f4;
-  border-radius: 999px;
+  padding: 12rpx 24rpx;
+  border: 1rpx solid #e2e6f4;
+  border-radius: 999rpx;
   background-color: #fff;
-  font-size: 20px;
+  font-size: 20rpx;
   color: #4a4f60;
 }
 
@@ -1858,19 +1880,20 @@ async function save() {
 /* #endif */
 
 .cal-tip {
-  padding: 18px 0 20px;
+  padding: 18rpx 0 20rpx;
   text-align: center;
-  font-size: 20px;
+  font-size: 20rpx;
   color: #9aa0b4;
 }
 
 .row {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  padding: 20px 0;
-  border-bottom: 1px solid #f1f2f7;
+  gap: 24rpx;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f1f2f7;
 }
 
 /* #ifdef WEB */
@@ -1883,25 +1906,25 @@ async function save() {
 .row-main {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 6rpx;
   flex: 1;
   min-width: 0;
 }
 
 .row-label {
   flex-shrink: 0;
-  font-size: 24px;
+  font-size: 24rpx;
   color: #23263a;
 }
 
 .row-hint {
   display: block;
-  font-size: 19px;
+  font-size: 19rpx;
   color: #9aa0b4;
 }
 
 .row-value {
-  font-size: 25px;
+  font-size: 25rpx;
   font-weight: 600;
   color: #4f46e5;
   font-variant-numeric: tabular-nums;
@@ -1910,9 +1933,10 @@ async function save() {
 .row-input {
   flex: 1;
   display: flex;
+  flex-direction: row;
   align-items: center;
-  height: 44px;
-  font-size: 25px;
+  height: 44rpx;
+  font-size: 25rpx;
   color: #23263a;
   text-align: right;
 }
@@ -1922,8 +1946,8 @@ async function save() {
 }
 
 .row--block {
-  padding: 20px 0;
-  border-bottom: 1px solid #f1f2f7;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f1f2f7;
 }
 
 /* #ifdef WEB */
@@ -1934,7 +1958,7 @@ async function save() {
 /* #endif */
 /* #ifdef WEB */
 .row--block .row-hint {
-  margin-top: 6px;
+  margin-top: 6rpx;
 }
 
 /* #endif */
@@ -1942,16 +1966,17 @@ async function save() {
 /* 选项 chips */
 .chips {
   display: flex;
+  flex-direction: row;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 16px;
+  gap: 12rpx;
+  margin-top: 16rpx;
 }
 
 .chip {
-  padding: 10px 22px;
-  border-radius: 999px;
+  padding: 10rpx 22rpx;
+  border-radius: 999rpx;
   background-color: #f4f5fb;
-  font-size: 21px;
+  font-size: 21rpx;
   color: #6b7080;
 }
 
@@ -1964,20 +1989,22 @@ async function save() {
 /* 工作日选择 */
 .weekdays {
   display: flex;
-  gap: 10px;
-  margin-top: 16px;
+  flex-direction: row;
+  gap: 10rpx;
+  margin-top: 16rpx;
 }
 
 .weekday {
   flex: 1;
   min-width: 0;
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  height: 72px;
-  border-radius: 14px;
+  height: 72rpx;
+  border-radius: 14rpx;
   background-color: #f4f5f9;
-  font-size: 21px;
+  font-size: 21rpx;
   color: #8a90a3;
 }
 
@@ -1996,19 +2023,20 @@ async function save() {
 
 .weekday-actions {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 22px;
-  margin-top: 14px;
+  gap: 22rpx;
+  margin-top: 14rpx;
 }
 
 .weekday-action {
-  font-size: 19px;
+  font-size: 19rpx;
   color: #4f46e5;
 }
 
 /* #ifdef WEB */
 .weekday-actions + .row-hint {
-  margin-top: 12px;
+  margin-top: 12rpx;
 }
 
 /* #endif */
@@ -2016,21 +2044,23 @@ async function save() {
 /* 工时步进器：一个整体控件，减号 / 数值 / 加号 */
 .stepper {
   display: flex;
+  flex-direction: row;
   align-items: stretch;
-  height: 88px;
-  margin-top: 18px;
-  border: 1px solid #e8eaf3;
-  border-radius: 14px;
+  height: 88rpx;
+  margin-top: 18rpx;
+  border: 1rpx solid #e8eaf3;
+  border-radius: 14rpx;
   background-color: #fff;
   overflow: hidden;
 }
 
 .stepper-btn {
-  flex: 0 0 92px;
+  flex: 0 0 92rpx;
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  font-size: 32px;
+  font-size: 32rpx;
   line-height: 1;
   color: #4f46e5;
 }
@@ -2046,54 +2076,58 @@ async function save() {
   flex: 1;
   min-width: 0;
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  border-left: 1px solid #eef0f7;
-  border-right: 1px solid #eef0f7;
+  gap: 8rpx;
+  border-left: 1rpx solid #eef0f7;
+  border-right: 1rpx solid #eef0f7;
 }
 
 .stepper-input {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  flex: 0 0 96px;
-  width: 96px;
+  flex: 0 0 96rpx;
+  width: 96rpx;
   height: 100%;
   text-align: right;
-  font-size: 27px;
+  font-size: 27rpx;
   font-weight: 600;
   color: #23263a;
   font-variant-numeric: tabular-nums;
 }
 
 .stepper-unit {
-  font-size: 21px;
+  font-size: 21rpx;
   color: #8a90a3;
 }
 
 /* 部门下拉 */
 .field-head {
   display: flex;
+  flex-direction: row;
   align-items: baseline;
   justify-content: space-between;
 }
 
 .field-hint {
-  font-size: 19px;
+  font-size: 19rpx;
   color: #9aa0b4;
 }
 
 .select {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  height: 76px;
-  margin-top: 14px;
-  padding: 0 18px;
-  border: 1px solid #e5e8f2;
-  border-radius: 14px;
+  gap: 16rpx;
+  height: 76rpx;
+  margin-top: 14rpx;
+  padding: 0 18rpx;
+  border: 1rpx solid #e5e8f2;
+  border-radius: 14rpx;
   background-color: #fafbff;
 }
 
@@ -2108,7 +2142,7 @@ async function save() {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-size: 23px;
+  font-size: 23rpx;
   color: #23263a;
 }
 
@@ -2118,7 +2152,7 @@ async function save() {
 
 .select-arrow {
   flex-shrink: 0;
-  font-size: 24px;
+  font-size: 24rpx;
   line-height: 1;
   color: #8a90a3;
   transition: transform 0.18s ease;
@@ -2129,28 +2163,30 @@ async function save() {
 }
 
 .dept-panel {
-  margin-top: 12px;
-  padding: 10px 10px 6px;
-  border: 1px solid #eceef5;
-  border-radius: 14px;
+  margin-top: 12rpx;
+  padding: 10rpx 10rpx 6rpx;
+  border: 1rpx solid #eceef5;
+  border-radius: 14rpx;
   background-color: #fff;
-  box-shadow: 0 10px 24px rgba(23, 23, 64, 0.06);
+  box-shadow: 0 10rpx 24rpx rgba(23, 23, 64, 0.06);
 }
 
 .dept-grid {
   display: flex;
+  flex-direction: row;
   flex-wrap: wrap;
 }
 
 .dept-option {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 8rpx;
   width: 50%;
-  height: 62px;
-  padding: 0 12px;
-  border-radius: 10px;
+  height: 62rpx;
+  padding: 0 12rpx;
+  border-radius: 10rpx;
 }
 
 .dept-option--on {
@@ -2166,28 +2202,29 @@ async function save() {
 /* #endif */
 
 .dept-name {
-  font-size: 21px;
+  font-size: 21rpx;
   color: #3a3f52;
 }
 
 .dept-check {
   flex-shrink: 0;
-  font-size: 20px;
+  font-size: 20rpx;
   color: #4f46e5;
 }
 
 .dept-actions {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: flex-end;
-  gap: 26px;
-  margin-top: 6px;
-  padding: 12px 8px 8px;
-  border-top: 1px dashed #f1f2f7;
+  gap: 26rpx;
+  margin-top: 6rpx;
+  padding: 12rpx 8rpx 8rpx;
+  border-top: 1rpx dashed #f1f2f7;
 }
 
 .dept-action {
-  font-size: 21px;
+  font-size: 21rpx;
   color: #8a90a3;
 }
 
@@ -2200,9 +2237,9 @@ async function save() {
 .switch {
   position: relative;
   flex-shrink: 0;
-  width: 86px;
-  height: 50px;
-  border-radius: 999px;
+  width: 86rpx;
+  height: 50rpx;
+  border-radius: 999rpx;
   background-color: #e5e7f0;
   transition: background-color 0.18s ease;
 }
@@ -2213,26 +2250,26 @@ async function save() {
 
 .switch-dot {
   position: absolute;
-  top: 5px;
-  left: 5px;
-  width: 40px;
-  height: 40px;
+  top: 5rpx;
+  left: 5rpx;
+  width: 40rpx;
+  height: 40rpx;
   border-radius: 50%;
   background-color: #fff;
-  box-shadow: 0 2px 6px rgba(23, 23, 64, 0.18);
+  box-shadow: 0 2rpx 6rpx rgba(23, 23, 64, 0.18);
   transition: transform 0.18s ease;
 }
 
 /* #ifdef WEB */
 .switch--on .switch-dot {
-  transform: translateX(36px);
+  transform: translateX(36rpx);
 }
 
 /* #endif */
 
 /* 底部保存 */
 .spacer {
-  height: 20px;
+  height: 20rpx;
 }
 
 .footer-bar {
@@ -2241,17 +2278,17 @@ async function save() {
   bottom: 0;
   left: 0;
   z-index: 60;
-  padding: 16px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+  padding: 16rpx 16rpx calc(20rpx + env(safe-area-inset-bottom, 0));
   background: linear-gradient(180deg, rgba(245, 246, 250, 0) 0%, #f5f6fa 45%);
 }
 
 .save {
-  padding: 24px 0;
-  border-radius: 999px;
+  padding: 24rpx 0;
+  border-radius: 999rpx;
   background: linear-gradient(135deg, #3b4fe0 0%, #7c6cf6 100%);
-  box-shadow: 0 12px 24px rgba(59, 79, 224, 0.24);
+  box-shadow: 0 12rpx 24rpx rgba(59, 79, 224, 0.24);
   text-align: center;
-  font-size: 28px;
+  font-size: 28rpx;
   font-weight: 600;
   color: #fff;
 }
@@ -2271,9 +2308,10 @@ async function save() {
 /* 休息时段自定义 */
 .rest-row {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 14px;
-  margin-top: 16px;
+  gap: 14rpx;
+  margin-top: 16rpx;
 }
 
 .rest-switch {
@@ -2287,11 +2325,12 @@ async function save() {
 /* 选好班次后确认 */
 .confirm-bar {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 16px 0 14px;
-  border-top: 1px dashed #f1f2f7;
+  gap: 16rpx;
+  padding: 16rpx 0 14rpx;
+  border-top: 1rpx dashed #f1f2f7;
 }
 
 .confirm-tip {
@@ -2300,17 +2339,17 @@ async function save() {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-size: 19px;
+  font-size: 19rpx;
   color: #9aa0b4;
 }
 
 .confirm {
   flex-shrink: 0;
-  padding: 14px 44px;
-  border-radius: 999px;
+  padding: 14rpx 44rpx;
+  border-radius: 999rpx;
   background: linear-gradient(135deg, #3b4fe0 0%, #7c6cf6 100%);
-  box-shadow: 0 8px 18px rgba(59, 79, 224, 0.24);
-  font-size: 22px;
+  box-shadow: 0 8rpx 18rpx rgba(59, 79, 224, 0.24);
+  font-size: 22rpx;
   font-weight: 600;
   color: #fff;
 }
@@ -2329,52 +2368,53 @@ async function save() {
 
 /* 班次休息时间 */
 .slot-divider {
-  margin: 6px 0 2px;
-  border-top: 1px dashed #e9ecf5;
+  margin: 6rpx 0 2rpx;
+  border-top: 1rpx dashed #e9ecf5;
 }
 
 .slot-rest {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 12px;
-  margin-top: 14px;
-  padding: 14px 0 10px;
-  border-top: 1px dashed #e9ecf5;
+  gap: 12rpx;
+  margin-top: 14rpx;
+  padding: 14rpx 0 10rpx;
+  border-top: 1rpx dashed #e9ecf5;
 }
 
 .slot-rest-label {
   flex-shrink: 0;
-  font-size: 18px;
+  font-size: 18rpx;
   color: #9aa0b4;
 }
 
 .slot-rest-time {
-  padding: 7px 16px;
-  border-radius: 12px;
+  padding: 7rpx 16rpx;
+  border-radius: 12rpx;
   background-color: #fff;
-  font-size: 21px;
+  font-size: 21rpx;
   color: #5b6172;
   font-variant-numeric: tabular-nums;
 }
 
 .slot-rest-switch {
   margin-left: auto;
-  width: 72px;
-  height: 42px;
+  width: 72rpx;
+  height: 42rpx;
 }
 
 /* #ifdef WEB */
 .slot-rest-switch .switch-dot {
-  top: 4px;
-  left: 4px;
-  width: 34px;
-  height: 34px;
+  top: 4rpx;
+  left: 4rpx;
+  width: 34rpx;
+  height: 34rpx;
 }
 
 /* #endif */
 /* #ifdef WEB */
 .slot-rest-switch.switch--on .switch-dot {
-  transform: translateX(30px);
+  transform: translateX(30rpx);
 }
 
 /* #endif */

@@ -167,49 +167,52 @@ function createRule() {
 <style lang="scss">
 .page {
   min-height: 100%;
-  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom, 0));
   background-color: #f5f6fa;
 }
 
 .toolbar {
-  padding: 16px 16px 0;
+  padding: 16rpx 16rpx 0;
 }
 
 /* 搜索 */
 .summary {
   display: flex;
+  flex-direction: row;
   align-items: baseline;
   justify-content: space-between;
-  padding: 16px 6px 0;
+  padding: 16rpx 6rpx 0;
 }
 
 .summary-text {
-  font-size: 21px;
+  font-size: 21rpx;
   color: #9aa0b4;
 }
 
 .summary-hint {
-  font-size: 20px;
+  font-size: 20rpx;
   color: #0d9488;
 }
 
 /* 模式分布 */
 .mode-stats {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 22px;
-  padding: 10px 6px 0;
+  gap: 22rpx;
+  padding: 10rpx 6rpx 0;
 }
 
 .mode-stat {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 8px;
+  gap: 8rpx;
 }
 
 .mode-dot {
-  width: 12px;
-  height: 12px;
+  width: 12rpx;
+  height: 12rpx;
   border-radius: 50%;
 }
 
@@ -226,24 +229,24 @@ function createRule() {
 }
 
 .mode-stat-text {
-  font-size: 19px;
+  font-size: 19rpx;
   color: #8a90a3;
 }
 
 .tip {
-  padding: 40px 0;
+  padding: 40rpx 0;
   text-align: center;
-  font-size: 22px;
+  font-size: 22rpx;
   color: #9aa0b4;
 }
 
 /* 规则卡片 */
 .card {
-  margin: 14px 16px 0;
-  padding: 20px 24px 16px;
-  border-radius: 18px;
+  margin: 14rpx 16rpx 0;
+  padding: 20rpx 24rpx 16rpx;
+  border-radius: 18rpx;
   background-color: #fff;
-  box-shadow: 0 8px 24px rgba(23, 23, 64, 0.05);
+  box-shadow: 0 8rpx 24rpx rgba(23, 23, 64, 0.05);
 }
 
 /* #ifdef WEB */
@@ -255,20 +258,22 @@ function createRule() {
 
 .card-head {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 16rpx;
 }
 
 .card-title {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 12px;
+  gap: 12rpx;
   min-width: 0;
 }
 
 .card-name {
-  font-size: 29px;
+  font-size: 29rpx;
   font-weight: 600;
   color: #1c1c2e;
   overflow: hidden;
@@ -279,9 +284,9 @@ function createRule() {
 /* 模式徽章 */
 .mode {
   flex-shrink: 0;
-  padding: 4px 12px;
-  border-radius: 8px;
-  font-size: 18px;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  font-size: 18rpx;
   font-weight: 500;
 }
 
@@ -302,9 +307,9 @@ function createRule() {
 
 .tag {
   flex-shrink: 0;
-  padding: 4px 12px;
-  border-radius: 8px;
-  font-size: 19px;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  font-size: 19rpx;
 }
 
 .tag--on {
@@ -319,10 +324,11 @@ function createRule() {
 
 .meta {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 8px;
-  margin-top: 10px;
-  font-size: 21px;
+  gap: 8rpx;
+  margin-top: 10rpx;
+  font-size: 21rpx;
   color: #9aa0b4;
 }
 
@@ -332,50 +338,53 @@ function createRule() {
 
 .shift {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  margin-top: 16px;
-  padding: 14px 18px;
-  border-radius: 14px;
+  margin-top: 16rpx;
+  padding: 14rpx 18rpx;
+  border-radius: 14rpx;
   background-color: #f7f8fc;
 }
 
 .shift-time {
-  font-size: 30px;
+  font-size: 30rpx;
   font-weight: 700;
   color: #23263a;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.5rpx;
 }
 
 .shift-tag {
-  font-size: 19px;
+  font-size: 19rpx;
   color: #6b7080;
 }
 
 .chips {
   display: flex;
+  flex-direction: row;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 14px;
+  gap: 10rpx;
+  margin-top: 14rpx;
 }
 
 .chip {
-  padding: 5px 14px;
-  border-radius: 8px;
+  padding: 5rpx 14rpx;
+  border-radius: 8rpx;
   background-color: #f2f5ff;
-  font-size: 18px;
+  font-size: 18rpx;
   color: #4f46e5;
 }
 
 .card-foot {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px dashed #f1f2f7;
-  font-size: 20px;
+  margin-top: 14rpx;
+  padding-top: 12rpx;
+  border-top: 1rpx dashed #f1f2f7;
+  font-size: 20rpx;
 }
 
 .card-time {
@@ -391,17 +400,18 @@ function createRule() {
 
 .fab {
   position: fixed;
-  right: 32px;
-  bottom: calc(48px + env(safe-area-inset-bottom, 0px));
+  right: 32rpx;
+  bottom: calc(48rpx + env(safe-area-inset-bottom, 0));
   z-index: 80;
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  width: 108px;
-  height: 108px;
+  width: 108rpx;
+  height: 108rpx;
   border-radius: 50%;
   background: linear-gradient(135deg, #3b4fe0 0%, #7c6cf6 100%);
-  box-shadow: 0 14px 28px rgba(59, 79, 224, 0.4);
+  box-shadow: 0 14rpx 28rpx rgba(59, 79, 224, 0.4);
 }
 
 /* #ifdef WEB */
@@ -413,8 +423,8 @@ function createRule() {
 /* #endif */
 
 .fab-plus {
-  margin-top: -6px;
-  font-size: 60px;
+  margin-top: -6rpx;
+  font-size: 60rpx;
   font-weight: 300;
   line-height: 1;
   color: #fff;

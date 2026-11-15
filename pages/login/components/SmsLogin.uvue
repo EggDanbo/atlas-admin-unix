@@ -123,17 +123,17 @@ async function handleSmsLogin() {
 <style lang="scss">
 .sms-field {
   position: relative;
-  margin-bottom: 24px;
+  margin-bottom: 24rpx;
   background: $bg-color;
-  border-radius: 8px;
-  padding: 0 12px;
+  border-radius: 8rpx;
+  padding: 0 12rpx;
 }
 
 .sms-send {
-  font-size: 24px;
+  font-size: 24rpx;
   color: $primary-color;
   white-space: nowrap;
-  padding: 0 8px;
+  padding: 0 8rpx;
 }
 
 .sms-send--disabled {
@@ -141,14 +141,14 @@ async function handleSmsLogin() {
 }
 
 .sms-btn {
-  margin-top: 40px;
-  height: 88px;
-  border-radius: 8px;
-  font-size: 30px;
+  margin-top: 40rpx;
+  height: 88rpx;
+  border-radius: 8rpx;
+  font-size: 30rpx;
   font-weight: 600;
   background: #fff;
   color: $primary-color;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
   transition: transform 0.15s ease;
 }
 

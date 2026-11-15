@@ -119,19 +119,20 @@ onPageShow(() => void load())
 .page {
   min-height: 100vh;
   min-height: 100dvh;
-  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom, 0));
   background-color: #f5f6fa;
 }
 
 /* 月度汇总 */
 .summary {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  margin: 16px 16px 0;
-  padding: 22px 8px;
-  border-radius: 20px;
+  margin: 16rpx 16rpx 0;
+  padding: 22rpx 8rpx;
+  border-radius: 20rpx;
   background: linear-gradient(135deg, #3b4fe0 0%, #7c6cf6 100%);
-  box-shadow: 0 14px 28px rgba(59, 79, 224, 0.22);
+  box-shadow: 0 14rpx 28rpx rgba(59, 79, 224, 0.22);
 }
 
 .summary-item {
@@ -139,67 +140,69 @@ onPageShow(() => void load())
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 6rpx;
 }
 
 .summary-value {
-  font-size: 42px;
+  font-size: 42rpx;
   font-weight: 700;
   color: #fff;
   line-height: 1.1;
 }
 
 .summary-label {
-  font-size: 20px;
+  font-size: 20rpx;
   color: rgba(255, 255, 255, 0.8);
 }
 
 .summary-divider {
-  width: 1px;
-  height: 42px;
+  width: 1rpx;
+  height: 42rpx;
   background-color: rgba(255, 255, 255, 0.24);
 }
 
 /* 列表卡片 */
 .card {
-  margin: 18px 16px 0;
-  padding: 18px 24px 6px;
-  border-radius: 18px;
+  margin: 18rpx 16rpx 0;
+  padding: 18rpx 24rpx 6rpx;
+  border-radius: 18rpx;
   background-color: #fff;
-  box-shadow: 0 8px 24px rgba(23, 23, 64, 0.05);
+  box-shadow: 0 8rpx 24rpx rgba(23, 23, 64, 0.05);
 }
 
 .card-head {
   display: flex;
+  flex-direction: row;
   align-items: baseline;
   justify-content: space-between;
-  padding-bottom: 6px;
+  padding-bottom: 6rpx;
 }
 
 .card-title {
-  font-size: 28px;
+  font-size: 28rpx;
   font-weight: 700;
   color: #1c1c2e;
 }
 
 .card-hint {
-  font-size: 20px;
+  font-size: 20rpx;
   color: #9aa0b4;
 }
 
 .tip {
-  padding: 36px 0;
+  padding: 36rpx 0;
   text-align: center;
-  font-size: 22px;
+  font-size: 22rpx;
   color: #9aa0b4;
 }
 
 .row {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 12px;
-  padding: 16px 0;
-  border-bottom: 1px solid #f1f2f7;
+  gap: 12rpx;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #f1f2f7;
 }
 
 /* #ifdef WEB */
@@ -212,26 +215,27 @@ onPageShow(() => void load())
 .row-date {
   display: flex;
   flex-direction: column;
-  width: 108px;
+  width: 108rpx;
 }
 
 .row-day {
-  font-size: 24px;
+  font-size: 24rpx;
   font-weight: 600;
   color: #1c1c2e;
 }
 
 .row-week {
-  font-size: 19px;
+  font-size: 19rpx;
   color: #9aa0b4;
 }
 
 .row-time {
   flex: 1;
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 8px;
-  font-size: 24px;
+  gap: 8rpx;
+  font-size: 24rpx;
   color: #23263a;
 }
 
@@ -240,16 +244,16 @@ onPageShow(() => void load())
 }
 
 .row-hours {
-  width: 80px;
+  width: 80rpx;
   text-align: right;
-  font-size: 22px;
+  font-size: 22rpx;
   color: #6b7080;
 }
 
 .tag {
-  padding: 2px 10px;
-  border-radius: 6px;
-  font-size: 19px;
+  padding: 2rpx 10rpx;
+  border-radius: 6rpx;
+  font-size: 19rpx;
 }
 
 .tag--ok {

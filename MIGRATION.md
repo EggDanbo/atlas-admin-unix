@@ -112,6 +112,29 @@ export function useAuthStore(): AuthStore { return authStore }
 
 > app 端不支持伪元素，图标字体方案不可用，所以统一走 unicode 直显。
 
+## 二点五、迁移后才暴露的两个样式坑（必读）
+
+Taro 的样式层有两层隐含假设，uni-app x 都不成立，会导致「整页看起来放大两倍 + 横向撑破 + 排列方向全错」：
+
+### 1. px 不是物理像素，是 750 设计稿单位
+
+Taro 用 `postcss-pxtransform`（designWidth: 750）把源码里的 `px` 转成 `rpx`/`rem`，
+所以源码 `font-size: 44px` 在 390pt 屏上实际是 22pt。
+uni-app x 的 `px` 就是物理像素，直接搬过来会整体放大约 2 倍——表现是标题被右边缘截断、卡片铺满整屏。
+
+→ `scripts/to-rpx.mjs` 把 `<style>` 内所有 px 换成 rpx（大写 `PX` 与模板内联 `:style` 不动，
+这两类在 Taro 里本来就是物理像素）。
+
+### 2. flex 默认方向是 column，不是 row
+
+uni-app x 全平台重置了 CSS：`view` 默认 `display: flex; flex-direction: column`。
+原样式里大量 `display: flex; align-items: center;` 依赖浏览器默认的 **row**，
+迁移后会变成竖排，布局整体错位。
+
+→ `scripts/fix-flex-direction.mjs` 给「有 `display: flex` 但没写 `flex-direction`」的规则补 `row`（221 条）。
+
+这两步都放在流水线最后（6、7），因为要作用在最终产物上。
+
 ## 三、已知限制（务必阅读）
 
 ### 0. 语言后缀：统一用 .ts 而不是 .uts

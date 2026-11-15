@@ -244,6 +244,7 @@ function handleSwitchPhoto() {
   right: 0;
   bottom: 0;
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
   margin: auto;
@@ -254,18 +255,18 @@ function handleSwitchPhoto() {
 /* #ifdef WEB */
 .mask::after {
   content: '';
-  width: 480px;
-  height: 480px;
+  width: 480rpx;
+  height: 480rpx;
   border-radius: 50%;
-  box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.5);
-  border: 4px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 0 2000rpx rgba(0, 0, 0, 0.5);
+  border: 4rpx solid rgba(255, 255, 255, 0.8);
 }
 
 /* #endif */
 
 .status_bar {
   position: absolute;
-  top: 200px;
+  top: 200rpx;
   left: 0;
   width: 100%;
   text-align: center;
@@ -274,8 +275,8 @@ function handleSwitchPhoto() {
 }
 
 .status_text {
-  font-size: 36px;
-  text-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+  font-size: 36rpx;
+  text-shadow: 0 0 8rpx rgba(0, 0, 0, 0.6);
 }
 
 .shutter_bar,
@@ -291,63 +292,63 @@ function handleSwitchPhoto() {
 }
 
 .shutter_bar {
-  bottom: 120px;
-  gap: 20px;
+  bottom: 120rpx;
+  gap: 20rpx;
 }
 
 .close_bar {
-  top: 40px;
+  top: 40rpx;
   justify-content: flex-start;
-  padding-left: 40px;
+  padding-left: 40rpx;
 }
 
 .camera_error {
-  padding: 80px;
+  padding: 80rpx;
   color: #fff;
-  font-size: 28px;
+  font-size: 28rpx;
 }
 
 /* #ifdef WEB */
 .camera_error .on1 {
-  font-size: 32px;
-  margin-bottom: 20px;
+  font-size: 32rpx;
+  margin-bottom: 20rpx;
 }
 
 /* #endif */
 /* #ifdef WEB */
 .camera_error .btns {
-  margin-top: 60px;
+  margin-top: 60rpx;
 }
 
 /* #endif */
 
 .btn_primary {
-  width: 300px;
-  height: 88px;
-  border-radius: 44px;
+  width: 300rpx;
+  height: 88rpx;
+  border-radius: 44rpx;
 }
 
 .btn_switch {
-  width: 300px;
-  height: 80px;
+  width: 300rpx;
+  height: 80rpx;
 }
 
 .btn_retry {
-  width: 300px;
-  height: 80px;
+  width: 300rpx;
+  height: 80rpx;
 }
 
 // 摄像头画面上的按钮：白字 + 半透明黑底，确保在深色视频背景上可辨识
 .btn_white {
-  width: 160px;
-  height: 64px;
+  width: 160rpx;
+  height: 64rpx;
   color: #fff;
-  border: 2px solid rgba(255, 255, 255, 0.9);
+  border: 2rpx solid rgba(255, 255, 255, 0.9);
   background-color: rgba(0, 0, 0, 0.35);
 }
 
 .btn_error {
-  width: 300px;
+  width: 300rpx;
 }
 
 .result_errors {
@@ -357,8 +358,9 @@ function handleSwitchPhoto() {
   width: 100vw;
   height: 100vh;
   display: flex;
+  flex-direction: row;
   justify-content: center;
-  padding-top: 360px;
+  padding-top: 360rpx;
   background-color: #fff;
   z-index: 100;
   box-sizing: border-box;
@@ -375,9 +377,9 @@ function handleSwitchPhoto() {
 
 /* #ifdef WEB */
 .result_errors .content .text {
-  margin-top: 100px;
+  margin-top: 100rpx;
   color: rgba(0, 0, 0, 0.8);
-  padding: 0 40px;
+  padding: 0 40rpx;
   word-break: break-all;
 }
 
@@ -385,13 +387,13 @@ function handleSwitchPhoto() {
 
 .footer_btn {
   position: absolute;
-  bottom: 240px;
+  bottom: 240rpx;
   left: 0;
   width: 100%;
-  padding: 0 160px;
+  padding: 0 160rpx;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 20rpx;
 }
 </style>

@@ -222,7 +222,7 @@ async function handleReadAll() {
 <style lang="scss">
 .page {
   min-height: 100%;
-  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom, 0));
   background-color: #f5f6fa;
 }
 
@@ -230,29 +230,30 @@ async function handleReadAll() {
 .toolbar {
   position: relative;
   z-index: 50;
-  padding: 16px 16px 0;
+  padding: 16rpx 16rpx 0;
 }
 
 /* 搜索框：整块作为点击区，内层 input 垂直居中 */
 /* 类型筛选 */
 .filter-bar {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  margin-top: 16px;
+  margin-top: 16rpx;
 }
 
 .filter-count {
-  margin-left: 14px;
-  font-size: 20px;
+  margin-left: 14rpx;
+  font-size: 20rpx;
   color: #9aa0b4;
 }
 
 .read-all {
   margin-left: auto;
-  padding: 8px 18px;
-  border-radius: 999px;
+  padding: 8rpx 18rpx;
+  border-radius: 999rpx;
   background-color: #eef2ff;
-  font-size: 20px;
+  font-size: 20rpx;
   color: #4f46e5;
 }
 
@@ -266,15 +267,15 @@ async function handleReadAll() {
 /* 下拉面板 */
 /* 列表 */
 .list {
-  margin-top: 6px;
+  margin-top: 6rpx;
 }
 
 .card {
-  margin: 14px 16px 0;
-  padding: 20px 24px 16px;
-  border-radius: 18px;
+  margin: 14rpx 16rpx 0;
+  padding: 20rpx 24rpx 16rpx;
+  border-radius: 18rpx;
   background-color: #fff;
-  box-shadow: 0 8px 24px rgba(23, 23, 64, 0.05);
+  box-shadow: 0 8rpx 24rpx rgba(23, 23, 64, 0.05);
 }
 
 /* #ifdef WEB */
@@ -286,23 +287,25 @@ async function handleReadAll() {
 
 .card-head {
   display: flex;
+  flex-direction: row;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
+  gap: 16rpx;
 }
 
 .card-heading {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 10px;
+  gap: 10rpx;
   min-width: 0;
 }
 
 .card-cat {
   flex-shrink: 0;
-  padding: 3px 10px;
-  border-radius: 6px;
-  font-size: 18px;
+  padding: 3rpx 10rpx;
+  border-radius: 6rpx;
+  font-size: 18rpx;
 }
 
 .card-cat--todo {
@@ -321,7 +324,7 @@ async function handleReadAll() {
 }
 
 .card-title {
-  font-size: 27px;
+  font-size: 27rpx;
   font-weight: 600;
   color: #1c1c2e;
   overflow: hidden;
@@ -331,18 +334,18 @@ async function handleReadAll() {
 
 .unread {
   flex-shrink: 0;
-  padding: 4px 12px;
-  border-radius: 8px;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
   background-color: #fef2f2;
-  font-size: 19px;
+  font-size: 19rpx;
   color: #b91c1c;
 }
 
 .content {
   display: -webkit-box;
-  margin-top: 10px;
+  margin-top: 10rpx;
   overflow: hidden;
-  font-size: 22px;
+  font-size: 22rpx;
   line-height: 1.55;
   color: #6b7080;
   -webkit-box-orient: vertical;
@@ -351,12 +354,13 @@ async function handleReadAll() {
 
 .card-foot {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px dashed #f1f2f7;
-  font-size: 20px;
+  margin-top: 14rpx;
+  padding-top: 12rpx;
+  border-top: 1rpx dashed #f1f2f7;
+  font-size: 20rpx;
 }
 
 .card-time {

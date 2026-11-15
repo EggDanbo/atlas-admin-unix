@@ -393,6 +393,7 @@ defineExpose<SliderCaptchaExpose>({ verify, close })
   bottom: 0;
   z-index: $z-modal;
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
@@ -403,13 +404,14 @@ defineExpose<SliderCaptchaExpose>({ verify, close })
   width: 100%;
   max-height: 85%;
   background-color: #fff;
-  border-radius: 8px;
+  border-radius: 8rpx;
   overflow: hidden;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8rpx 30rpx rgba(0, 0, 0, 0.12);
 }
 
 .captcha-header {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
 }
@@ -433,18 +435,19 @@ defineExpose<SliderCaptchaExpose>({ verify, close })
 .captcha-loading,
 .captcha-error {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
   width: 100%;
   height: 100%;
   color: $text-color-secondary;
-  gap: 8px;
+  gap: 8rpx;
 }
 
 .retry-text {
   color: $primary-color;
   cursor: pointer;
-  margin-left: 4px;
+  margin-left: 4rpx;
 }
 
 .captcha-bg {
@@ -465,6 +468,7 @@ defineExpose<SliderCaptchaExpose>({ verify, close })
   position: absolute;
   z-index: 5;
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
@@ -482,6 +486,7 @@ defineExpose<SliderCaptchaExpose>({ verify, close })
   inset: 0;
   z-index: 10;
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
   background: rgba(255, 255, 255, 0.95);
@@ -507,16 +512,17 @@ defineExpose<SliderCaptchaExpose>({ verify, close })
 
 .slider-track {
   position: relative;
-  background: repeating-linear-gradient(-45deg, #e8e8e8, #e8e8e8 10px, #f0f0f0 10px, #f0f0f0 20px);
+  background: repeating-linear-gradient(-45deg, #e8e8e8, #e8e8e8 10rpx, #f0f0f0 10rpx, #f0f0f0 20rpx);
 }
 
 .slider-bg {
   position: absolute;
   inset: 0;
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
+  border-radius: 8rpx;
 }
 
 .slider-hint {
@@ -539,7 +545,7 @@ defineExpose<SliderCaptchaExpose>({ verify, close })
   top: 0;
   left: 0;
   height: 100%;
-  border-radius: 7px 0 0 7px;
+  border-radius: 7rpx 0 0 7rpx;
   opacity: 0.15;
   pointer-events: none;
   background-color: $primary-color;
@@ -550,15 +556,16 @@ defineExpose<SliderCaptchaExpose>({ verify, close })
   top: 0;
   left: 0;
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
   background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  border: 1rpx solid #e0e0e0;
+  border-radius: 8rpx;
   cursor: grab;
   box-shadow:
-  0 2px 8px rgba(0, 0, 0, 0.1),
-  0 1px 3px rgba(0, 0, 0, 0.06);
+  0 2rpx 8rpx rgba(0, 0, 0, 0.1),
+  0 1rpx 3rpx rgba(0, 0, 0, 0.06);
   transition:
   border-color 0.2s,
   box-shadow 0.2s;
@@ -570,15 +577,15 @@ defineExpose<SliderCaptchaExpose>({ verify, close })
   cursor: grabbing;
   border-color: #bbb;
   box-shadow:
-  0 6px 16px rgba(0, 0, 0, 0.15),
-  0 3px 8px rgba(0, 0, 0, 0.1);
+  0 6rpx 16rpx rgba(0, 0, 0, 0.15),
+  0 3rpx 8rpx rgba(0, 0, 0, 0.1);
   transition: none;
 }
 
 .slider-handle.is-success {
   background: $primary-color;
   border-color: transparent;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.15);
   transition: none;
 }
 

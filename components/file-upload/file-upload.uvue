@@ -293,14 +293,15 @@ function handleUploadingClick(_task: UploadTask) {
 <style lang="scss">
 .container {
   display: flex;
+  flex-direction: row;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 12rpx;
 }
 
 /* 卡片 */
 .card {
   position: relative;
-  border: 1px solid $border-color;
+  border: 1rpx solid $border-color;
   border-radius: $border-radius-sm;
   background-color: $bg-color-white;
   display: flex;
@@ -318,9 +319,10 @@ function handleUploadingClick(_task: UploadTask) {
 .cardContent {
   flex: 1;
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  padding: 8px;
+  padding: 8rpx;
   min-height: 0;
   overflow: hidden;
 }
@@ -330,22 +332,23 @@ function handleUploadingClick(_task: UploadTask) {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 4px;
+  border-radius: 4rpx;
 }
 
 /* 文件类型图标区 */
 .iconWrapper {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
   color: $text-color-secondary;
-  font-size: 48px;
+  font-size: 48rpx;
 }
 
 /* 卡片底部（文件名） */
 .cardFooter {
-  padding: 4px 8px;
-  border-top: 1px solid $border-color-light;
+  padding: 4rpx 8rpx;
+  border-top: 1rpx solid $border-color-light;
   font-size: $font-size-xs;
   color: $text-color-regular;
   text-align: center;
@@ -358,17 +361,18 @@ function handleUploadingClick(_task: UploadTask) {
 /* 删除按钮 */
 .deleteBtn {
   position: absolute;
-  top: 4px;
-  right: 4px;
-  width: 32px;
-  height: 32px;
+  top: 4rpx;
+  right: 4rpx;
+  width: 32rpx;
+  height: 32rpx;
   border-radius: 50%;
   background-color: rgba(0, 0, 0, 0.5);
   color: #fff;
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 16rpx;
   z-index: 1;
 }
 
@@ -387,7 +391,7 @@ function handleUploadingClick(_task: UploadTask) {
   justify-content: center;
   width: 100%;
   height: 100%;
-  gap: 8px;
+  gap: 8rpx;
 }
 
 .progressText {
@@ -403,15 +407,15 @@ function handleUploadingClick(_task: UploadTask) {
   justify-content: center;
   width: 100%;
   height: 100%;
-  gap: 8px;
+  gap: 8rpx;
   color: $danger-color;
 }
 
 .retryBtn {
   font-size: $font-size-xs;
   color: $primary-color;
-  padding: 4px 12px;
-  border: 1px solid $primary-color;
+  padding: 4rpx 12rpx;
+  border: 1rpx solid $primary-color;
   border-radius: $border-radius-sm;
   background: transparent;
 }
@@ -425,14 +429,14 @@ function handleUploadingClick(_task: UploadTask) {
 
 /* 上传按钮 */
 .addBtn {
-  border: 1px dashed $border-color;
+  border: 1rpx dashed $border-color;
   border-radius: $border-radius-sm;
   background-color: $bg-color;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 8rpx;
   color: $text-color-secondary;
 }
 
@@ -448,7 +452,7 @@ function handleUploadingClick(_task: UploadTask) {
 }
 
 .addIcon {
-  font-size: 40px;
+  font-size: 40rpx;
   color: $text-color-placeholder;
 }
 
@@ -477,17 +481,18 @@ function handleUploadingClick(_task: UploadTask) {
 
 .videoCloseBtn {
   position: absolute;
-  top: 40px;
-  right: 20px;
-  width: 48px;
-  height: 48px;
+  top: 40rpx;
+  right: 20rpx;
+  width: 48rpx;
+  height: 48rpx;
   border-radius: 50%;
   background-color: rgba(255, 255, 255, 0.2);
   color: #fff;
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 24rpx;
   z-index: 1;
 }
 

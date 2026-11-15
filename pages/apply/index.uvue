@@ -217,26 +217,27 @@ async function submit() {
 .page {
   min-height: 100vh;
   min-height: 100dvh;
-  padding-bottom: calc(160px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(160rpx + env(safe-area-inset-bottom, 0));
   background-color: #f5f6fa;
 }
 
 /* 请假 / 加班切换 */
 .segment {
   display: flex;
-  gap: 8px;
-  margin: 16px 16px 0;
-  padding: 6px;
-  border-radius: 999px;
+  flex-direction: row;
+  gap: 8rpx;
+  margin: 16rpx 16rpx 0;
+  padding: 6rpx;
+  border-radius: 999rpx;
   background-color: #eceefa;
 }
 
 .segment-item {
   flex: 1;
-  padding: 12px 0;
-  border-radius: 999px;
+  padding: 12rpx 0;
+  border-radius: 999rpx;
   text-align: center;
-  font-size: 24px;
+  font-size: 24rpx;
   color: #6b7080;
   transition: all 0.2s ease;
 }
@@ -245,23 +246,24 @@ async function submit() {
   background-color: #fff;
   color: #4f46e5;
   font-weight: 600;
-  box-shadow: 0 4px 12px rgba(59, 79, 224, 0.12);
+  box-shadow: 0 4rpx 12rpx rgba(59, 79, 224, 0.12);
 }
 
 .card {
-  margin: 16px 16px 0;
-  padding: 6px 24px;
-  border-radius: 18px;
+  margin: 16rpx 16rpx 0;
+  padding: 6rpx 24rpx;
+  border-radius: 18rpx;
   background-color: #fff;
-  box-shadow: 0 8px 24px rgba(23, 23, 64, 0.05);
+  box-shadow: 0 8rpx 24rpx rgba(23, 23, 64, 0.05);
 }
 
 .row {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 0;
-  border-bottom: 1px solid #f1f2f7;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f1f2f7;
 }
 
 .row--last {
@@ -269,12 +271,12 @@ async function submit() {
 }
 
 .row-label {
-  font-size: 24px;
+  font-size: 24rpx;
   color: #23263a;
 }
 
 .row-value {
-  font-size: 24px;
+  font-size: 24rpx;
   color: #6b7080;
 }
 
@@ -286,14 +288,15 @@ async function submit() {
 /* 类型 / 时长标签 */
 .chips {
   display: flex;
-  gap: 10px;
+  flex-direction: row;
+  gap: 10rpx;
 }
 
 .chip {
-  padding: 8px 20px;
-  border-radius: 999px;
+  padding: 8rpx 20rpx;
+  border-radius: 999rpx;
   background-color: #f4f5fb;
-  font-size: 21px;
+  font-size: 21rpx;
   color: #6b7080;
 }
 
@@ -305,20 +308,20 @@ async function submit() {
 
 /* 事由 */
 .card-title {
-  padding: 18px 0 8px;
-  font-size: 26px;
+  padding: 18rpx 0 8rpx;
+  font-size: 26rpx;
   font-weight: 600;
   color: #1c1c2e;
 }
 
 .textarea {
   width: 100%;
-  height: 180px;
-  padding: 16px;
-  margin-top: 6px;
-  border-radius: 14px;
+  height: 180rpx;
+  padding: 16rpx;
+  margin-top: 6rpx;
+  border-radius: 14rpx;
   background-color: #f7f8fc;
-  font-size: 24px;
+  font-size: 24rpx;
   color: #23263a;
   box-sizing: border-box;
 }
@@ -328,15 +331,15 @@ async function submit() {
 }
 
 .counter {
-  padding: 8px 4px 16px;
+  padding: 8rpx 4rpx 16rpx;
   text-align: right;
-  font-size: 19px;
+  font-size: 19rpx;
   color: #b3b8c8;
 }
 
 .tips {
-  margin: 16px 16px 0;
-  font-size: 20px;
+  margin: 16rpx 16rpx 0;
+  font-size: 20rpx;
   line-height: 1.6;
   color: #9aa0b4;
 }
@@ -347,17 +350,17 @@ async function submit() {
   right: 0;
   bottom: 0;
   left: 0;
-  padding: 16px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+  padding: 16rpx 16rpx calc(20rpx + env(safe-area-inset-bottom, 0));
   background: linear-gradient(180deg, rgba(245, 246, 250, 0) 0%, #f5f6fa 40%);
 }
 
 .submit {
-  padding: 24px 0;
-  border-radius: 999px;
+  padding: 24rpx 0;
+  border-radius: 999rpx;
   background: linear-gradient(135deg, #3b4fe0 0%, #7c6cf6 100%);
-  box-shadow: 0 12px 24px rgba(59, 79, 224, 0.24);
+  box-shadow: 0 12rpx 24rpx rgba(59, 79, 224, 0.24);
   text-align: center;
-  font-size: 28px;
+  font-size: 28rpx;
   font-weight: 600;
   color: #fff;
 }

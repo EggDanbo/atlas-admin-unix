@@ -202,7 +202,7 @@ async function handleGetPhoneNumber(e: any) {
 @keyframes login-card-in {
   from {
     opacity: 0;
-    transform: translateY(50px) scale(0.98);
+    transform: translateY(50rpx) scale(0.98);
   }
   to {
     opacity: 1;
@@ -213,7 +213,7 @@ async function handleGetPhoneNumber(e: any) {
 @keyframes login-head-in {
   from {
     opacity: 0;
-    transform: translateY(-20px);
+    transform: translateY(-20rpx);
   }
   to {
     opacity: 1;
@@ -227,7 +227,7 @@ async function handleGetPhoneNumber(e: any) {
     transform: translate(0, 0);
   }
   50% {
-    transform: translate(10px, -8px);
+    transform: translate(10rpx, -8rpx);
   }
 }
 
@@ -271,18 +271,18 @@ async function handleGetPhoneNumber(e: any) {
 }
 
 .login-deco__circle--a {
-  width: 300px;
-  height: 300px;
-  top: -80px;
-  right: -60px;
+  width: 300rpx;
+  height: 300rpx;
+  top: -80rpx;
+  right: -60rpx;
   animation: login-drift 14s ease-in-out infinite;
 }
 
 .login-deco__circle--b {
-  width: 200px;
-  height: 200px;
-  top: 240px;
-  left: -50px;
+  width: 200rpx;
+  height: 200rpx;
+  top: 240rpx;
+  left: -50rpx;
   animation: login-drift 11s ease-in-out 2s infinite reverse;
 }
 
@@ -293,26 +293,26 @@ async function handleGetPhoneNumber(e: any) {
 }
 
 .login-deco__dot--1 {
-  width: 6px;
-  height: 6px;
-  top: 200px;
-  right: 80px;
+  width: 6rpx;
+  height: 6rpx;
+  top: 200rpx;
+  right: 80rpx;
   animation: login-dot-pulse 4s ease-in-out infinite;
 }
 
 .login-deco__dot--2 {
-  width: 4px;
-  height: 4px;
-  top: 320px;
-  right: 140px;
+  width: 4rpx;
+  height: 4rpx;
+  top: 320rpx;
+  right: 140rpx;
   animation: login-dot-pulse 5s ease-in-out 1s infinite;
 }
 
 .login-deco__dot--3 {
-  width: 8px;
-  height: 8px;
-  top: 280px;
-  left: 120px;
+  width: 8rpx;
+  height: 8rpx;
+  top: 280rpx;
+  left: 120rpx;
   animation: login-dot-pulse 6s ease-in-out 2s infinite;
 }
 
@@ -320,70 +320,72 @@ async function handleGetPhoneNumber(e: any) {
 .login-header {
   position: relative;
   z-index: 1;
-  padding-top: 120px;
-  padding-bottom: 60px;
+  padding-top: 120rpx;
+  padding-bottom: 60rpx;
   text-align: center;
   animation: login-head-in 0.6s ease-out 0.1s both;
 }
 
 .login-logo {
-  width: 108px;
-  height: 108px;
-  margin: 0 auto 28px;
+  width: 108rpx;
+  height: 108rpx;
+  margin: 0 auto 28rpx;
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  border-radius: 28px;
+  border-radius: 28rpx;
   background: rgba(255, 255, 255, 0.12);
-  border: 2px solid rgba(255, 255, 255, 0.22);
-  box-shadow: 0 16px 40px rgba(12, 10, 40, 0.35);
+  border: 2rpx solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 16rpx 40rpx rgba(12, 10, 40, 0.35);
 }
 
 .login-logo-mark {
-  width: 64px;
-  height: 64px;
-  padding: 10px;
+  width: 64rpx;
+  height: 64rpx;
+  padding: 10rpx;
   display: flex;
+  flex-direction: row;
   align-items: flex-end;
   justify-content: center;
-  gap: 6px;
-  border-radius: 18px;
+  gap: 6rpx;
+  border-radius: 18rpx;
   background: linear-gradient(135deg, #3b4fe0 0%, #8b5cf6 100%);
 }
 
 .login-logo-bar {
   display: block;
-  width: 12px;
-  border-radius: 6px 6px 2px 2px;
+  width: 12rpx;
+  border-radius: 6rpx 6rpx 2rpx 2rpx;
   background: rgba(255, 255, 255, 0.9);
 }
 
 .login-logo-bar--1 {
-  height: 18px;
+  height: 18rpx;
 }
 
 .login-logo-bar--2 {
-  height: 30px;
+  height: 30rpx;
 }
 
 .login-logo-bar--3 {
-  height: 42px;
+  height: 42rpx;
   background: #5eead4;
 }
 
 .login-title {
   display: block;
-  font-size: 44px;
+  font-size: 44rpx;
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: 1rpx;
   color: #fff;
 }
 
 .login-sub {
   display: block;
-  margin-top: 12px;
-  font-size: 24px;
-  letter-spacing: 2px;
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  letter-spacing: 2rpx;
   color: rgba(255, 255, 255, 0.66);
 }
 
@@ -391,24 +393,24 @@ async function handleGetPhoneNumber(e: any) {
 .login-card {
   position: relative;
   z-index: 1;
-  margin: 0 36px;
-  padding: 44px 32px 36px;
-  border-radius: 16px;
+  margin: 0 36rpx;
+  padding: 44rpx 32rpx 36rpx;
+  border-radius: 16rpx;
   background: rgba(255, 255, 255, 0.82);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  border: 1rpx solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 4rpx 24rpx rgba(0, 0, 0, 0.08);
   animation: login-card-in 0.7s ease-out 0.3s both;
 }
 
 .login-card__btn {
-  margin-top: 40px;
-  height: 88px;
-  border-radius: 8px;
-  font-size: 30px;
+  margin-top: 40rpx;
+  height: 88rpx;
+  border-radius: 8rpx;
+  font-size: 30rpx;
   font-weight: 600;
   background: #fff;
   color: $primary-color;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
   transition: transform 0.15s ease;
 }
 
@@ -421,8 +423,8 @@ async function handleGetPhoneNumber(e: any) {
 
 .login-card__error {
   display: block;
-  margin-bottom: 16px;
-  font-size: 24px;
+  margin-bottom: 16rpx;
+  font-size: 24rpx;
   color: $danger-color;
 }
 
@@ -430,24 +432,24 @@ async function handleGetPhoneNumber(e: any) {
 .login-demo {
   position: relative;
   z-index: 1;
-  margin: 28px 36px 0;
-  padding: 20px 24px;
-  border-radius: 14px;
+  margin: 28rpx 36rpx 0;
+  padding: 20rpx 24rpx;
+  border-radius: 14rpx;
   background: rgba(255, 255, 255, 0.1);
-  border: 1px dashed rgba(255, 255, 255, 0.25);
+  border: 1rpx dashed rgba(255, 255, 255, 0.25);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 6rpx;
 }
 
 .login-demo__title {
-  font-size: 22px;
+  font-size: 22rpx;
   font-weight: 600;
   color: #5eead4;
 }
 
 .login-demo__text {
-  font-size: 22px;
+  font-size: 22rpx;
   line-height: 1.6;
   color: rgba(255, 255, 255, 0.7);
 }
@@ -457,27 +459,29 @@ async function handleGetPhoneNumber(e: any) {
   z-index: 1;
   flex: 1;
   display: flex;
+  flex-direction: row;
   align-items: flex-end;
   justify-content: center;
-  padding-bottom: calc(env(safe-area-inset-bottom) + 32px);
+  padding-bottom: calc(env(safe-area-inset-bottom) + 32rpx);
 }
 
 .login-foot__ver {
-  font-size: 22px;
+  font-size: 22rpx;
   color: rgba(255, 255, 255, 0.35);
 }
 
 /* ── 分隔线 ── */
 .login-divider {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  margin: 16px 0;
+  margin: 16rpx 0;
 }
 
 .login-divider__text {
-  font-size: 22px;
+  font-size: 22rpx;
   color: $text-color-secondary;
-  padding: 0 16px;
+  padding: 0 16rpx;
 }
 
 /* ── 非微信环境提示 ── */
@@ -486,6 +490,6 @@ async function handleGetPhoneNumber(e: any) {
   text-align: center;
   font-size: $font-size-md;
   color: $text-color-secondary;
-  padding: 20px 0;
+  padding: 20rpx 0;
 }
 </style>

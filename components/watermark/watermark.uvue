@@ -41,8 +41,9 @@ const watermarkText = computed(() => {
 
 .watermark-row {
   display: flex;
+  flex-direction: row;
   justify-content: space-between;
-  margin-bottom: 120px;
+  margin-bottom: 120rpx;
   transform: rotate(-30deg);
   transform-origin: center center;
 }
@@ -50,8 +51,8 @@ const watermarkText = computed(() => {
 .watermark-item {
   flex-shrink: 0;
   color: rgba(0, 0, 0, 0.035);
-  font-size: 16px;
+  font-size: 16rpx;
   white-space: nowrap;
-  padding: 0 40px;
+  padding: 0 40rpx;
 }
 </style>

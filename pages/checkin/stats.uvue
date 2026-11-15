@@ -131,50 +131,51 @@ function barHeight(hours: number) {
 .page {
   min-height: 100vh;
   min-height: 100dvh;
-  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom, 0));
   background-color: #f5f6fa;
 }
 
 .header {
   // 与下方卡片保持同一条左边线
-  padding: 20px 16px 4px;
+  padding: 20rpx 16rpx 4rpx;
 }
 
 .header-title {
   display: block;
-  font-size: 34px;
+  font-size: 34rpx;
   font-weight: 700;
   color: #1c1c2e;
 }
 
 .header-sub {
   display: block;
-  margin-top: 6px;
-  font-size: 20px;
+  margin-top: 6rpx;
+  font-size: 20rpx;
   color: #9aa0b4;
 }
 
 /* 四宫格指标 */
 .grid {
   display: flex;
+  flex-direction: row;
   flex-wrap: wrap;
-  gap: 14px;
-  margin: 16px 16px 0;
+  gap: 14rpx;
+  margin: 16rpx 16rpx 0;
 }
 
 .tile {
-  flex: 1 1 calc(50% - 7px);
+  flex: 1 1 calc(50% - 7rpx);
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 20px 22px;
-  border-radius: 18px;
+  gap: 6rpx;
+  padding: 20rpx 22rpx;
+  border-radius: 18rpx;
   background-color: #fff;
-  box-shadow: 0 8px 24px rgba(23, 23, 64, 0.05);
+  box-shadow: 0 8rpx 24rpx rgba(23, 23, 64, 0.05);
 }
 
 .tile-value {
-  font-size: 44px;
+  font-size: 44rpx;
   font-weight: 700;
   color: #1c1c2e;
   line-height: 1.1;
@@ -189,50 +190,52 @@ function barHeight(hours: number) {
 }
 
 .tile-label {
-  font-size: 21px;
+  font-size: 21rpx;
   color: #9aa0b4;
 }
 
 /* 柱状图 */
 .card {
-  margin: 16px 16px 0;
-  padding: 20px 24px 14px;
-  border-radius: 18px;
+  margin: 16rpx 16rpx 0;
+  padding: 20rpx 24rpx 14rpx;
+  border-radius: 18rpx;
   background-color: #fff;
-  box-shadow: 0 8px 24px rgba(23, 23, 64, 0.05);
+  box-shadow: 0 8rpx 24rpx rgba(23, 23, 64, 0.05);
 }
 
 .card-head {
   display: flex;
+  flex-direction: row;
   align-items: baseline;
   justify-content: space-between;
-  padding-bottom: 12px;
+  padding-bottom: 12rpx;
 }
 
 .card-title {
-  font-size: 28px;
+  font-size: 28rpx;
   font-weight: 700;
   color: #1c1c2e;
 }
 
 .card-hint {
-  font-size: 20px;
+  font-size: 20rpx;
   color: #9aa0b4;
 }
 
 .tip {
-  padding: 36px 0;
+  padding: 36rpx 0;
   text-align: center;
-  font-size: 22px;
+  font-size: 22rpx;
   color: #9aa0b4;
 }
 
 .chart {
   display: flex;
+  flex-direction: row;
   align-items: flex-end;
-  gap: 12px;
-  height: 300px;
-  padding: 10px 4px 0;
+  gap: 12rpx;
+  height: 300rpx;
+  padding: 10rpx 4rpx 0;
 }
 
 .bar {
@@ -240,23 +243,24 @@ function barHeight(hours: number) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 6rpx;
   height: 100%;
 }
 
 .bar-track {
   flex: 1;
   display: flex;
+  flex-direction: row;
   align-items: flex-end;
   width: 100%;
-  border-radius: 8px;
+  border-radius: 8rpx;
   background-color: #f5f6fa;
   overflow: hidden;
 }
 
 .bar-fill {
   width: 100%;
-  border-radius: 8px;
+  border-radius: 8rpx;
   background: linear-gradient(180deg, #7c6cf6 0%, #4f46e5 100%);
   transition: height 0.3s ease;
 }
@@ -266,20 +270,20 @@ function barHeight(hours: number) {
 }
 
 .bar-value {
-  font-size: 19px;
+  font-size: 19rpx;
   color: #6b7080;
 }
 
 .bar-label {
-  font-size: 19px;
+  font-size: 19rpx;
   color: #9aa0b4;
 }
 
 /* 规则说明 */
 .rule {
-  padding: 12px 0;
-  border-bottom: 1px solid #f1f2f7;
-  font-size: 22px;
+  padding: 12rpx 0;
+  border-bottom: 1rpx solid #f1f2f7;
+  font-size: 22rpx;
   color: #4a4f60;
 }
 
@@ -287,9 +291,9 @@ function barHeight(hours: number) {
 .rule::before {
   content: '';
   display: inline-block;
-  width: 8px;
-  height: 8px;
-  margin-right: 12px;
+  width: 8rpx;
+  height: 8rpx;
+  margin-right: 12rpx;
   border-radius: 50%;
   background-color: #c7cbf0;
   vertical-align: middle;

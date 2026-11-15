@@ -71,13 +71,14 @@ function select(option: FilterOption) {
 
 .trigger {
   display: inline-flex;
+  flex-direction: row;
   align-items: center;
-  gap: 10px;
-  padding: 10px 22px;
-  border-radius: 14px;
-  border: 1px solid #e9ecf4;
+  gap: 10rpx;
+  padding: 10rpx 22rpx;
+  border-radius: 14rpx;
+  border: 1rpx solid #e9ecf4;
   background-color: #fff;
-  font-size: 22px;
+  font-size: 22rpx;
   color: #4a4f60;
 }
 
@@ -93,11 +94,11 @@ function select(option: FilterOption) {
 }
 
 .chevron {
-  width: 12px;
-  height: 12px;
-  margin-top: -6px;
-  border-right: 2px solid currentColor;
-  border-bottom: 2px solid currentColor;
+  width: 12rpx;
+  height: 12rpx;
+  margin-top: -6rpx;
+  border-right: 2rpx solid currentColor;
+  border-bottom: 2rpx solid currentColor;
   transform: rotate(45deg);
   transition:
   transform 0.18s ease,
@@ -105,28 +106,28 @@ function select(option: FilterOption) {
 }
 
 .chevron--up {
-  margin-top: 4px;
+  margin-top: 4rpx;
   transform: rotate(-135deg);
 }
 
 .dropdown {
   position: absolute;
-  top: calc(100% + 12px);
+  top: calc(100% + 12rpx);
   left: 0;
   /* 要盖住同组件内的遮罩（z-index 40） */
   z-index: 61;
-  min-width: 280px;
-  padding: 8px 0;
-  border-radius: 18px;
+  min-width: 280rpx;
+  padding: 8rpx 0;
+  border-radius: 18rpx;
   background-color: #fff;
-  box-shadow: 0 18px 42px rgba(23, 23, 64, 0.16);
+  box-shadow: 0 18rpx 42rpx rgba(23, 23, 64, 0.16);
   animation: dropdown-in 0.16s ease;
 }
 
 @keyframes dropdown-in {
   from {
     opacity: 0;
-    transform: translateY(-6px);
+    transform: translateY(-6rpx);
   }
 
   to {
@@ -137,11 +138,12 @@ function select(option: FilterOption) {
 
 .option {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  padding: 18px 26px;
-  font-size: 24px;
+  gap: 24rpx;
+  padding: 18rpx 26rpx;
+  font-size: 24rpx;
   color: #4a4f60;
 }
 
@@ -164,7 +166,7 @@ function select(option: FilterOption) {
 
 .option-check {
   flex-shrink: 0;
-  font-size: 22px;
+  font-size: 22rpx;
   color: #4f46e5;
 }
 

@@ -95,29 +95,29 @@ function openFile() {
 }
 
 .body {
-  padding: 40px 24px;
+  padding: 40rpx 24rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 16rpx;
 }
 
 .name {
-  font-size: 30px;
+  font-size: 30rpx;
   font-weight: 600;
   color: #23263a;
 }
 
 .url {
-  font-size: 22px;
+  font-size: 22rpx;
   color: #9aa0b4;
   text-align: center;
 }
 
 .btn {
-  margin-top: 12px;
-  padding: 18px 48px;
-  border-radius: 44px;
+  margin-top: 12rpx;
+  padding: 18rpx 48rpx;
+  border-radius: 44rpx;
   background-color: #4f46e5;
   display: flex;
   flex-direction: row;
@@ -126,19 +126,19 @@ function openFile() {
 }
 
 .btn-text {
-  font-size: 26px;
+  font-size: 26rpx;
   color: #ffffff;
   font-weight: 600;
 }
 
 .tip {
-  font-size: 24px;
+  font-size: 24rpx;
   color: #16a34a;
 }
 
 .hint {
-  margin-top: 8px;
-  font-size: 21px;
+  margin-top: 8rpx;
+  font-size: 21rpx;
   color: #b3b8c8;
   text-align: center;
 }

@@ -110,56 +110,57 @@ function openMember(member: ContactMember) {
 .page {
   min-height: 100vh;
   min-height: 100dvh;
-  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom, 0));
   background-color: #f5f6fa;
 }
 
 /* 搜索：整块作为点击区，内层 input 垂直居中 */
 .hint {
-  padding: 14px 16px 0;
-  font-size: 20px;
+  padding: 14rpx 16rpx 0;
+  font-size: 20rpx;
   color: #9aa0b4;
 }
 
 .tip {
-  padding: 40px 0;
+  padding: 40rpx 0;
   text-align: center;
-  font-size: 22px;
+  font-size: 22rpx;
   color: #9aa0b4;
 }
 
 /* 分组 */
 .group {
-  margin-top: 14px;
+  margin-top: 14rpx;
 }
 
 .group-title {
-  padding: 0 16px 10px;
-  font-size: 22px;
+  padding: 0 16rpx 10rpx;
+  font-size: 22rpx;
   font-weight: 600;
   color: #6b7080;
 }
 
 .group-count {
-  margin-left: 8px;
+  margin-left: 8rpx;
   font-weight: 400;
   color: #b3b8c8;
 }
 
 .card {
-  margin: 0 16px;
-  padding: 0 24px;
-  border-radius: 18px;
+  margin: 0 16rpx;
+  padding: 0 24rpx;
+  border-radius: 18rpx;
   background-color: #fff;
-  box-shadow: 0 8px 24px rgba(23, 23, 64, 0.05);
+  box-shadow: 0 8rpx 24rpx rgba(23, 23, 64, 0.05);
 }
 
 .member {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 18px;
-  padding: 20px 0;
-  border-bottom: 1px solid #f1f2f7;
+  gap: 18rpx;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f1f2f7;
 }
 
 .member--last {
@@ -175,13 +176,14 @@ function openMember(member: ContactMember) {
 
 .avatar {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  width: 76px;
-  height: 76px;
+  width: 76rpx;
+  height: 76rpx;
   border-radius: 50%;
   background: linear-gradient(135deg, #eef2ff 0%, #e5e9ff 100%);
-  font-size: 24px;
+  font-size: 24rpx;
   font-weight: 600;
   color: #4f46e5;
   flex-shrink: 0;
@@ -191,26 +193,26 @@ function openMember(member: ContactMember) {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 6rpx;
   min-width: 0;
 }
 
 .member-name {
-  font-size: 26px;
+  font-size: 26rpx;
   font-weight: 600;
   color: #1c1c2e;
 }
 
 .member-role {
-  font-size: 21px;
+  font-size: 21rpx;
   color: #9aa0b4;
 }
 
 .call {
-  padding: 8px 22px;
-  border-radius: 999px;
+  padding: 8rpx 22rpx;
+  border-radius: 999rpx;
   background-color: #eef2ff;
-  font-size: 21px;
+  font-size: 21rpx;
   color: #4f46e5;
   flex-shrink: 0;
 }

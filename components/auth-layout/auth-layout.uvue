@@ -44,13 +44,13 @@ const authStore = useAuthStore()
   display: flex;
   flex-direction: row;
   align-items: flex-start;
-  gap: 16px;
+  gap: 16rpx;
 }
 
 .skeleton-avatar {
-  width: 120px;
-  height: 120px;
-  border-radius: 16px;
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 16rpx;
   background-color: #eceef7;
 }
 
@@ -58,13 +58,13 @@ const authStore = useAuthStore()
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding-top: 8px;
+  gap: 14rpx;
+  padding-top: 8rpx;
 }
 
 .skeleton-line {
-  height: 26px;
-  border-radius: 8px;
+  height: 26rpx;
+  border-radius: 8rpx;
   background-color: #eceef7;
 }
 
@@ -78,9 +78,10 @@ const authStore = useAuthStore()
 
 .loadingWrapper {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
   min-height: 100%;
-  padding: 120px 50px;
+  padding: 120rpx 50rpx;
 }
 </style>

@@ -212,60 +212,62 @@ onUnmounted(() => {
 <style lang="scss">
 .page {
   /* 高度交给全局 .sp-page（min-height: 100dvh），这里只覆盖底色与底部留白 */
-  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom, 0));
   background-color: #f5f6fa;
 }
 
 /* ── 顶部信息卡 ── */
 .hero {
   position: relative;
-  margin: 16px 16px 0;
-  padding: 26px 28px 24px;
-  border-radius: 24px;
+  margin: 16rpx 16rpx 0;
+  padding: 26rpx 28rpx 24rpx;
+  border-radius: 24rpx;
   background: linear-gradient(135deg, #3b4fe0 0%, #7c6cf6 100%);
-  box-shadow: 0 16px 32px rgba(59, 79, 224, 0.24);
+  box-shadow: 0 16rpx 32rpx rgba(59, 79, 224, 0.24);
   color: #fff;
   overflow: hidden;
 }
 
 .hero-date {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 10px;
-  font-size: 22px;
+  gap: 10rpx;
+  font-size: 22rpx;
   color: rgba(255, 255, 255, 0.82);
 }
 
 .hero-weekday {
-  padding: 2px 12px;
-  border-radius: 999px;
+  padding: 2rpx 12rpx;
+  border-radius: 999rpx;
   background-color: rgba(255, 255, 255, 0.18);
-  font-size: 20px;
+  font-size: 20rpx;
   color: #fff;
 }
 
 .hero-time {
   display: block;
-  margin-top: 8px;
-  font-size: 68px;
+  margin-top: 8rpx;
+  font-size: 68rpx;
   font-weight: 700;
   line-height: 1.1;
-  letter-spacing: 2px;
+  letter-spacing: 2rpx;
 }
 
 .hero-dot {
-  width: 10px;
-  height: 10px;
+  width: 10rpx;
+  height: 10rpx;
   border-radius: 50%;
   background-color: #5eead4;
 }
 
 .hero-shift {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 8px;
-  margin-top: 10px;
-  font-size: 21px;
+  gap: 8rpx;
+  margin-top: 10rpx;
+  font-size: 21rpx;
   color: rgba(255, 255, 255, 0.86);
 }
 
@@ -273,16 +275,17 @@ onUnmounted(() => {
 .dial {
   position: relative;
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  width: 320px;
-  height: 320px;
-  margin: 34px auto 6px;
+  width: 320rpx;
+  height: 320rpx;
+  margin: 34rpx auto 6rpx;
   border-radius: 50%;
   background: linear-gradient(180deg, #ffffff 0%, #f3f4ff 100%);
   box-shadow:
-  0 18px 40px rgba(59, 79, 224, 0.16),
-  inset 0 0 0 2px rgba(79, 70, 229, 0.12);
+  0 18rpx 40rpx rgba(59, 79, 224, 0.16),
+  inset 0 0 0 2rpx rgba(79, 70, 229, 0.12);
   transition:
   transform 0.15s ease,
   opacity 0.15s ease;
@@ -300,9 +303,9 @@ onUnmounted(() => {
 .dial::before {
   content: '';
   position: absolute;
-  inset: -14px;
+  inset: -14rpx;
   border-radius: 50%;
-  border: 3px dashed rgba(79, 70, 229, 0.25);
+  border: 3rpx dashed rgba(79, 70, 229, 0.25);
 }
 
 /* #endif */
@@ -311,35 +314,36 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 8rpx;
 }
 
 .dial-icon {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  width: 64px;
-  height: 64px;
+  width: 64rpx;
+  height: 64rpx;
   border-radius: 50%;
   background-color: #eef2ff;
 }
 
 .dial-pulse {
-  width: 22px;
-  height: 22px;
+  width: 22rpx;
+  height: 22rpx;
   border-radius: 50%;
   background: linear-gradient(135deg, #4f46e5 0%, #7c6cf6 100%);
-  box-shadow: 0 0 0 8px rgba(79, 70, 229, 0.12);
+  box-shadow: 0 0 0 8rpx rgba(79, 70, 229, 0.12);
 }
 
 .dial-title {
-  font-size: 38px;
+  font-size: 38rpx;
   font-weight: 700;
   color: #1c1c2e;
 }
 
 .dial-hint {
-  font-size: 21px;
+  font-size: 21rpx;
   color: #9aa0b4;
 }
 
@@ -347,15 +351,15 @@ onUnmounted(() => {
 .dial--out {
   background: linear-gradient(180deg, #ffffff 0%, #eef2ff 100%);
   box-shadow:
-  0 18px 40px rgba(59, 79, 224, 0.2),
-  inset 0 0 0 2px rgba(79, 70, 229, 0.24);
+  0 18rpx 40rpx rgba(59, 79, 224, 0.2),
+  inset 0 0 0 2rpx rgba(79, 70, 229, 0.24);
 }
 
 .dial--done {
   background: linear-gradient(180deg, #ffffff 0%, #ecfdf5 100%);
   box-shadow:
-  0 18px 40px rgba(13, 148, 136, 0.14),
-  inset 0 0 0 2px rgba(13, 148, 136, 0.18);
+  0 18rpx 40rpx rgba(13, 148, 136, 0.14),
+  inset 0 0 0 2rpx rgba(13, 148, 136, 0.18);
 }
 
 /* #ifdef WEB */
@@ -372,28 +376,29 @@ onUnmounted(() => {
 
 /* ── 卡片 ── */
 .card {
-  margin: 18px 16px 0;
-  padding: 20px 24px 8px;
-  border-radius: 18px;
+  margin: 18rpx 16rpx 0;
+  padding: 20rpx 24rpx 8rpx;
+  border-radius: 18rpx;
   background-color: #fff;
-  box-shadow: 0 8px 24px rgba(23, 23, 64, 0.05);
+  box-shadow: 0 8rpx 24rpx rgba(23, 23, 64, 0.05);
 }
 
 .card-head {
   display: flex;
+  flex-direction: row;
   align-items: baseline;
   justify-content: space-between;
-  padding-bottom: 8px;
+  padding-bottom: 8rpx;
 }
 
 .card-title {
-  font-size: 28px;
+  font-size: 28rpx;
   font-weight: 700;
   color: #1c1c2e;
 }
 
 .card-more {
-  font-size: 20px;
+  font-size: 20rpx;
   color: #4f46e5;
 }
 
@@ -406,10 +411,11 @@ onUnmounted(() => {
 
 .row {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 0;
-  border-bottom: 1px solid #f1f2f7;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #f1f2f7;
 }
 
 .row--last {
@@ -418,30 +424,31 @@ onUnmounted(() => {
 
 .row-left {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 12px;
-  font-size: 25px;
+  gap: 12rpx;
+  font-size: 25rpx;
   color: #23263a;
 }
 
 .dot {
-  width: 12px;
-  height: 12px;
+  width: 12rpx;
+  height: 12rpx;
   border-radius: 50%;
 }
 
 .dot--in {
   background-color: #4f46e5;
-  box-shadow: 0 0 0 6px #eef2ff;
+  box-shadow: 0 0 0 6rpx #eef2ff;
 }
 
 .dot--out {
   background-color: #14b8a6;
-  box-shadow: 0 0 0 6px #ecfdf5;
+  box-shadow: 0 0 0 6rpx #ecfdf5;
 }
 
 .row-value {
-  font-size: 26px;
+  font-size: 26rpx;
   font-weight: 600;
   color: #1c1c2e;
 }
@@ -454,7 +461,8 @@ onUnmounted(() => {
 /* ── 本月统计 ── */
 .stats {
   display: flex;
-  padding: 8px 0 16px;
+  flex-direction: row;
+  padding: 8rpx 0 16rpx;
 }
 
 .stat {
@@ -462,24 +470,24 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 6rpx;
 }
 
 /* #ifdef WEB */
 .stat + .stat {
-  border-left: 1px solid #f1f2f7;
+  border-left: 1rpx solid #f1f2f7;
 }
 
 /* #endif */
 
 .stat-num {
-  font-size: 40px;
+  font-size: 40rpx;
   font-weight: 700;
   color: #1c1c2e;
 }
 
 .stat-label {
-  font-size: 20px;
+  font-size: 20rpx;
   color: #9aa0b4;
 }
 </style>
