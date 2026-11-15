@@ -261,7 +261,7 @@ export default {
 
 .sp-btn--block {
   /* 注意：这里不能用 flex: 1 —— 在 flex-column 容器里 flex-basis 作用在高度上，
-     会把按钮压成一行文字的高度（登录页按钮塌成 20px 就是这个原因） */
+     会把按钮压成一行文字的高度（登录页按钮塌成 20rpx 就是这个原因） */
   width: 100%;
   align-self: stretch;
 }

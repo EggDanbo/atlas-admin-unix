@@ -132,6 +132,9 @@ function braceEnd(s, open) {
 
 function ctor(t) {
   t = t.trim()
+  // 函数类型 → Function（Vue 原生支持，写成 Object 会触发 Invalid prop 警告）
+  if (t.includes('=>') || t.startsWith('('))
+    return 'Function'
   if (t.startsWith('\'') || t.startsWith('"'))
     return 'String'
   if (t === 'string')
@@ -144,7 +147,12 @@ function ctor(t) {
     return 'Array'
   if (t.startsWith('Record<') || t.startsWith('Map<'))
     return 'Object'
-  if (t.includes('|') && (t.includes('\'') || t.includes('"')))
+  // 联合类型：剔除 undefined / null 后，只剩一种就按那一种算
+  const all = t.split('|').map(x => x.trim())
+  const parts = all.filter(x => x !== 'undefined' && x !== 'null')
+  if (parts.length === 1 && parts.length !== all.length)
+    return ctor(parts[0])
+  if (parts.length > 1 && parts.every(x => /^['"].*['"]$/.test(x)))
     return 'String'
   return 'Object'
 }
