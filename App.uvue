@@ -356,11 +356,21 @@ export default {
 /* view 在 Taro/H5 里是 block，uni-app x 重置成了 flex + column。
    这里在 Web 端还原成 block：显式写了 display: flex 的类不受影响（类选择器优先级更高），
    没写 display 的容器恢复成文档流，避免「本该同一行的两个 text 被竖排」。 */
-uni-app uni-view {
+/* :where(:not([class*="uni-"])) 的两层作用：
+   1. :not(...) 避开 uni 内置组件（modal / toast / picker / scroll-view）的内部结构；
+   2. :where() 把本规则特异性归零，于是它只与 uni 的重置（同为 0,0,2）打平靠后生效，
+      绝不会盖到我们自己写的 .sp-btn / .row 这类类选择器上（否则 flex 会全被改成 block）。
+   那些组件的内部布局是照着「view=flex-column、text=block」写的，
+   我们一旦无差别改掉，弹窗就会文字溢出、按钮左对齐。 */
+uni-app uni-view:where(:not([class*="uni-"])) {
   display: block;
+  /* uni 的重置给所有 view 加了 overflow: hidden，会把下拉面板、气泡这类
+     绝对定位的子元素整个裁掉（筛选下拉打不开就是这个原因）。
+     这里还原成 visible；确实需要裁剪的地方（卡片圆角、装饰光斑）样式里都显式写了 overflow: hidden。 */
+  overflow: visible;
 }
 
-uni-app uni-text {
+uni-app uni-text:where(:not([class*="uni-"])) {
   display: inline;
   text-align: inherit;
 }

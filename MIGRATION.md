@@ -179,6 +179,35 @@ uni-app uni-text { display: inline; text-align: inherit; }
 用 `!important` 会连带盖掉元素自己写的 `text-align`（例如卡片里本该居中的提示语）。
 App 端不支持标签选择器，原生端需要把对齐写到 `<text>` 自身。
 
+### 6. 全局覆盖要避开 uni 的内置组件
+
+第 5 条那两行覆盖最初写成了无差别的：
+
+```css
+uni-app uni-view { display: block; }
+uni-app uni-text { display: inline; text-align: inherit; }
+```
+
+结果把 uni 自己的 `uni.showModal` / `uni.showToast` / `uni.showLoading` 也一起改了。
+弹窗的表现是：正文文字横向撑出弹窗两侧、底部「取消 / 退出」按钮文字贴左——
+因为那些组件的内部布局是照着 `view = flex-column`、`text = block` 写的。
+
+最终写法做了两处限定：
+
+```css
+uni-app uni-view:where(:not([class*="uni-"])) { display: block; overflow: visible; }
+uni-app uni-text:where(:not([class*="uni-"])) { display: inline; text-align: inherit; }
+```
+
+- `:not([class*="uni-"])`：内置组件的元素都带 `uni-*` 类名，排除掉；
+- `:where(...)`：把这一条的特异性归零，只与 uni 的重置（同为 0,0,2）打平靠后生效。
+  不加 `:where` 时它会赢过 `.sp-btn`、`.row` 这些类选择器，
+  导致按钮的 `display: flex` 被改成 `block`——登录按钮文字不居中就是这么来的。
+
+顺带修的：uni 重置还给所有 view 加了 `overflow: hidden`，
+把绝对定位的下拉面板整个裁掉（筛选下拉点开没反应）。改回 `visible` 后正常，
+需要裁剪的地方（卡片圆角、装饰光斑）样式里本来都显式写了 `overflow: hidden`。
+
 ## 三、已知限制（务必阅读）
 
 ### 0. 语言后缀：统一用 .ts 而不是 .uts
