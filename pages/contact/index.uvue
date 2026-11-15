@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { ContactGroup, ContactMember } from '@/api/contact.ts'
+import SpSearchBar from '@/components/sp-search-bar/sp-search-bar.uvue'
+import SpEmpty from '@/components/sp-empty/sp-empty.uvue'
 
 import { computed, ref } from 'vue'
 import AuthLayout from '@/components/auth-layout/auth-layout.uvue'

@@ -335,4 +335,39 @@ export default {
   line-height: 32rpx;
   color: #c2c6d4;
 }
+
+/* ============================================================
+ * 文本节点的 web/小程序 还原
+ *
+ * uni-app x 的 CSS 重置把 <text>（渲染为 uni-text）显式设成
+ * display: block; text-align: left，而 Taro/H5 里 text 是 inline 且会继承父级对齐。
+ * 结果就是「父容器写了 text-align: center，标题却还是靠左」。
+ *
+ * 这里把这两项还回去。App 端不支持标签选择器，原生端需要把对齐写到 <text> 自身。
+ * ============================================================ */
+
+/* #ifdef WEB */
+/* uni 框架自带 `uni-app uni-text { text-align: left }`（特异性 0,0,2）。
+   这里用同特异性 + 更靠后的位置覆盖成 inherit：
+   - 没有自己写对齐的 text 会继承父容器（还原 H5/Taro 行为）
+   - 自己写了 text-align 的 text（类选择器，特异性更高）仍以自身为准 */
+/* view 在 Taro/H5 里是 block，uni-app x 重置成了 flex + column。
+   这里在 Web 端还原成 block：显式写了 display: flex 的类不受影响（类选择器优先级更高），
+   没写 display 的容器恢复成文档流，避免「本该同一行的两个 text 被竖排」。 */
+uni-app uni-view {
+  display: block;
+}
+
+uni-app uni-text {
+  display: inline;
+  text-align: inherit;
+}
+/* #endif */
+
+/* #ifdef MP-WEIXIN || MP-ALIPAY || MP-BAIDU || MP-TOUTIAO */
+page text {
+  display: inline;
+  text-align: inherit;
+}
+/* #endif */
 </style>

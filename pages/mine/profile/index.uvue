@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { FileStorageFileResourceModel } from '@/types/api.ts'
 import { computed, reactive, ref } from 'vue'
+import Watermark from '@/components/watermark/watermark.uvue'
+import SpCard from '@/components/sp-card/sp-card.uvue'
+import SpFormRow from '@/components/sp-form-row/sp-form-row.uvue'
 import AuthLayout from '@/components/auth-layout/auth-layout.uvue'
 import { useFileUpload } from '@/components/file-upload/use-file-upload.ts'
 import PageNavbar from '@/components/page-navbar/page-navbar.uvue'
@@ -471,11 +474,7 @@ useAuthLoad(() => {
                 {{ node.children.length }} 个下级
               </text>
               <view class="sheet-item-arrow">
-                <Check
-                  v-if="String(node.value) === formData.team_id"
-                  size="16"
-                  color="#4f46e5"
-                />
+                <text v-if="String(node.value) === formData.team_id" class="sp-glyph" :style="{ color: '#4f46e5', fontSize: '32rpx' }">✓</text>
                 <text v-else-if="node.children?.length" class="sp-icon-chevron" :style="{ color: '#c2c6d4' }">›</text>
               </view>
             </view>

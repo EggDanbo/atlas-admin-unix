@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import SpEmpty from '@/components/sp-empty/sp-empty.uvue'
 import api from '@/api/message/index.ts'
 import { routes } from '@/utils/router'
 

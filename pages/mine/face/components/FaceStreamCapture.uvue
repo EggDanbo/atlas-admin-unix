@@ -191,7 +191,7 @@ function handleSwitchPhoto() {
 
       <view v-if="phase === 'submitting' || phase === 'success' || phase === 'failed'" class="result_errors">
         <view class="content">
-          <Loading v-if="phase === 'submitting'" size="80" color="#999999" />
+          <text v-if="phase === 'submitting'" class="sp-glyph" :style="{ color: '#999999', fontSize: '160rpx' }">◌</text>
           <text
             v-else
             class="result-glyph"

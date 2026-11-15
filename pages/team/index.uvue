@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import SpSearchBar from '@/components/sp-search-bar/sp-search-bar.uvue'
+import SpEmpty from '@/components/sp-empty/sp-empty.uvue'
 import AuthLayout from '@/components/auth-layout/auth-layout.uvue'
 import PageNavbar from '@/components/page-navbar/page-navbar.uvue'
 import { showToast } from '@/components/sp-toast/toast.ts'

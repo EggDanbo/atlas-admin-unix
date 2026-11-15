@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { FilterOption } from '@/components/sp-filter-select/types.ts'
+import SpSearchBar from '@/components/sp-search-bar/sp-search-bar.uvue'
+import SpFilterSelect from '@/components/sp-filter-select/sp-filter-select.uvue'
 
 import { onMounted, ref } from 'vue'
 import SpListStatus from '@/components/sp-list-status/sp-list-status.uvue'

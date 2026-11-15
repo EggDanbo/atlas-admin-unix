@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SpEmpty from '@/components/sp-empty/sp-empty.uvue'
 defineProps({
   loading: { type: Boolean, default: false },
   finished: { type: Boolean, default: false },
@@ -15,7 +16,7 @@ defineEmits(['loadMore'])
   <view>
     <!-- 首次加载中 -->
     <view v-if="loading && !hasData" class="loadingWrap">
-      <Loading class="loadingIcon" />
+      <text class="sp-glyph loadingIcon">◌</text>
       <text class="loadingText">
         加载中...
       </text>
@@ -37,7 +38,7 @@ defineEmits(['loadMore'])
 
       <!-- 底部加载状态：加载更多中 -->
       <view v-else class="loadStatus">
-        <Loading class="loadingIcon" />
+        <text class="sp-glyph loadingIcon">◌</text>
       </view>
     </template>
   </view>

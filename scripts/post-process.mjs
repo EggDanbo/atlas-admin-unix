@@ -44,6 +44,8 @@ function write(f, s) {
   fs.writeFileSync(f, s)
 }
 
+const misses = []
+
 function patch(f, pairs, label) {
   let s = read(f)
   let hit = false
@@ -51,6 +53,9 @@ function patch(f, pairs, label) {
     if (s.includes(a)) {
       s = s.replace(a, b)
       hit = true
+    }
+    else {
+      misses.push(`${path.relative(ROOT, f)} ← ${a.slice(0, 48).replace(/\n/g, '⏎')}`)
     }
   }
   if (hit) {
@@ -380,7 +385,6 @@ const FIXES = [
   }`],
   ]],
 
-  // 首页菜单：图标组件 → 字形
   ['pages/index/components/MenuGrid.uvue', [
     [`interface MenuItem {
   icon: any`, `interface MenuItem {
@@ -428,10 +432,6 @@ const dialTitle = computed(() => TITLE_MAP.get(phase.value) ?? '上班打卡')`]
 
   // 个人信息：状态类计算键 + 开关回调
   ['pages/mine/profile/index.uvue', [
-    [`                :class="[
-                  'hero-status',
-                  { ['hero-status--off']: !formData.working },
-                ]"`, `                :class="['hero-status', formData.working ? '' : 'hero-status--off']"`],
     [`async function loadTeamTree() {`, `function onWorkingChange(e: any) {
   formData.working = e.detail.value === true
 }
@@ -448,11 +448,11 @@ async function loadTeamTree() {`],
 
   // 文件图标（file-upload）
   ['components/file-upload/file-upload.uvue', [
-    [`function getFileIcon(item: FileStorage.FileResourceModel): string {
+    [`function getFileIcon(item: FileStorageFileResourceModel): string {
   if (isVideo(item))
     return 'play-circle-fill'
   return 'order'
-}`, `function getFileIcon(item: any): string {
+}`, `function getFileIcon(item: FileStorageFileResourceModel): string {
   // uni-app x 不支持图标字体伪元素，用 unicode 字形替代原 NutUI 图标
   if (isVideo(item))
     return '▶'
@@ -524,16 +524,10 @@ import type { ServiceResult } from '@/types/api.uts'`],
 
   // 用户卡片头像
   ['pages/index/components/UserCard.uvue', [
-    [`      <nut-avatar v-if="avatarUrl" size="large">
-        <image :src="avatarUrl">
-      </nut-avatar>`, `      <image v-if="avatarUrl" class="hero-avatar" :src="avatarUrl" mode="aspectFill" />`],
   ]],
 
   // 我的页面头像
   ['pages/mine/index.uvue', [
-    [`          <nut-avatar v-if="avatarUrl" size="large">
-            <image :src="avatarUrl">
-          </nut-avatar>`, `          <image v-if="avatarUrl" class="hero-avatar" :src="avatarUrl" mode="aspectFill" />`],
   ]],
 
   // 短信验证码输入框（带右侧按钮）
@@ -571,6 +565,39 @@ for (const [rel, pairs] of FIXES) {
   if (fs.existsSync(f))
     patch(f, pairs, 'fixpoint')
 }
+
+// 首页菜单：图标组件 → 字形（按 label 映射，逐行重写 icon 字段）
+{
+  const f = path.join(ROOT, 'pages/index/components/MenuGrid.uvue')
+  if (fs.existsSync(f)) {
+    const GLYPHS = {
+      '考勤规则': '⚙',
+      '我的申请': '📋',
+      '请假申请': '📝',
+      '组织通讯录': '👥',
+      '成员管理': '🙋',
+      '考勤统计': '📊',
+      '数据看板': '📈',
+      '消息中心': '🔔',
+    }
+    let src = read(f)
+    let hit = 0
+    for (const [label, glyph] of Object.entries(GLYPHS)) {
+      const re = new RegExp(`\\{ icon: [A-Za-z_$][\\w$]*, label: '${label}'`)
+      if (re.test(src)) {
+        src = src.replace(re, `{ glyph: '${glyph}', label: '${label}'`)
+        hit++
+      }
+    }
+    if (hit > 0) {
+      write(f, src)
+      bump('menuGlyphs')
+    }
+    if (hit !== 8)
+      misses.push(`MenuGrid 菜单图标仅替换 ${hit}/8 条`)
+  }
+}
+
 
 // 箭头图标：<Right ... /> → 字形
 for (const f of files.filter(x => x.endsWith('.uvue'))) {
@@ -656,6 +683,60 @@ function selectAnyFilesH5(remaining: number, _accepts: string[]): Promise<Select
     }
   }
 }
+
+// 其余 NutUI 图标组件（<Check /> <Loading /> <My /> ...）→ unicode 字形
+{
+  const GLYPH_MAP = {
+    Check: '✓',
+    Loading: '◌',
+    My: '👤',
+    Photograph: '📷',
+    PlayCircleFill: '▶',
+    Right: '›',
+    People: '👥',
+    Setting: '⚙',
+    Order: '📋',
+    Edit: '📝',
+    Date: '📅',
+    Marshalling: '📈',
+    Notice: '🔔',
+    Success: '✅',
+    Share: '↗',
+    Close: '✕',
+    Plus: '＋',
+  }
+  for (const f of files.filter(x => x.endsWith('.uvue'))) {
+    let src = read(f)
+    const before = src
+    for (const [name, glyph] of Object.entries(GLYPH_MAP)) {
+      const re = new RegExp(`<${name}\\b([^>]*?)\\/>`, 'g')
+      src = src.replace(re, (_m, attrs) => {
+        const keep = []
+        const vIf = attrs.match(/\s(v-if="[^"]*"|v-else-if="[^"]*"|v-else)/)
+        if (vIf)
+          keep.push(vIf[1])
+        const cls = attrs.match(/\sclass="([^"]*)"/)
+        const clsList = cls ? ['sp-glyph', cls[1]] : ['sp-glyph']
+        keep.push(`class="${clsList.join(' ')}"`)
+        const color = attrs.match(/\scolor="([^"]*)"/)
+        const size = attrs.match(/\ssize="(\d+)"/)
+        const styles = []
+        if (color)
+          styles.push(`color: '${color[1]}'`)
+        if (size)
+          styles.push(`fontSize: '${Number(size[1]) * 2}rpx'`)
+        if (styles.length)
+          keep.push(`:style="{ ${styles.join(', ')} }"`)
+        return `<text ${keep.join(' ')}>${glyph}</text>`
+      })
+    }
+    if (src !== before) {
+      write(f, src)
+      bump('glyphIcons')
+    }
+  }
+}
+
 
 // 头像：nut-avatar + image → 单个 image
 for (const f of files.filter(x => x.endsWith('.uvue'))) {
@@ -753,3 +834,7 @@ for (const [tpl, dest] of CUSTOM_FILES) {
 }
 
 console.log(JSON.stringify(report, null, 2))
+if (misses.length) {
+  console.warn(`\n⚠️  未命中的替换 ${misses.length} 处（源码变了？）：`)
+  misses.slice(0, 20).forEach(m => console.warn('  ' + m))
+}

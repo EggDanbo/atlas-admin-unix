@@ -135,6 +135,50 @@ uni-app x 全平台重置了 CSS：`view` 默认 `display: flex; flex-direction:
 
 这两步都放在流水线最后（6、7），因为要作用在最终产物上。
 
+## 二点六、跑起来后又暴露的三个坑
+
+前三个（px / flex 方向 / text 对齐）是静态看代码看不出来的，必须真跑页面才发现。
+
+### 3. 组件自动注册没了
+
+Taro 工程用 `unplugin-vue-components` 自动注册 `src/components` 下的组件，
+所以模板里直接写 `<SpCard>`、`<SpFormRow>`、`<Watermark>` 而没有 import。
+uni-app x 没有这套机制（easycom 只认 kebab-case 目录约定），
+未导入的标签会退化成「未知元素」——**组件的 DOM 壳直接消失**，
+表现是卡片丢了白底圆角、搜索栏不见了，只剩插槽里的内容。
+
+→ `scripts/add-component-imports.mjs`：扫描模板里用到的 PascalCase 标签，缺 import 就补上（13 个文件）。
+
+### 4. 图标组件的残留
+
+NutUI 的图标是一个个 Vue 组件（`<Check />`、`<Loading />`、`<IconFont />`、`<Right />`），
+迁移时按标签名逐个替换容易漏。漏掉的会渲染成空白（控制台有 `Failed to resolve component` 警告）。
+→ `post-process.mjs` 里有一个统一的字形映射表兜底，替换时保留 `v-if / v-else-if / v-else` 与颜色、字号。
+
+### 5. view / text 的默认样式被重置
+
+| 元素 | Taro / H5 | uni-app x 重置后 |
+| --- | --- | --- |
+| `view` | `display: block` | `display: flex; flex-direction: column` |
+| `text` | `display: inline`，继承父级 `text-align` | `display: block; text-align: left` |
+
+后果：
+- 「容器写 `text-align: center`，标题却不居中」（text 不再继承）
+- 「本该同一行的两个 text 竖着排了」（如通讯录的分组标题 + 人数）
+
+→ `App.uvue` 里加了一段 Web/小程序的条件编译覆盖：
+
+```css
+/* #ifdef WEB */
+uni-app uni-view { display: block; }
+uni-app uni-text { display: inline; text-align: inherit; }
+/* #endif */
+```
+
+注意必须用 `uni-app uni-text`（同等特异性、位置更靠后）而不是 `!important`——
+用 `!important` 会连带盖掉元素自己写的 `text-align`（例如卡片里本该居中的提示语）。
+App 端不支持标签选择器，原生端需要把对齐写到 `<text>` 自身。
+
 ## 三、已知限制（务必阅读）
 
 ### 0. 语言后缀：统一用 .ts 而不是 .uts

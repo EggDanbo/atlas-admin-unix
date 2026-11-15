@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import type { AttendanceRule } from '@/api/rules.ts'
+import SpEmpty from '@/components/sp-empty/sp-empty.uvue'
+import SpCard from '@/components/sp-card/sp-card.uvue'
+import SpKvRow from '@/components/sp-kv-row/sp-kv-row.uvue'
 
 import { computed, ref } from 'vue'
 import AuthLayout from '@/components/auth-layout/auth-layout.uvue'

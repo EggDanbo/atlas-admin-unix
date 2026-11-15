@@ -2,6 +2,8 @@
 import type { FileStorageFileResourceModel } from '@/types/api.ts'
 import { computed, ref } from 'vue'
 import { isWeb, isWeapp } from '@/utils/platform.ts'
+import Watermark from '@/components/watermark/watermark.uvue'
+import SpCard from '@/components/sp-card/sp-card.uvue'
 import AuthLayout from '@/components/auth-layout/auth-layout.uvue'
 import PageNavbar from '@/components/page-navbar/page-navbar.uvue'
 import SpFaceCamera from '@/components/sp-face-camera/sp-face-camera.uvue'
@@ -153,10 +155,10 @@ useAuthLoad(async () => {
               mode="aspectFill"
             />
             <view v-else class="face-empty">
-              <My size="42" color="rgba(255, 255, 255, 0.72)" />
+              <text class="sp-glyph" :style="{ color: 'rgba(255, 255, 255, 0.72)', fontSize: '84rpx' }">👤</text>
             </view>
             <view :class="['face-badge', (hasFace ? 'face-badge--done' : '')]">
-              <Check v-if="hasFace" size="13" color="#0f766e" />
+              <text v-if="hasFace" class="sp-glyph" :style="{ color: '#0f766e', fontSize: '26rpx' }">✓</text>
               <text v-else class="face-badge-plus">
                 ＋
               </text>
@@ -201,7 +203,7 @@ useAuthLoad(async () => {
           @click="method = 'photo'"
         >
           <view class="method-icon">
-            <Photograph size="20" color="#4f46e5" />
+            <text class="sp-glyph" :style="{ color: '#4f46e5', fontSize: '40rpx' }">📷</text>
           </view>
           <view class="method-body">
             <text class="method-title">
@@ -212,7 +214,7 @@ useAuthLoad(async () => {
             </text>
           </view>
           <view :class="['radio', (method === 'photo' ? 'radio--on' : '')]">
-            <Check v-if="method === 'photo'" size="11" color="#fff" />
+            <text v-if="method === 'photo'" class="sp-glyph" :style="{ color: '#fff', fontSize: '22rpx' }">✓</text>
           </view>
         </view>
 
@@ -225,7 +227,7 @@ useAuthLoad(async () => {
           @click="chooseStream"
         >
           <view class="method-icon method-icon--teal">
-            <PlayCircleFill size="20" color="#0d9488" />
+            <text class="sp-glyph" :style="{ color: '#0d9488', fontSize: '40rpx' }">▶</text>
           </view>
           <view class="method-body">
             <view class="method-title-row">
@@ -241,7 +243,7 @@ useAuthLoad(async () => {
             </text>
           </view>
           <view :class="['radio', (method === 'stream' ? 'radio--on' : '')]">
-            <Check v-if="method === 'stream'" size="11" color="#fff" />
+            <text v-if="method === 'stream'" class="sp-glyph" :style="{ color: '#fff', fontSize: '22rpx' }">✓</text>
           </view>
         </view>
       </SpCard>
@@ -263,7 +265,7 @@ useAuthLoad(async () => {
       <!-- 隐私说明 -->
       <view class="privacy">
         <view class="privacy-icon">
-          <Check size="16" color="#0d9488" />
+          <text class="sp-glyph" :style="{ color: '#0d9488', fontSize: '32rpx' }">✓</text>
         </view>
         <view class="privacy-body">
           <text class="privacy-title">

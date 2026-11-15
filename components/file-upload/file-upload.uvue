@@ -47,9 +47,10 @@ const showAddBtn = computed(() => !props.disabled && remaining.value > 0)
 
 /** 获取文件类型图标名称 */
 function getFileIcon(item: FileStorageFileResourceModel): string {
+  // uni-app x 不支持图标字体伪元素，用 unicode 字形替代原 NutUI 图标
   if (isVideo(item))
-    return 'play-circle-fill'
-  return 'order'
+    return '▶'
+  return '📄'
 }
 
 /** 选择并上传文件 */

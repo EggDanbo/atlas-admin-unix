@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CheckinRecord, CheckinStats } from '@/api/checkin.ts'
+import SpEmpty from '@/components/sp-empty/sp-empty.uvue'
 
 import { ref } from 'vue'
 import AuthLayout from '@/components/auth-layout/auth-layout.uvue'
