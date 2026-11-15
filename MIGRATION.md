@@ -193,5 +193,10 @@ UTS 编译到 Web / 微信小程序（JS 引擎）没问题；编译到 **Androi
 
 `scripts/check-unix.mjs` 是回归闸门，当前基线全 0（残留引用 / 断链 import / 未落地页面 / 类型式 props）。
 
+`scripts/check-exports.mjs` 专门治一类隐蔽问题：原工程用 barrel（`components/X/index.ts`、`constants/auth.ts`）
+聚合导出，迁移时被拍平成具体文件，容易出现「导入了但目标文件没有这个导出」——运行时报
+`does not provide an export named 'XXX'`。首个真实案例是登录页的 `PASSWORD_LOGIN`
+（原本在 `constants/auth.ts`，迁移时被并到 `constants/config.ts` 却没补上导出）。
+
 > 第 4 步是**幂等**的，可以反复执行；只有第 1 步会重建 `pages/` 与 `components/`，
 > 因此改完代码后若又要从源工程同步，务必按 1→4 全跑一遍。

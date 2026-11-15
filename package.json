@@ -5,7 +5,7 @@
   "description": "Atlas 工作台 · uni-app x 移动端演示应用",
   "scripts": {
     "migrate": "node scripts/migrate-from-taro.mjs && node scripts/migrate-api.mjs && node scripts/fix-imports.mjs && node scripts/post-process.mjs && node scripts/to-ts.mjs",
-    "check": "node scripts/check-unix.mjs"
+    "check": "node scripts/check-unix.mjs && node scripts/check-exports.mjs"
   },
   "devDependencies": {
     "sass": "^1.80.0"

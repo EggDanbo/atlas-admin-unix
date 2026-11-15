@@ -77,9 +77,11 @@ node scripts/migrate-api.mjs         # 2. service/api → api（alova method.met
 node scripts/fix-imports.mjs         # 3. import 路径（kebab-case + 扩展名）
 node scripts/post-process.mjs        # 4. 语义改造（Taro 环境变量、类型扁平化、NutUI 替换）
 node scripts/check-unix.mjs          # 体检：残留 Taro/NutUI/CSS Modules、断链 import、页面落地
+node scripts/check-exports.mjs       # 体检：命名导入在目标模块里是否真的存在
 ```
 
-`check-unix.mjs` 当前基线：**0 残留、0 断链、0 缺失页面、0 类型式 props**。
+`check-unix.mjs` 当前基线：**0 残留、0 断链、0 缺失页面、0 类型式 props**；
+`check-exports.mjs` 基线：**0 个缺失导出**（这条检查是为 `PASSWORD_LOGIN` 那类问题加的）。
 
 ## 已验证的范围
 

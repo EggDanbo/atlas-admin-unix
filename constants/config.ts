@@ -39,3 +39,6 @@ export function apiBaseUrl(): string {
   }
   return appConfig.apiUrlPrefix
 }
+
+/** 账号密码登录开关（登录页据此显示密码登录入口） */
+export const PASSWORD_LOGIN = appConfig.passwordLogin
