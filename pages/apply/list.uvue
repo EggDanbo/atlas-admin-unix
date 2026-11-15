@@ -23,7 +23,7 @@ onReachBottom(() => panel.value?.loadMore())
 <style lang="scss">
 .page {
   min-height: 100%;
-  padding-bottom: calc(24rpx + env(safe-area-inset-bottom, 0));
+  padding-bottom: calc(28rpx + env(safe-area-inset-bottom, 0));
   background-color: #f5f6fa;
 }
 </style>

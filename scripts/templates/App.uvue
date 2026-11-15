@@ -1,0 +1,380 @@
+<script lang="ts">
+/**
+ * 应用入口
+ *
+ * 与 Taro 版的差异：
+ * - createApp(App) → createSSRApp(App)，由 main.uts 承担
+ * - 不再需要 pinia 挂载（状态用 store/*.uts 里的全局 reactive 变量）
+ * - AbortController polyfill 移除（请求层改用 uni.request）
+ */
+import { registerTokenExpiredHandler } from '@/api/http/index.ts'
+import { checkAppUpdate } from '@/composables/use-update-checker.ts'
+import { useAppInfoStore } from '@/store/appinfo.ts'
+import { useAppStore } from '@/store/app.ts'
+import { useAuthStore } from '@/store/auth.ts'
+import { useEnumStoreWithOut } from '@/store/enums.ts'
+import { storage } from '@/utils/storage.ts'
+import { watch } from 'vue'
+
+export default {
+  onLaunch() {
+    const appStore = useAppStore()
+    appStore.initSystemInfo()
+
+    const appInfoStore = useAppInfoStore()
+    void appInfoStore.asyncAppInfo()
+
+    const authStore = useAuthStore()
+    const enumStore = useEnumStoreWithOut()
+
+    // 请求层捕获到 token 失效时，把登录态降级（避免与 store 循环依赖）
+    registerTokenExpiredHandler(() => {
+      authStore.downgrade()
+      enumStore.resetStore()
+    })
+
+    // 认证初始化（异步，不阻塞首屏）
+    void authStore.init()
+
+    // 枚举随认证状态加载
+    watch(() => authStore.status, (status: string) => {
+      if (status === 'auth') {
+        void enumStore.ensureLoaded()
+        // 登录成功即解除首页守卫的防回环冷却
+        storage.remove('login_guard_at')
+      }
+      else if (status === 'guest') {
+        enumStore.resetStore()
+      }
+    }, { immediate: true })
+
+  },
+
+  onShow() {
+    // 小程序更新检查
+    checkAppUpdate()
+  },
+}
+</script>
+
+<style lang="scss">
+/* ============================================================
+ * 全局样式
+ *
+ * uni-app x 的 App.uvue 样式对所有页面生效；组件样式默认隔离。
+ * 注意：ucss 只支持 class 选择器，且样式不继承（文本样式必须写在 text 上）。
+ * ============================================================ */
+
+/* ---------- 页面布局 ---------- */
+
+.sp-page {
+  min-height: 100vh;
+  background-color: #f5f6fa;
+  box-sizing: border-box;
+}
+
+/* 带固定底部操作栏的页面：为底栏预留高度 */
+.sp-page--with-bar {
+  /* 页面自身的 `.page { padding: 0 32rpx }` 是简写、同特异性，会把这里重置掉，
+     必须 !important（uni-app x 仅允许在类选择器里用 !important），否则内容被底栏盖住。 */
+  padding-bottom: 250rpx !important;
+}
+
+/* 带悬浮按钮（FAB）的页面：右下角按钮 + 间距预留 */
+.sp-page--with-fab {
+  /* 同上：避让右下角悬浮按钮 */
+  padding-bottom: 200rpx !important;
+}
+
+.sp-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+/* 回到顶部按钮 */
+.sp-backtop {
+  position: fixed;
+  right: 20rpx;
+  bottom: 140rpx;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 60rpx;
+  height: 60rpx;
+  font-size: 28rpx;
+  color: #4f46e5;
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1rpx solid rgba(45, 140, 240, 0.2);
+  border-radius: 30rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.12);
+}
+
+/* 页面底部说明文字 */
+.sp-footnote {
+  padding: 22rpx 0 4rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sp-footnote-text {
+  font-size: 19rpx;
+  color: #b3b8c8;
+}
+
+/* 通用文本辅助类（样式不继承，必须挂在 text 上） */
+.sp-text-center {
+  text-align: center;
+}
+
+.sp-text-right {
+  text-align: right;
+}
+
+.sp-ellipsis {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ---------- 表单控件 ---------- */
+
+.sp-form-input {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  height: 46rpx;
+  font-size: 24rpx;
+  color: #23263a;
+  text-align: right;
+}
+
+.sp-form-placeholder {
+  font-size: 24rpx;
+  color: #b6bbc9;
+}
+
+.sp-form-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-align: right;
+  font-size: 24rpx;
+  color: #23263a;
+}
+
+.sp-form-value--placeholder {
+  color: #b6bbc9;
+}
+
+/* 行尾的「显示 / 隐藏」切换 */
+.sp-form-eye {
+  flex-shrink: 0;
+  padding: 6rpx 0 6rpx 12rpx;
+  font-size: 21rpx;
+  font-weight: 600;
+  color: #4f46e5;
+}
+
+/* 行下提示 */
+.sp-form-error {
+  padding: 8rpx 4rpx 14rpx;
+  font-size: 19rpx;
+  color: #f43f5e;
+}
+
+.sp-form-ok {
+  padding: 8rpx 4rpx 14rpx;
+  font-size: 19rpx;
+  color: #0d9488;
+}
+
+/* ---------- 底部操作栏 ---------- */
+
+.sp-bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+}
+
+.sp-bottom-bar-inner {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16rpx;
+  padding: 12rpx 24rpx;
+  padding-bottom: calc(12rpx + env(safe-area-inset-bottom));
+  background-color: #ffffff;
+  box-shadow: 0 -2rpx 8rpx rgba(0, 0, 0, 0.06);
+}
+
+.sp-bottom-bar-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 48rpx;
+  gap: 2rpx;
+  color: #9aa0b4;
+  font-size: 20rpx;
+}
+
+/* 底部主按钮（替代原 NutUI nut-button--primary） */
+.sp-bottom-btn {
+  flex: 1;
+  height: 92rpx;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  border-radius: 46rpx;
+  background-color: #4f46e5;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.sp-bottom-btn--disabled {
+  opacity: 0.5;
+}
+
+/* ---------- 通用按钮（替代 NutUI nut-button） ---------- */
+
+.sp-btn {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  height: 92rpx;
+  padding: 0 32rpx;
+  border-radius: 46rpx;
+  background-color: #eef0f8;
+}
+
+.sp-btn--block {
+  flex: 1;
+  width: 100%;
+}
+
+.sp-btn--primary {
+  background-color: #4f46e5;
+}
+
+.sp-btn--disabled {
+  opacity: 0.5;
+}
+
+.sp-btn-text {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.sp-btn-text--dark {
+  color: #4f46e5;
+}
+
+/* ---------- 底部弹层（替代 NutUI nut-popup） ---------- */
+
+.sp-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 200;
+  background-color: rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.sp-sheet {
+  background-color: #ffffff;
+  border-top-left-radius: 24rpx;
+  border-top-right-radius: 24rpx;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ---------- 输入框（替代 NutUI nut-input） ---------- */
+
+.sp-input {
+  flex: 1;
+  min-width: 0;
+  height: 88rpx;
+  padding: 0 24rpx;
+  font-size: 28rpx;
+  color: #23263a;
+  background-color: #f5f6fa;
+  border-radius: 16rpx;
+}
+
+/* ---------- 头像 ---------- */
+
+.hero-avatar {
+  flex-shrink: 0;
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 48rpx;
+  background-color: #eef0f8;
+  border: 2rpx solid rgba(255, 255, 255, 0.28);
+}
+
+/* ---------- 行尾箭头 ---------- */
+
+.sp-icon-chevron {
+  font-size: 32rpx;
+  line-height: 32rpx;
+  color: #c2c6d4;
+}
+
+/* ============================================================
+ * 还原 view / text 的默认行为（仅针对我们自己的元素）
+ *
+ * uni-app x 重置了 CSS：view 默认 flex + column、text 默认 block + 左对齐，
+ * 与 Taro/H5 的 block / inline 语义不同，会导致「本该并排的元素竖排、
+ * 容器上的 text-align: center 不生效」。
+ *
+ * 两个限定缺一不可：
+ * 1. :not([class*="uni-"]) —— 排除 uni 内置组件（modal / toast / picker）的内部结构，
+ *    它们的布局就是按重置后的默认值写的，改了会错乱；
+ * 2. :where(...) —— 把特异性归零，只与框架重置（0,0,2）打平靠后生效，
+ *    不会盖过 .sp-btn / .row 这类类选择器（否则 flex 会被改成 block）。
+ * ============================================================ */
+
+/* #ifdef WEB */
+uni-app uni-view:where(:not([class*="uni-"])) {
+  display: block;
+  /* 框架给所有 view 加了 overflow: hidden，会把绝对定位的下拉面板整个裁掉 */
+  overflow: visible;
+}
+
+uni-app uni-text:where(:not([class*="uni-"])) {
+  display: inline;
+  text-align: inherit;
+}
+/* #endif */
+
+/* #ifdef MP-WEIXIN || MP-ALIPAY || MP-BAIDU || MP-TOUTIAO */
+page view {
+  display: block;
+  overflow: visible;
+}
+
+page text {
+  display: inline;
+  text-align: inherit;
+}
+/* #endif */
+</style>

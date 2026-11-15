@@ -26,9 +26,9 @@ defineProps({
   flex-direction: row;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 24rpx;
-  padding: 16rpx 0;
-  border-bottom: 1rpx solid #f1f2f7;
+  gap: 28rpx;
+  padding: 18rpx 0;
+  border-bottom: 1.2rpx solid #f1f2f7;
 }
 
 /* #ifdef WEB */
@@ -40,7 +40,7 @@ defineProps({
 
 .label {
   flex-shrink: 0;
-  font-size: 23rpx;
+  font-size: 26rpx;
   line-height: 1.5;
   color: #9aa0b4;
 }
@@ -48,14 +48,14 @@ defineProps({
 .value {
   flex: 1;
   text-align: right;
-  font-size: 23rpx;
+  font-size: 26rpx;
   line-height: 1.5;
   color: #23263a;
   word-break: break-all;
 }
 
 .value--strong {
-  font-size: 25rpx;
+  font-size: 29rpx;
   font-weight: 600;
   color: #1c1c2e;
   font-variant-numeric: tabular-nums;

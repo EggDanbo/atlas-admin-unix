@@ -120,7 +120,7 @@ onPageShow(() => void load())
 .page {
   min-height: 100vh;
   min-height: 100dvh;
-  padding-bottom: calc(24rpx + env(safe-area-inset-bottom, 0));
+  padding-bottom: calc(28rpx + env(safe-area-inset-bottom, 0));
   background-color: #f5f6fa;
 }
 
@@ -129,11 +129,11 @@ onPageShow(() => void load())
   display: flex;
   flex-direction: row;
   align-items: center;
-  margin: 16rpx 16rpx 0;
-  padding: 22rpx 8rpx;
-  border-radius: 20rpx;
+  margin: 18rpx 18rpx 0;
+  padding: 25rpx 9rpx;
+  border-radius: 23rpx;
   background: linear-gradient(135deg, #3b4fe0 0%, #7c6cf6 100%);
-  box-shadow: 0 14rpx 28rpx rgba(59, 79, 224, 0.22);
+  box-shadow: 0 16rpx 32rpx rgba(59, 79, 224, 0.22);
 }
 
 .summary-item {
@@ -141,34 +141,34 @@ onPageShow(() => void load())
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6rpx;
+  gap: 7rpx;
 }
 
 .summary-value {
-  font-size: 42rpx;
+  font-size: 48rpx;
   font-weight: 700;
   color: #fff;
   line-height: 1.1;
 }
 
 .summary-label {
-  font-size: 20rpx;
+  font-size: 23rpx;
   color: rgba(255, 255, 255, 0.8);
 }
 
 .summary-divider {
-  width: 1rpx;
-  height: 42rpx;
+  width: 1.2rpx;
+  height: 48rpx;
   background-color: rgba(255, 255, 255, 0.24);
 }
 
 /* 列表卡片 */
 .card {
-  margin: 18rpx 16rpx 0;
-  padding: 18rpx 24rpx 6rpx;
-  border-radius: 18rpx;
+  margin: 21rpx 18rpx 0;
+  padding: 21rpx 28rpx 7rpx;
+  border-radius: 21rpx;
   background-color: #fff;
-  box-shadow: 0 8rpx 24rpx rgba(23, 23, 64, 0.05);
+  box-shadow: 0 9rpx 28rpx rgba(23, 23, 64, 0.05);
 }
 
 .card-head {
@@ -176,24 +176,24 @@ onPageShow(() => void load())
   flex-direction: row;
   align-items: baseline;
   justify-content: space-between;
-  padding-bottom: 6rpx;
+  padding-bottom: 7rpx;
 }
 
 .card-title {
-  font-size: 28rpx;
+  font-size: 32rpx;
   font-weight: 700;
   color: #1c1c2e;
 }
 
 .card-hint {
-  font-size: 20rpx;
+  font-size: 23rpx;
   color: #9aa0b4;
 }
 
 .tip {
-  padding: 36rpx 0;
+  padding: 41rpx 0;
   text-align: center;
-  font-size: 22rpx;
+  font-size: 25rpx;
   color: #9aa0b4;
 }
 
@@ -201,9 +201,9 @@ onPageShow(() => void load())
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 12rpx;
-  padding: 16rpx 0;
-  border-bottom: 1rpx solid #f1f2f7;
+  gap: 14rpx;
+  padding: 18rpx 0;
+  border-bottom: 1.2rpx solid #f1f2f7;
 }
 
 /* #ifdef WEB */
@@ -216,17 +216,17 @@ onPageShow(() => void load())
 .row-date {
   display: flex;
   flex-direction: column;
-  width: 108rpx;
+  width: 124rpx;
 }
 
 .row-day {
-  font-size: 24rpx;
+  font-size: 28rpx;
   font-weight: 600;
   color: #1c1c2e;
 }
 
 .row-week {
-  font-size: 19rpx;
+  font-size: 22rpx;
   color: #9aa0b4;
 }
 
@@ -235,8 +235,8 @@ onPageShow(() => void load())
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 8rpx;
-  font-size: 24rpx;
+  gap: 9rpx;
+  font-size: 28rpx;
   color: #23263a;
 }
 
@@ -245,16 +245,16 @@ onPageShow(() => void load())
 }
 
 .row-hours {
-  width: 80rpx;
+  width: 92rpx;
   text-align: right;
-  font-size: 22rpx;
+  font-size: 25rpx;
   color: #6b7080;
 }
 
 .tag {
-  padding: 2rpx 10rpx;
-  border-radius: 6rpx;
-  font-size: 19rpx;
+  padding: 2rpx 12rpx;
+  border-radius: 7rpx;
+  font-size: 22rpx;
 }
 
 .tag--ok {

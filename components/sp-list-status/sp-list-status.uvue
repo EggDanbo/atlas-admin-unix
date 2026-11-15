@@ -50,7 +50,7 @@ defineEmits(['loadMore'])
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 80rpx 0;
+  padding: 92rpx 0;
 }
 
 .loadingIcon {
@@ -59,13 +59,13 @@ defineEmits(['loadMore'])
 }
 
 .loadingText {
-  margin-top: 12rpx;
+  margin-top: 14rpx;
   font-size: $font-size-sm;
   color: $text-color-secondary;
 }
 
 .loadStatus {
-  padding: 24rpx 0;
+  padding: 28rpx 0;
   text-align: center;
 }
 

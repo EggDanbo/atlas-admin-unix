@@ -73,12 +73,12 @@ function select(option: FilterOption) {
   display: inline-flex;
   flex-direction: row;
   align-items: center;
-  gap: 10rpx;
-  padding: 10rpx 22rpx;
-  border-radius: 14rpx;
-  border: 1rpx solid #e9ecf4;
+  gap: 12rpx;
+  padding: 12rpx 25rpx;
+  border-radius: 16rpx;
+  border: 1.2rpx solid #e9ecf4;
   background-color: #fff;
-  font-size: 22rpx;
+  font-size: 25rpx;
   color: #4a4f60;
 }
 
@@ -94,9 +94,9 @@ function select(option: FilterOption) {
 }
 
 .chevron {
-  width: 12rpx;
-  height: 12rpx;
-  margin-top: -6rpx;
+  width: 14rpx;
+  height: 14rpx;
+  margin-top: -7rpx;
   border-right: 2rpx solid currentColor;
   border-bottom: 2rpx solid currentColor;
   transform: rotate(45deg);
@@ -106,28 +106,28 @@ function select(option: FilterOption) {
 }
 
 .chevron--up {
-  margin-top: 4rpx;
+  margin-top: 5rpx;
   transform: rotate(-135deg);
 }
 
 .dropdown {
   position: absolute;
-  top: calc(100% + 12rpx);
+  top: calc(100% + 14rpx);
   left: 0;
   /* 要盖住同组件内的遮罩（z-index 40） */
   z-index: 61;
-  min-width: 280rpx;
-  padding: 8rpx 0;
-  border-radius: 18rpx;
+  min-width: 322rpx;
+  padding: 9rpx 0;
+  border-radius: 21rpx;
   background-color: #fff;
-  box-shadow: 0 18rpx 42rpx rgba(23, 23, 64, 0.16);
+  box-shadow: 0 21rpx 48rpx rgba(23, 23, 64, 0.16);
   animation: dropdown-in 0.16s ease;
 }
 
 @keyframes dropdown-in {
   from {
     opacity: 0;
-    transform: translateY(-6rpx);
+    transform: translateY(-7rpx);
   }
 
   to {
@@ -141,9 +141,9 @@ function select(option: FilterOption) {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  gap: 24rpx;
-  padding: 18rpx 26rpx;
-  font-size: 24rpx;
+  gap: 28rpx;
+  padding: 21rpx 30rpx;
+  font-size: 28rpx;
   color: #4a4f60;
 }
 
@@ -166,7 +166,7 @@ function select(option: FilterOption) {
 
 .option-check {
   flex-shrink: 0;
-  font-size: 22rpx;
+  font-size: 25rpx;
   color: #4f46e5;
 }
 

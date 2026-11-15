@@ -33,20 +33,20 @@ const hasHead = computed(() => !!(props.title || props.hint || slots.value.title
 
 <style lang="scss">
 .card {
-  margin: 16rpx 16rpx 0;
-  border-radius: 18rpx;
+  margin: 18rpx 18rpx 0;
+  border-radius: 21rpx;
   background-color: #fff;
-  box-shadow: 0 8rpx 24rpx rgba(23, 23, 64, 0.05);
+  box-shadow: 0 9rpx 28rpx rgba(23, 23, 64, 0.05);
 }
 
 /* 表单卡：内部是「标签 + 输入」行 */
 .card--form {
-  padding: 4rpx 20rpx;
+  padding: 5rpx 23rpx;
 }
 
 /* 详情卡：内部是「标签 + 值」行，标题下留白更宽松 */
 .card--detail {
-  padding: 20rpx 24rpx 6rpx;
+  padding: 23rpx 28rpx 7rpx;
 }
 
 .head {
@@ -54,26 +54,26 @@ const hasHead = computed(() => !!(props.title || props.hint || slots.value.title
   flex-direction: row;
   align-items: baseline;
   justify-content: space-between;
-  gap: 12rpx;
+  gap: 14rpx;
 }
 
 /* #ifdef WEB */
 .card--form .head {
-  padding: 20rpx 4rpx 4rpx;
+  padding: 23rpx 5rpx 5rpx;
 }
 
 /* #endif */
 
 /* #ifdef WEB */
 .card--detail .head {
-  padding-bottom: 6rpx;
+  padding-bottom: 7rpx;
 }
 
 /* #endif */
 
 .title {
   flex-shrink: 0;
-  font-size: 27rpx;
+  font-size: 31rpx;
   font-weight: 700;
   color: #1c1c2e;
 }
@@ -82,13 +82,13 @@ const hasHead = computed(() => !!(props.title || props.hint || slots.value.title
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-size: 18rpx;
+  font-size: 21rpx;
   color: #a8aec0;
 }
 
 /* #ifdef WEB */
 .card--detail .hint {
-  font-size: 20rpx;
+  font-size: 23rpx;
   color: #9aa0b4;
 }
 

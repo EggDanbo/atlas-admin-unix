@@ -217,7 +217,7 @@ async function submit() {
 .page {
   min-height: 100vh;
   min-height: 100dvh;
-  padding-bottom: calc(160rpx + env(safe-area-inset-bottom, 0));
+  padding-bottom: calc(184rpx + env(safe-area-inset-bottom, 0));
   background-color: #f5f6fa;
 }
 
@@ -225,19 +225,19 @@ async function submit() {
 .segment {
   display: flex;
   flex-direction: row;
-  gap: 8rpx;
-  margin: 16rpx 16rpx 0;
-  padding: 6rpx;
-  border-radius: 999rpx;
+  gap: 9rpx;
+  margin: 18rpx 18rpx 0;
+  padding: 7rpx;
+  border-radius: 1149rpx;
   background-color: #eceefa;
 }
 
 .segment-item {
   flex: 1;
-  padding: 12rpx 0;
-  border-radius: 999rpx;
+  padding: 14rpx 0;
+  border-radius: 1149rpx;
   text-align: center;
-  font-size: 24rpx;
+  font-size: 28rpx;
   color: #6b7080;
   transition: all 0.2s ease;
 }
@@ -246,15 +246,15 @@ async function submit() {
   background-color: #fff;
   color: #4f46e5;
   font-weight: 600;
-  box-shadow: 0 4rpx 12rpx rgba(59, 79, 224, 0.12);
+  box-shadow: 0 5rpx 14rpx rgba(59, 79, 224, 0.12);
 }
 
 .card {
-  margin: 16rpx 16rpx 0;
-  padding: 6rpx 24rpx;
-  border-radius: 18rpx;
+  margin: 18rpx 18rpx 0;
+  padding: 7rpx 28rpx;
+  border-radius: 21rpx;
   background-color: #fff;
-  box-shadow: 0 8rpx 24rpx rgba(23, 23, 64, 0.05);
+  box-shadow: 0 9rpx 28rpx rgba(23, 23, 64, 0.05);
 }
 
 .row {
@@ -262,8 +262,8 @@ async function submit() {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding: 20rpx 0;
-  border-bottom: 1rpx solid #f1f2f7;
+  padding: 23rpx 0;
+  border-bottom: 1.2rpx solid #f1f2f7;
 }
 
 .row--last {
@@ -271,12 +271,12 @@ async function submit() {
 }
 
 .row-label {
-  font-size: 24rpx;
+  font-size: 28rpx;
   color: #23263a;
 }
 
 .row-value {
-  font-size: 24rpx;
+  font-size: 28rpx;
   color: #6b7080;
 }
 
@@ -289,14 +289,14 @@ async function submit() {
 .chips {
   display: flex;
   flex-direction: row;
-  gap: 10rpx;
+  gap: 12rpx;
 }
 
 .chip {
-  padding: 8rpx 20rpx;
-  border-radius: 999rpx;
+  padding: 9rpx 23rpx;
+  border-radius: 1149rpx;
   background-color: #f4f5fb;
-  font-size: 21rpx;
+  font-size: 24rpx;
   color: #6b7080;
 }
 
@@ -308,20 +308,20 @@ async function submit() {
 
 /* 事由 */
 .card-title {
-  padding: 18rpx 0 8rpx;
-  font-size: 26rpx;
+  padding: 21rpx 0 9rpx;
+  font-size: 30rpx;
   font-weight: 600;
   color: #1c1c2e;
 }
 
 .textarea {
   width: 100%;
-  height: 180rpx;
-  padding: 16rpx;
-  margin-top: 6rpx;
-  border-radius: 14rpx;
+  height: 207rpx;
+  padding: 18rpx;
+  margin-top: 7rpx;
+  border-radius: 16rpx;
   background-color: #f7f8fc;
-  font-size: 24rpx;
+  font-size: 28rpx;
   color: #23263a;
   box-sizing: border-box;
 }
@@ -331,15 +331,15 @@ async function submit() {
 }
 
 .counter {
-  padding: 8rpx 4rpx 16rpx;
+  padding: 9rpx 5rpx 18rpx;
   text-align: right;
-  font-size: 19rpx;
+  font-size: 22rpx;
   color: #b3b8c8;
 }
 
 .tips {
-  margin: 16rpx 16rpx 0;
-  font-size: 20rpx;
+  margin: 18rpx 18rpx 0;
+  font-size: 23rpx;
   line-height: 1.6;
   color: #9aa0b4;
 }
@@ -350,17 +350,17 @@ async function submit() {
   right: 0;
   bottom: 0;
   left: 0;
-  padding: 16rpx 16rpx calc(20rpx + env(safe-area-inset-bottom, 0));
+  padding: 18rpx 18rpx calc(23rpx + env(safe-area-inset-bottom, 0));
   background: linear-gradient(180deg, rgba(245, 246, 250, 0) 0%, #f5f6fa 40%);
 }
 
 .submit {
-  padding: 24rpx 0;
-  border-radius: 999rpx;
+  padding: 28rpx 0;
+  border-radius: 1149rpx;
   background: linear-gradient(135deg, #3b4fe0 0%, #7c6cf6 100%);
-  box-shadow: 0 12rpx 24rpx rgba(59, 79, 224, 0.24);
+  box-shadow: 0 14rpx 28rpx rgba(59, 79, 224, 0.24);
   text-align: center;
-  font-size: 28rpx;
+  font-size: 32rpx;
   font-weight: 600;
   color: #fff;
 }

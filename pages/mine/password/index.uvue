@@ -242,7 +242,7 @@ async function handleSubmit() {
 .page {
   min-height: 100%;
   // 底部留白交给 .sp-page--with-bar
-  padding: 12rpx 0 0;
+  padding: 14rpx 0 0;
   background: #f5f6fa;
 }
 
@@ -253,22 +253,22 @@ async function handleSubmit() {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 20rpx;
-  margin: 4rpx 16rpx 0;
-  padding: 22rpx 24rpx;
-  border-radius: 20rpx;
+  gap: 23rpx;
+  margin: 5rpx 18rpx 0;
+  padding: 25rpx 28rpx;
+  border-radius: 23rpx;
   overflow: hidden;
   background: linear-gradient(135deg, #3b4fe0 0%, #5b4ae0 46%, #7c3aed 100%);
-  box-shadow: 0 18rpx 40rpx rgba(59, 79, 224, 0.26);
+  box-shadow: 0 21rpx 46rpx rgba(59, 79, 224, 0.26);
   color: #fff;
 }
 
 .hero-glow {
   position: absolute;
-  top: -110rpx;
-  right: -70rpx;
-  width: 220rpx;
-  height: 220rpx;
+  top: -126rpx;
+  right: -80rpx;
+  width: 253rpx;
+  height: 253rpx;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(94, 234, 212, 0.3), transparent 68%);
 }
@@ -277,32 +277,32 @@ async function handleSubmit() {
   position: relative;
   z-index: 1;
   flex-shrink: 0;
-  width: 76rpx;
-  height: 76rpx;
-  border-radius: 22rpx;
+  width: 87rpx;
+  height: 87rpx;
+  border-radius: 25rpx;
   background-color: rgba(255, 255, 255, 0.16);
-  border: 1rpx solid rgba(255, 255, 255, 0.22);
+  border: 1.2rpx solid rgba(255, 255, 255, 0.22);
 }
 
 .lock-shackle {
   position: absolute;
-  top: 17rpx;
-  left: 25rpx;
-  width: 26rpx;
-  height: 20rpx;
+  top: 20rpx;
+  left: 29rpx;
+  width: 30rpx;
+  height: 23rpx;
   box-sizing: border-box;
-  border: 4rpx solid rgba(255, 255, 255, 0.92);
+  border: 5rpx solid rgba(255, 255, 255, 0.92);
   border-bottom: none;
-  border-radius: 14rpx 14rpx 0 0;
+  border-radius: 16rpx 16rpx 0 0;
 }
 
 .lock-body {
   position: absolute;
-  top: 33rpx;
-  left: 21rpx;
-  width: 34rpx;
-  height: 26rpx;
-  border-radius: 7rpx;
+  top: 38rpx;
+  left: 24rpx;
+  width: 39rpx;
+  height: 30rpx;
+  border-radius: 8rpx;
   background-color: #fff;
 }
 
@@ -313,20 +313,20 @@ async function handleSubmit() {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 8rpx;
+  gap: 9rpx;
 }
 
 .hero-title {
-  font-size: 32rpx;
+  font-size: 37rpx;
   font-weight: 700;
-  letter-spacing: 0.5rpx;
+  letter-spacing: 0.6rpx;
 }
 
 .hero-meta {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-size: 19rpx;
+  font-size: 22rpx;
   color: rgba(255, 255, 255, 0.72);
 }
 
@@ -340,45 +340,45 @@ async function handleSubmit() {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 14rpx;
-  padding: 14rpx 4rpx 16rpx;
+  gap: 16rpx;
+  padding: 16rpx 5rpx 18rpx;
 }
 
 .strength-bars {
   flex: 1;
   display: flex;
   flex-direction: row;
-  gap: 8rpx;
+  gap: 9rpx;
 }
 
 .strength-bar {
   flex: 1;
-  height: 6rpx;
-  border-radius: 999rpx;
+  height: 7rpx;
+  border-radius: 1149rpx;
   background-color: #eef0f6;
   transition: background-color 0.2s ease;
 }
 
 .strength-label {
   flex-shrink: 0;
-  width: 56rpx;
+  width: 64rpx;
   text-align: right;
-  font-size: 19rpx;
+  font-size: 22rpx;
   font-weight: 600;
 }
 
 /* 密码要求 */
 
 .rules {
-  padding: 2rpx 0 12rpx;
+  padding: 2rpx 0 14rpx;
 }
 
 .rule {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 12rpx;
-  padding: 12rpx 4rpx;
+  gap: 14rpx;
+  padding: 14rpx 5rpx;
 }
 
 .rule-dot {
@@ -387,8 +387,8 @@ async function handleSubmit() {
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  width: 30rpx;
-  height: 30rpx;
+  width: 35rpx;
+  height: 35rpx;
   box-sizing: border-box;
   border-radius: 50%;
   border: 2rpx solid #dcdfea;
@@ -400,7 +400,7 @@ async function handleSubmit() {
 }
 
 .rule-check {
-  font-size: 17rpx;
+  font-size: 20rpx;
   line-height: 1;
   color: #fff;
 }
@@ -408,7 +408,7 @@ async function handleSubmit() {
 .rule-text {
   flex: 1;
   min-width: 0;
-  font-size: 21rpx;
+  font-size: 24rpx;
   color: #5b6072;
 }
 
@@ -419,8 +419,8 @@ async function handleSubmit() {
 /* ==================== 底部说明 ==================== */
 
 .notice {
-  padding: 20rpx 26rpx 4rpx;
-  font-size: 19rpx;
+  padding: 23rpx 30rpx 5rpx;
+  font-size: 22rpx;
   line-height: 1.7;
   color: #a8aec0;
 }

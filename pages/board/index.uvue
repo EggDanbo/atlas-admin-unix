@@ -163,17 +163,17 @@ const today = computed(() => {
 <style lang="scss">
 .page {
   min-height: 100%;
-  padding-bottom: calc(26rpx + env(safe-area-inset-bottom, 0));
+  padding-bottom: calc(30rpx + env(safe-area-inset-bottom, 0));
   background-color: #f5f6fa;
 }
 
 /* 概览卡 */
 .hero {
-  margin: 16rpx 16rpx 0;
-  padding: 24rpx 26rpx 22rpx;
-  border-radius: 22rpx;
+  margin: 18rpx 18rpx 0;
+  padding: 28rpx 30rpx 25rpx;
+  border-radius: 25rpx;
   background: linear-gradient(135deg, #3b4fe0 0%, #7c6cf6 100%);
-  box-shadow: 0 16rpx 30rpx rgba(59, 79, 224, 0.24);
+  box-shadow: 0 18rpx 35rpx rgba(59, 79, 224, 0.24);
 }
 
 .hero-top {
@@ -184,15 +184,15 @@ const today = computed(() => {
 }
 
 .hero-label {
-  padding: 4rpx 12rpx;
-  border-radius: 8rpx;
+  padding: 5rpx 14rpx;
+  border-radius: 9rpx;
   background-color: rgba(255, 255, 255, 0.18);
-  font-size: 19rpx;
+  font-size: 22rpx;
   color: rgba(255, 255, 255, 0.92);
 }
 
 .hero-date {
-  font-size: 20rpx;
+  font-size: 23rpx;
   color: rgba(255, 255, 255, 0.72);
 }
 
@@ -200,26 +200,26 @@ const today = computed(() => {
   display: flex;
   flex-direction: row;
   align-items: baseline;
-  gap: 10rpx;
-  margin-top: 16rpx;
+  gap: 12rpx;
+  margin-top: 18rpx;
 }
 
 .hero-value {
-  font-size: 66rpx;
+  font-size: 76rpx;
   font-weight: 700;
   line-height: 1;
   color: #fff;
 }
 
 .hero-unit {
-  font-size: 22rpx;
+  font-size: 25rpx;
   color: rgba(255, 255, 255, 0.82);
 }
 
 .hero-hint {
   display: block;
-  margin-top: 12rpx;
-  font-size: 20rpx;
+  margin-top: 14rpx;
+  font-size: 23rpx;
   color: rgba(255, 255, 255, 0.72);
 }
 
@@ -228,50 +228,50 @@ const today = computed(() => {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  gap: 14rpx;
-  margin: 16rpx 16rpx 0;
+  gap: 16rpx;
+  margin: 18rpx 18rpx 0;
 }
 
 .tile {
-  flex: 1 1 calc(50% - 7rpx);
+  flex: 1 1 calc(50% - 8rpx);
   display: flex;
   flex-direction: column;
-  gap: 6rpx;
-  padding: 20rpx 22rpx;
-  border-radius: 18rpx;
+  gap: 7rpx;
+  padding: 23rpx 25rpx;
+  border-radius: 21rpx;
   background-color: #fff;
-  box-shadow: 0 8rpx 24rpx rgba(23, 23, 64, 0.05);
+  box-shadow: 0 9rpx 28rpx rgba(23, 23, 64, 0.05);
 }
 
 .tile-value {
   display: flex;
   flex-direction: row;
   align-items: baseline;
-  gap: 6rpx;
-  font-size: 44rpx;
+  gap: 7rpx;
+  font-size: 51rpx;
   font-weight: 700;
   line-height: 1.1;
   color: #1c1c2e;
 }
 
 .tile-unit {
-  font-size: 20rpx;
+  font-size: 23rpx;
   font-weight: 400;
   color: #9aa0b4;
 }
 
 .tile-label {
-  font-size: 21rpx;
+  font-size: 24rpx;
   color: #9aa0b4;
 }
 
 /* 卡片 */
 .card {
-  margin: 16rpx 16rpx 0;
-  padding: 20rpx 24rpx 14rpx;
-  border-radius: 18rpx;
+  margin: 18rpx 18rpx 0;
+  padding: 23rpx 28rpx 16rpx;
+  border-radius: 21rpx;
   background-color: #fff;
-  box-shadow: 0 8rpx 24rpx rgba(23, 23, 64, 0.05);
+  box-shadow: 0 9rpx 28rpx rgba(23, 23, 64, 0.05);
 }
 
 .card-head {
@@ -279,24 +279,24 @@ const today = computed(() => {
   flex-direction: row;
   align-items: baseline;
   justify-content: space-between;
-  padding-bottom: 12rpx;
+  padding-bottom: 14rpx;
 }
 
 .card-title {
-  font-size: 27rpx;
+  font-size: 31rpx;
   font-weight: 700;
   color: #1c1c2e;
 }
 
 .card-hint {
-  font-size: 20rpx;
+  font-size: 23rpx;
   color: #9aa0b4;
 }
 
 .tip {
-  padding: 30rpx 0;
+  padding: 35rpx 0;
   text-align: center;
-  font-size: 22rpx;
+  font-size: 25rpx;
   color: #9aa0b4;
 }
 
@@ -305,9 +305,9 @@ const today = computed(() => {
   display: flex;
   flex-direction: row;
   align-items: flex-end;
-  gap: 12rpx;
-  height: 280rpx;
-  padding: 6rpx 4rpx 0;
+  gap: 14rpx;
+  height: 322rpx;
+  padding: 7rpx 5rpx 0;
 }
 
 .bar {
@@ -315,12 +315,12 @@ const today = computed(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6rpx;
+  gap: 7rpx;
   height: 100%;
 }
 
 .bar-value {
-  font-size: 19rpx;
+  font-size: 22rpx;
   color: #6b7080;
 }
 
@@ -330,27 +330,27 @@ const today = computed(() => {
   flex-direction: row;
   align-items: flex-end;
   width: 100%;
-  border-radius: 8rpx;
+  border-radius: 9rpx;
   background-color: #f5f6fa;
   overflow: hidden;
 }
 
 .bar-fill {
   width: 100%;
-  border-radius: 8rpx;
+  border-radius: 9rpx;
   background: linear-gradient(180deg, #7c6cf6 0%, #4f46e5 100%);
   transition: height 0.3s ease;
 }
 
 .bar-label {
-  font-size: 19rpx;
+  font-size: 22rpx;
   color: #9aa0b4;
 }
 
 /* 部门分布 */
 .row {
-  padding: 12rpx 0 14rpx;
-  border-bottom: 1rpx solid #f4f5f9;
+  padding: 14rpx 0 16rpx;
+  border-bottom: 1.2rpx solid #f4f5f9;
 }
 
 /* #ifdef WEB */
@@ -365,29 +365,29 @@ const today = computed(() => {
   flex-direction: row;
   align-items: baseline;
   justify-content: space-between;
-  padding-bottom: 10rpx;
+  padding-bottom: 12rpx;
 }
 
 .row-name {
-  font-size: 23rpx;
+  font-size: 26rpx;
   color: #23263a;
 }
 
 .row-value {
-  font-size: 20rpx;
+  font-size: 23rpx;
   color: #9aa0b4;
 }
 
 .track {
-  height: 10rpx;
-  border-radius: 5rpx;
+  height: 12rpx;
+  border-radius: 6rpx;
   background-color: #f2f3f8;
   overflow: hidden;
 }
 
 .fill {
   height: 100%;
-  border-radius: 5rpx;
+  border-radius: 6rpx;
   background: linear-gradient(90deg, #4f46e5 0%, #8b5cf6 100%);
 }
 
@@ -396,9 +396,9 @@ const today = computed(() => {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 14rpx;
-  padding: 12rpx 0;
-  border-bottom: 1rpx solid #f4f5f9;
+  gap: 16rpx;
+  padding: 14rpx 0;
+  border-bottom: 1.2rpx solid #f4f5f9;
 }
 
 /* #ifdef WEB */
@@ -410,8 +410,8 @@ const today = computed(() => {
 
 .type-name {
   flex-shrink: 0;
-  width: 190rpx;
-  font-size: 22rpx;
+  width: 218rpx;
+  font-size: 25rpx;
   color: #23263a;
   overflow: hidden;
   white-space: nowrap;
@@ -420,23 +420,23 @@ const today = computed(() => {
 
 .type-track {
   flex: 1;
-  height: 10rpx;
-  border-radius: 5rpx;
+  height: 12rpx;
+  border-radius: 6rpx;
   background-color: #f2f3f8;
   overflow: hidden;
 }
 
 .type-fill {
   height: 100%;
-  border-radius: 5rpx;
+  border-radius: 6rpx;
   background: linear-gradient(90deg, #a5b4fc 0%, #6366f1 100%);
 }
 
 .type-value {
   flex-shrink: 0;
-  width: 40rpx;
+  width: 46rpx;
   text-align: right;
-  font-size: 21rpx;
+  font-size: 24rpx;
   color: #6b7080;
 }
 </style>

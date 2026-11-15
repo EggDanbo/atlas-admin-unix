@@ -64,25 +64,25 @@ function handleClear() {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 14rpx;
-  height: 76rpx;
-  padding: 0 22rpx;
-  border-radius: 18rpx;
-  border: 1rpx solid #edeff6;
+  gap: 16rpx;
+  height: 87rpx;
+  padding: 0 25rpx;
+  border-radius: 21rpx;
+  border: 1.2rpx solid #edeff6;
   background-color: #fff;
-  box-shadow: 0 6rpx 18rpx rgba(23, 23, 64, 0.04);
+  box-shadow: 0 7rpx 21rpx rgba(23, 23, 64, 0.04);
 }
 
 /* 页面顶层使用时自带左右留白；放进工具栏时由父级控制 */
 .search--inset {
-  margin: 16rpx 16rpx 0;
+  margin: 18rpx 18rpx 0;
 }
 
 .search-icon {
   position: relative;
   flex-shrink: 0;
-  width: 24rpx;
-  height: 24rpx;
+  width: 28rpx;
+  height: 28rpx;
   border: 2rpx solid #b6bccd;
   border-radius: 50%;
 }
@@ -91,9 +91,9 @@ function handleClear() {
 .search-icon::after {
   content: '';
   position: absolute;
-  right: -6rpx;
+  right: -7rpx;
   bottom: -2rpx;
-  width: 10rpx;
+  width: 12rpx;
   height: 2rpx;
   border-radius: 2rpx;
   background-color: #b6bccd;
@@ -108,7 +108,7 @@ function handleClear() {
   flex-direction: row;
   align-items: center;
   height: 100%;
-  font-size: 24rpx;
+  font-size: 28rpx;
   color: #23263a;
 }
 
@@ -122,8 +122,8 @@ function handleClear() {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 32rpx;
-  height: 32rpx;
+  width: 37rpx;
+  height: 37rpx;
   border-radius: 50%;
   background-color: #eef0f6;
 }
@@ -136,7 +136,7 @@ function handleClear() {
 /* #endif */
 
 .search-clear-icon {
-  font-size: 24rpx;
+  font-size: 28rpx;
   line-height: 1;
   color: #8a90a3;
 }

@@ -65,11 +65,11 @@ function handleMenuClick(item: MenuItem) {
 
 <style lang="scss">
 .section {
-  margin: 16rpx 16rpx 0;
-  padding: 20rpx 18rpx 6rpx;
-  border-radius: 18rpx;
+  margin: 18rpx 18rpx 0;
+  padding: 23rpx 21rpx 7rpx;
+  border-radius: 21rpx;
   background-color: #fff;
-  box-shadow: 0 8rpx 24rpx rgba(23, 23, 64, 0.05);
+  box-shadow: 0 9rpx 28rpx rgba(23, 23, 64, 0.05);
 }
 
 .section-head {
@@ -77,17 +77,17 @@ function handleMenuClick(item: MenuItem) {
   flex-direction: row;
   align-items: baseline;
   justify-content: space-between;
-  padding: 0 4rpx 12rpx;
+  padding: 0 5rpx 14rpx;
 }
 
 .section-title {
-  font-size: 30rpx;
+  font-size: 35rpx;
   font-weight: 700;
   color: #1c1c2e;
 }
 
 .section-hint {
-  font-size: 20rpx;
+  font-size: 23rpx;
   color: #9aa0b4;
 }
 
@@ -101,9 +101,9 @@ function handleMenuClick(item: MenuItem) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10rpx;
+  gap: 12rpx;
   width: 25%;
-  padding: 10rpx 0 16rpx;
+  padding: 12rpx 0 18rpx;
 }
 
 /* #ifdef WEB */
@@ -119,34 +119,34 @@ function handleMenuClick(item: MenuItem) {
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  width: 76rpx;
-  height: 76rpx;
-  border-radius: 22rpx;
+  width: 87rpx;
+  height: 87rpx;
+  border-radius: 25rpx;
 }
 
 .badge {
   position: absolute;
-  top: -8rpx;
-  right: -10rpx;
-  min-width: 30rpx;
-  height: 30rpx;
-  padding: 0 7rpx;
-  border-radius: 999rpx;
+  top: -9rpx;
+  right: -11rpx;
+  min-width: 35rpx;
+  height: 35rpx;
+  padding: 0 8rpx;
+  border-radius: 1149rpx;
   background-color: #e11d48;
-  box-shadow: 0 2rpx 6rpx rgba(225, 29, 72, 0.35);
-  font-size: 17rpx;
-  line-height: 30rpx;
+  box-shadow: 0 2rpx 7rpx rgba(225, 29, 72, 0.35);
+  font-size: 20rpx;
+  line-height: 35rpx;
   color: #fff;
   text-align: center;
 }
 
 .tile-glyph {
-  font-size: 38rpx;
-  line-height: 42rpx;
+  font-size: 44rpx;
+  line-height: 48rpx;
 }
 
 .tile-label {
-  font-size: 20rpx;
+  font-size: 23rpx;
   color: #23263a;
   text-align: center;
 }

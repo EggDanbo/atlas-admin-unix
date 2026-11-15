@@ -224,7 +224,7 @@ async function handleReadAll() {
 <style lang="scss">
 .page {
   min-height: 100%;
-  padding-bottom: calc(24rpx + env(safe-area-inset-bottom, 0));
+  padding-bottom: calc(28rpx + env(safe-area-inset-bottom, 0));
   background-color: #f5f6fa;
 }
 
@@ -232,7 +232,7 @@ async function handleReadAll() {
 .toolbar {
   position: relative;
   z-index: 50;
-  padding: 16rpx 16rpx 0;
+  padding: 18rpx 18rpx 0;
 }
 
 /* 搜索框：整块作为点击区，内层 input 垂直居中 */
@@ -241,21 +241,21 @@ async function handleReadAll() {
   display: flex;
   flex-direction: row;
   align-items: center;
-  margin-top: 16rpx;
+  margin-top: 18rpx;
 }
 
 .filter-count {
-  margin-left: 14rpx;
-  font-size: 20rpx;
+  margin-left: 16rpx;
+  font-size: 23rpx;
   color: #9aa0b4;
 }
 
 .read-all {
   margin-left: auto;
-  padding: 8rpx 18rpx;
-  border-radius: 999rpx;
+  padding: 9rpx 21rpx;
+  border-radius: 1149rpx;
   background-color: #eef2ff;
-  font-size: 20rpx;
+  font-size: 23rpx;
   color: #4f46e5;
 }
 
@@ -269,15 +269,15 @@ async function handleReadAll() {
 /* 下拉面板 */
 /* 列表 */
 .list {
-  margin-top: 6rpx;
+  margin-top: 7rpx;
 }
 
 .card {
-  margin: 14rpx 16rpx 0;
-  padding: 20rpx 24rpx 16rpx;
-  border-radius: 18rpx;
+  margin: 16rpx 18rpx 0;
+  padding: 23rpx 28rpx 18rpx;
+  border-radius: 21rpx;
   background-color: #fff;
-  box-shadow: 0 8rpx 24rpx rgba(23, 23, 64, 0.05);
+  box-shadow: 0 9rpx 28rpx rgba(23, 23, 64, 0.05);
 }
 
 /* #ifdef WEB */
@@ -292,22 +292,22 @@ async function handleReadAll() {
   flex-direction: row;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16rpx;
+  gap: 18rpx;
 }
 
 .card-heading {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 10rpx;
+  gap: 12rpx;
   min-width: 0;
 }
 
 .card-cat {
   flex-shrink: 0;
-  padding: 3rpx 10rpx;
-  border-radius: 6rpx;
-  font-size: 18rpx;
+  padding: 3rpx 12rpx;
+  border-radius: 7rpx;
+  font-size: 21rpx;
 }
 
 .card-cat--todo {
@@ -326,7 +326,7 @@ async function handleReadAll() {
 }
 
 .card-title {
-  font-size: 27rpx;
+  font-size: 31rpx;
   font-weight: 600;
   color: #1c1c2e;
   overflow: hidden;
@@ -336,18 +336,18 @@ async function handleReadAll() {
 
 .unread {
   flex-shrink: 0;
-  padding: 4rpx 12rpx;
-  border-radius: 8rpx;
+  padding: 5rpx 14rpx;
+  border-radius: 9rpx;
   background-color: #fef2f2;
-  font-size: 19rpx;
+  font-size: 22rpx;
   color: #b91c1c;
 }
 
 .content {
   display: -webkit-box;
-  margin-top: 10rpx;
+  margin-top: 12rpx;
   overflow: hidden;
-  font-size: 22rpx;
+  font-size: 25rpx;
   line-height: 1.55;
   color: #6b7080;
   -webkit-box-orient: vertical;
@@ -359,10 +359,10 @@ async function handleReadAll() {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  margin-top: 14rpx;
-  padding-top: 12rpx;
-  border-top: 1rpx dashed #f1f2f7;
-  font-size: 20rpx;
+  margin-top: 16rpx;
+  padding-top: 14rpx;
+  border-top: 1.2rpx dashed #f1f2f7;
+  font-size: 23rpx;
 }
 
 .card-time {

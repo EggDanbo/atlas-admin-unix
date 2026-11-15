@@ -509,6 +509,11 @@ async function loadTeamTree() {`],
 import type { ServiceResult } from '@/types/api.uts'`],
   ]],
 
+  // 水印：按后端下发的开关渲染（demo 数据里 watermark=false，之前一直显示）
+  ['components/watermark/watermark.uvue', [
+    [`  <view class="watermark">`, `  <view v-if="authStore.userInfo?.watermark" class="watermark">`],
+  ]],
+
   // 文件预览：浏览器 API 加条件编译
   ['composables/use-file-preview.uts', [
     [`      if (previewUrl) {
@@ -829,6 +834,8 @@ for (const f of files.filter(x => x.endsWith('.uts'))) {
 // ---------------------------------------------------------------- 7. 整文件替换（自绘画法等）
 
 const CUSTOM_FILES = [
+  // App.uvue 也走模板：它需要每次从基准值重新换算 rpx/缩放，否则 scale 步骤会反复放大
+  ['scripts/templates/App.uvue', 'App.uvue'],
   ['scripts/templates/page-navbar.uvue', 'components/page-navbar/page-navbar.uvue'],
   ['scripts/templates/preview-page.uvue', 'pages/mine/preview/index.uvue'],
 ]

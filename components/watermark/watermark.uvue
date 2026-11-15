@@ -18,7 +18,7 @@ const watermarkText = computed(() => {
 </script>
 
 <template>
-  <view class="watermark">
+  <view v-if="authStore.userInfo?.watermark" class="watermark">
     <view v-for="row in 12" :key="row" class="watermark-row">
       <view v-for="col in 4" :key="col" class="watermark-item">
         {{ watermarkText }}
@@ -43,7 +43,7 @@ const watermarkText = computed(() => {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  margin-bottom: 120rpx;
+  margin-bottom: 138rpx;
   transform: rotate(-30deg);
   transform-origin: center center;
 }
@@ -51,8 +51,8 @@ const watermarkText = computed(() => {
 .watermark-item {
   flex-shrink: 0;
   color: rgba(0, 0, 0, 0.035);
-  font-size: 16rpx;
+  font-size: 18rpx;
   white-space: nowrap;
-  padding: 0 40rpx;
+  padding: 0 46rpx;
 }
 </style>

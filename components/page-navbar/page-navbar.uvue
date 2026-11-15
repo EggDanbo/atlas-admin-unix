@@ -44,15 +44,15 @@ function handleBack() {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  height: 88rpx;
-  padding: 0 16rpx;
+  height: 176rpx;
+  padding: 0 32rpx;
   background-color: #ffffff;
-  border-bottom: 1rpx solid #eef0f6;
+  border-bottom: 2rpx solid #eef0f6;
 }
 
 .sp-navbar-back {
-  width: 64rpx;
-  height: 64rpx;
+  width: 130rpx;
+  height: 130rpx;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -60,18 +60,18 @@ function handleBack() {
 }
 
 .sp-navbar-back-icon {
-  font-size: 48rpx;
-  line-height: 48rpx;
+  font-size: 95rpx;
+  line-height: 95rpx;
   color: #23263a;
 }
 
 .sp-navbar-title {
-  font-size: 30rpx;
+  font-size: 61rpx;
   font-weight: 600;
   color: #23263a;
 }
 
 .sp-navbar-holder {
-  width: 64rpx;
+  width: 130rpx;
 }
 </style>

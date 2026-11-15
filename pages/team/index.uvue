@@ -122,7 +122,7 @@ function openMember(member: Recordable) {
 <style lang="scss">
 .page {
   min-height: 100%;
-  padding-bottom: calc(24rpx + env(safe-area-inset-bottom, 0));
+  padding-bottom: calc(28rpx + env(safe-area-inset-bottom, 0));
   background-color: #f5f6fa;
 }
 
@@ -132,33 +132,33 @@ function openMember(member: Recordable) {
   flex-direction: row;
   align-items: baseline;
   justify-content: space-between;
-  padding: 16rpx 16rpx 4rpx;
+  padding: 18rpx 18rpx 5rpx;
 }
 
 .summary-main {
-  font-size: 23rpx;
+  font-size: 26rpx;
   font-weight: 600;
   color: #23263a;
 }
 
 .summary-sub {
-  font-size: 20rpx;
+  font-size: 23rpx;
   color: #9aa0b4;
 }
 
 /* 成员列表 */
 .card {
-  margin: 8rpx 16rpx 0;
-  padding: 0 24rpx;
-  border-radius: 18rpx;
+  margin: 9rpx 18rpx 0;
+  padding: 0 28rpx;
+  border-radius: 21rpx;
   background-color: #fff;
-  box-shadow: 0 8rpx 24rpx rgba(23, 23, 64, 0.05);
+  box-shadow: 0 9rpx 28rpx rgba(23, 23, 64, 0.05);
 }
 
 .tip {
-  padding: 34rpx 0;
+  padding: 39rpx 0;
   text-align: center;
-  font-size: 22rpx;
+  font-size: 25rpx;
   color: #9aa0b4;
 }
 
@@ -166,9 +166,9 @@ function openMember(member: Recordable) {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 18rpx;
-  padding: 20rpx 0;
-  border-bottom: 1rpx solid #f1f2f7;
+  gap: 21rpx;
+  padding: 23rpx 0;
+  border-bottom: 1.2rpx solid #f1f2f7;
 }
 
 /* #ifdef WEB */
@@ -190,11 +190,11 @@ function openMember(member: Recordable) {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 72rpx;
-  height: 72rpx;
+  width: 83rpx;
+  height: 83rpx;
   border-radius: 50%;
   background: linear-gradient(135deg, #eef2ff 0%, #e5e9ff 100%);
-  font-size: 26rpx;
+  font-size: 30rpx;
   font-weight: 600;
   color: #4f46e5;
 }
@@ -208,7 +208,7 @@ function openMember(member: Recordable) {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 6rpx;
+  gap: 7rpx;
   min-width: 0;
 }
 
@@ -216,11 +216,11 @@ function openMember(member: Recordable) {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 12rpx;
+  gap: 14rpx;
 }
 
 .name {
-  font-size: 25rpx;
+  font-size: 29rpx;
   font-weight: 600;
   color: #1c1c2e;
 }
@@ -230,9 +230,9 @@ function openMember(member: Recordable) {
 }
 
 .tag {
-  padding: 2rpx 10rpx;
-  border-radius: 6rpx;
-  font-size: 18rpx;
+  padding: 2rpx 12rpx;
+  border-radius: 7rpx;
+  font-size: 21rpx;
 }
 
 .tag--on {
@@ -246,7 +246,7 @@ function openMember(member: Recordable) {
 }
 
 .meta {
-  font-size: 21rpx;
+  font-size: 24rpx;
   color: #9aa0b4;
   overflow: hidden;
   white-space: nowrap;
@@ -255,8 +255,8 @@ function openMember(member: Recordable) {
 
 .code {
   flex-shrink: 0;
-  font-size: 19rpx;
+  font-size: 22rpx;
   color: #c1c6d4;
-  letter-spacing: 0.4rpx;
+  letter-spacing: 0.5rpx;
 }
 </style>

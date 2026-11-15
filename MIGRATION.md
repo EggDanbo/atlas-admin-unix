@@ -208,6 +208,26 @@ uni-app uni-text:where(:not([class*="uni-"])) { display: inline; text-align: inh
 把绝对定位的下拉面板整个裁掉（筛选下拉点开没反应）。改回 `visible` 后正常，
 需要裁剪的地方（卡片圆角、装饰光斑）样式里本来都显式写了 `overflow: hidden`。
 
+### 7. 整体比例偏小：加一步按系数缩放
+
+750 设计稿在 390pt 屏上换算出来正文只有 12.5px 左右，看着偏小。
+`scripts/scale-rpx.mjs` 把所有 `rpx` 数值统一乘以系数（默认 ×1.15，`UI_SCALE` 可调），
+视觉上等于「把设计稿按 650 宽出图」，间距与字号一起放大。
+
+两个注意点：
+
+- **App.uvue 必须走模板**（`scripts/templates/App.uvue`）：它不参与代码生成，
+  如果直接缩放产物，每次跑流水线都会在上一次的结果上再乘一次，数值会一路漂移。
+  模板里存基准值，post-process 拷过去，再由 to-rpx / scale 各处理一次。
+- **模板目录不参与缩放**，否则下一次拷贝出来就是放大过的值。
+
+### 8. 页面内边距被简写重置
+
+`.sp-page--with-bar` / `.sp-page--with-fab` 里的 `padding-bottom` 原本想给固定底栏和 FAB 预留空间，
+但页面自己写的 `.page { padding: 0 32rpx }` 是简写、特异性相同、位置更靠后，把 `padding-bottom` 重置成 0。
+表现是个人信息页最后一行被「保存修改」按钮压住、规则列表最后一张卡片被 FAB 压住。
+→ 这两个类改用 `!important`（uni-app x 只在类选择器里允许 `!important`）。
+
 ## 三、已知限制（务必阅读）
 
 ### 0. 语言后缀：统一用 .ts 而不是 .uts

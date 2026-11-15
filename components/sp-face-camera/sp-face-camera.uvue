@@ -181,7 +181,7 @@ defineExpose({ startCamera, retake, state })
   align-items: center;
   justify-content: center;
   width: 100%;
-  padding: 80rpx 0;
+  padding: 92rpx 0;
 }
 
 .placeholderCircle {
@@ -189,15 +189,15 @@ defineExpose({ startCamera, retake, state })
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  width: 360rpx;
-  height: 360rpx;
+  width: 414rpx;
+  height: 414rpx;
   border-radius: 50%;
   background: $bg-color;
-  border: 4rpx dashed $border-color;
+  border: 5rpx dashed $border-color;
 }
 
 .placeholderIcon {
-  font-size: 80rpx;
+  font-size: 92rpx;
 }
 
 .actionText {
@@ -208,8 +208,8 @@ defineExpose({ startCamera, retake, state })
 
 .existingPhotoWrap {
   position: relative;
-  width: 360rpx;
-  height: 360rpx;
+  width: 414rpx;
+  height: 414rpx;
   border-radius: 50%;
   overflow: hidden;
 }
@@ -224,7 +224,7 @@ defineExpose({ startCamera, retake, state })
   bottom: 0;
   left: 0;
   right: 0;
-  height: 80rpx;
+  height: 92rpx;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   flex-direction: row;
@@ -242,7 +242,7 @@ defineExpose({ startCamera, retake, state })
   bottom: 0;
   left: 0;
   right: 0;
-  height: 80rpx;
+  height: 92rpx;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   flex-direction: row;
@@ -299,11 +299,11 @@ defineExpose({ startCamera, retake, state })
 }
 
 .frameCircle {
-  width: 480rpx;
-  height: 480rpx;
+  width: 552rpx;
+  height: 552rpx;
   border-radius: 50%;
-  box-shadow: 0 0 0 2000rpx rgba(0, 0, 0, 0.5);
-  border: 4rpx solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 0 2300rpx rgba(0, 0, 0, 0.5);
+  border: 5rpx solid rgba(255, 255, 255, 0.8);
 }
 
 .hintText {
@@ -317,14 +317,14 @@ defineExpose({ startCamera, retake, state })
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  padding: 8rpx 40rpx calc(24rpx + #{$safe-area-inset-bottom});
+  padding: 9rpx 46rpx calc(28rpx + #{$safe-area-inset-bottom});
 }
 
 .captureBtn {
-  width: 120rpx;
-  height: 120rpx;
+  width: 138rpx;
+  height: 138rpx;
   border-radius: 50%;
-  border: 8rpx solid rgba(255, 255, 255, 0.8);
+  border: 9rpx solid rgba(255, 255, 255, 0.8);
   background-color: #fff;
 }
 
@@ -337,9 +337,9 @@ defineExpose({ startCamera, retake, state })
 
 .cancelBtn {
   justify-self: start;
-  padding: 10rpx 4rpx;
+  padding: 12rpx 5rpx;
   color: rgba(255, 255, 255, 0.82);
-  font-size: 26rpx;
+  font-size: 30rpx;
 }
 
 /* #ifdef WEB */
@@ -361,7 +361,7 @@ defineExpose({ startCamera, retake, state })
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40rpx 40rpx calc(40rpx + #{$safe-area-inset-bottom});
+  padding: 46rpx 46rpx calc(46rpx + #{$safe-area-inset-bottom});
   background: radial-gradient(circle at 50% 30%, #1c1f33 0%, #0b0c14 70%);
 }
 
@@ -369,30 +369,30 @@ defineExpose({ startCamera, retake, state })
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12rpx;
-  margin-bottom: 44rpx;
+  gap: 14rpx;
+  margin-bottom: 51rpx;
   text-align: center;
 }
 
 .previewTitle {
-  font-size: 34rpx;
+  font-size: 39rpx;
   font-weight: 700;
   color: #fff;
 }
 
 .previewHint {
-  font-size: 21rpx;
+  font-size: 24rpx;
   line-height: 1.6;
   color: rgba(255, 255, 255, 0.55);
 }
 
 .previewImageWrap {
   position: relative;
-  width: 460rpx;
-  height: 460rpx;
+  width: 529rpx;
+  height: 529rpx;
   border-radius: 50%;
   overflow: hidden;
-  box-shadow: 0 0 0 6rpx rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 7rpx rgba(255, 255, 255, 0.08);
 }
 
 .previewImage {
@@ -414,8 +414,8 @@ defineExpose({ startCamera, retake, state })
 .previewActions {
   display: flex;
   flex-direction: row;
-  gap: 20rpx;
-  margin-top: 64rpx;
+  gap: 23rpx;
+  margin-top: 74rpx;
   width: 100%;
 }
 
@@ -426,9 +426,9 @@ defineExpose({ startCamera, retake, state })
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  height: 92rpx;
-  border-radius: 999rpx;
-  font-size: 26rpx;
+  height: 106rpx;
+  border-radius: 1149rpx;
+  font-size: 30rpx;
   font-weight: 600;
 }
 
@@ -441,13 +441,13 @@ defineExpose({ startCamera, retake, state })
 
 .previewBtnGhost {
   background-color: rgba(255, 255, 255, 0.1);
-  border: 1rpx solid rgba(255, 255, 255, 0.18);
+  border: 1.2rpx solid rgba(255, 255, 255, 0.18);
   color: rgba(255, 255, 255, 0.88);
 }
 
 .previewBtnPrimary {
   background: linear-gradient(135deg, #3b4fe0 0%, #7c6cf6 100%);
-  box-shadow: 0 12rpx 28rpx rgba(59, 79, 224, 0.4);
+  box-shadow: 0 14rpx 32rpx rgba(59, 79, 224, 0.4);
   color: #fff;
 }
 
@@ -463,16 +463,16 @@ defineExpose({ startCamera, retake, state })
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0 80rpx calc(40rpx + #{$safe-area-inset-bottom});
+  padding: 0 92rpx calc(46rpx + #{$safe-area-inset-bottom});
   background: radial-gradient(circle at 50% 30%, #1c1f33 0%, #0b0c14 70%);
 }
 
 .uploadingRing {
-  width: 96rpx;
-  height: 96rpx;
-  margin-bottom: 36rpx;
+  width: 110rpx;
+  height: 110rpx;
+  margin-bottom: 41rpx;
   border-radius: 50%;
-  border: 6rpx solid rgba(255, 255, 255, 0.14);
+  border: 7rpx solid rgba(255, 255, 255, 0.14);
   border-top-color: #7c6cf6;
   animation: sp-face-spin 0.9s linear infinite;
 }
@@ -484,30 +484,30 @@ defineExpose({ startCamera, retake, state })
 }
 
 .uploadingText {
-  font-size: 28rpx;
+  font-size: 32rpx;
   font-weight: 600;
   color: #fff;
 }
 
 .uploadingHint {
-  margin-top: 10rpx;
-  font-size: 22rpx;
+  margin-top: 12rpx;
+  font-size: 25rpx;
   color: rgba(255, 255, 255, 0.55);
   font-variant-numeric: tabular-nums;
 }
 
 .uploadingTrack {
   width: 100%;
-  height: 8rpx;
-  margin-top: 28rpx;
-  border-radius: 999rpx;
+  height: 9rpx;
+  margin-top: 32rpx;
+  border-radius: 1149rpx;
   background-color: rgba(255, 255, 255, 0.14);
   overflow: hidden;
 }
 
 .uploadingBar {
   height: 100%;
-  border-radius: 999rpx;
+  border-radius: 1149rpx;
   background: linear-gradient(90deg, #5eead4 0%, #a7f3d0 100%);
   transition: width 0.2s ease;
 }

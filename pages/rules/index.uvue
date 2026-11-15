@@ -169,12 +169,12 @@ function createRule() {
 <style lang="scss">
 .page {
   min-height: 100%;
-  padding-bottom: calc(24rpx + env(safe-area-inset-bottom, 0));
+  padding-bottom: calc(28rpx + env(safe-area-inset-bottom, 0));
   background-color: #f5f6fa;
 }
 
 .toolbar {
-  padding: 16rpx 16rpx 0;
+  padding: 18rpx 18rpx 0;
 }
 
 /* 搜索 */
@@ -183,16 +183,16 @@ function createRule() {
   flex-direction: row;
   align-items: baseline;
   justify-content: space-between;
-  padding: 16rpx 6rpx 0;
+  padding: 18rpx 7rpx 0;
 }
 
 .summary-text {
-  font-size: 21rpx;
+  font-size: 24rpx;
   color: #9aa0b4;
 }
 
 .summary-hint {
-  font-size: 20rpx;
+  font-size: 23rpx;
   color: #0d9488;
 }
 
@@ -201,20 +201,20 @@ function createRule() {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 22rpx;
-  padding: 10rpx 6rpx 0;
+  gap: 25rpx;
+  padding: 12rpx 7rpx 0;
 }
 
 .mode-stat {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 8rpx;
+  gap: 9rpx;
 }
 
 .mode-dot {
-  width: 12rpx;
-  height: 12rpx;
+  width: 14rpx;
+  height: 14rpx;
   border-radius: 50%;
 }
 
@@ -231,24 +231,24 @@ function createRule() {
 }
 
 .mode-stat-text {
-  font-size: 19rpx;
+  font-size: 22rpx;
   color: #8a90a3;
 }
 
 .tip {
-  padding: 40rpx 0;
+  padding: 46rpx 0;
   text-align: center;
-  font-size: 22rpx;
+  font-size: 25rpx;
   color: #9aa0b4;
 }
 
 /* 规则卡片 */
 .card {
-  margin: 14rpx 16rpx 0;
-  padding: 20rpx 24rpx 16rpx;
-  border-radius: 18rpx;
+  margin: 16rpx 18rpx 0;
+  padding: 23rpx 28rpx 18rpx;
+  border-radius: 21rpx;
   background-color: #fff;
-  box-shadow: 0 8rpx 24rpx rgba(23, 23, 64, 0.05);
+  box-shadow: 0 9rpx 28rpx rgba(23, 23, 64, 0.05);
 }
 
 /* #ifdef WEB */
@@ -263,19 +263,19 @@ function createRule() {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  gap: 16rpx;
+  gap: 18rpx;
 }
 
 .card-title {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 12rpx;
+  gap: 14rpx;
   min-width: 0;
 }
 
 .card-name {
-  font-size: 29rpx;
+  font-size: 33rpx;
   font-weight: 600;
   color: #1c1c2e;
   overflow: hidden;
@@ -286,9 +286,9 @@ function createRule() {
 /* 模式徽章 */
 .mode {
   flex-shrink: 0;
-  padding: 4rpx 12rpx;
-  border-radius: 8rpx;
-  font-size: 18rpx;
+  padding: 5rpx 14rpx;
+  border-radius: 9rpx;
+  font-size: 21rpx;
   font-weight: 500;
 }
 
@@ -309,9 +309,9 @@ function createRule() {
 
 .tag {
   flex-shrink: 0;
-  padding: 4rpx 12rpx;
-  border-radius: 8rpx;
-  font-size: 19rpx;
+  padding: 5rpx 14rpx;
+  border-radius: 9rpx;
+  font-size: 22rpx;
 }
 
 .tag--on {
@@ -328,9 +328,9 @@ function createRule() {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 8rpx;
-  margin-top: 10rpx;
-  font-size: 21rpx;
+  gap: 9rpx;
+  margin-top: 12rpx;
+  font-size: 24rpx;
   color: #9aa0b4;
 }
 
@@ -343,22 +343,22 @@ function createRule() {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  margin-top: 16rpx;
-  padding: 14rpx 18rpx;
-  border-radius: 14rpx;
+  margin-top: 18rpx;
+  padding: 16rpx 21rpx;
+  border-radius: 16rpx;
   background-color: #f7f8fc;
 }
 
 .shift-time {
-  font-size: 30rpx;
+  font-size: 35rpx;
   font-weight: 700;
   color: #23263a;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.5rpx;
+  letter-spacing: 0.6rpx;
 }
 
 .shift-tag {
-  font-size: 19rpx;
+  font-size: 22rpx;
   color: #6b7080;
 }
 
@@ -366,15 +366,15 @@ function createRule() {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  gap: 10rpx;
-  margin-top: 14rpx;
+  gap: 12rpx;
+  margin-top: 16rpx;
 }
 
 .chip {
-  padding: 5rpx 14rpx;
-  border-radius: 8rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 9rpx;
   background-color: #f2f5ff;
-  font-size: 18rpx;
+  font-size: 21rpx;
   color: #4f46e5;
 }
 
@@ -383,10 +383,10 @@ function createRule() {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  margin-top: 14rpx;
-  padding-top: 12rpx;
-  border-top: 1rpx dashed #f1f2f7;
-  font-size: 20rpx;
+  margin-top: 16rpx;
+  padding-top: 14rpx;
+  border-top: 1.2rpx dashed #f1f2f7;
+  font-size: 23rpx;
 }
 
 .card-time {
@@ -402,18 +402,18 @@ function createRule() {
 
 .fab {
   position: fixed;
-  right: 32rpx;
-  bottom: calc(48rpx + env(safe-area-inset-bottom, 0));
+  right: 37rpx;
+  bottom: calc(55rpx + env(safe-area-inset-bottom, 0));
   z-index: 80;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  width: 108rpx;
-  height: 108rpx;
+  width: 124rpx;
+  height: 124rpx;
   border-radius: 50%;
   background: linear-gradient(135deg, #3b4fe0 0%, #7c6cf6 100%);
-  box-shadow: 0 14rpx 28rpx rgba(59, 79, 224, 0.4);
+  box-shadow: 0 16rpx 32rpx rgba(59, 79, 224, 0.4);
 }
 
 /* #ifdef WEB */
@@ -425,8 +425,8 @@ function createRule() {
 /* #endif */
 
 .fab-plus {
-  margin-top: -6rpx;
-  font-size: 60rpx;
+  margin-top: -7rpx;
+  font-size: 69rpx;
   font-weight: 300;
   line-height: 1;
   color: #fff;

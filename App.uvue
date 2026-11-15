@@ -75,12 +75,15 @@ export default {
 
 /* 带固定底部操作栏的页面：为底栏预留高度 */
 .sp-page--with-bar {
-  padding-bottom: 150rpx;
+  /* 页面自身的 `.page { padding: 0 37rpx }` 是简写、同特异性，会把这里重置掉，
+     必须 !important（uni-app x 仅允许在类选择器里用 !important），否则内容被底栏盖住。 */
+  padding-bottom: 288rpx !important;
 }
 
 /* 带悬浮按钮（FAB）的页面：右下角按钮 + 间距预留 */
 .sp-page--with-fab {
-  padding-bottom: 200rpx;
+  /* 同上：避让右下角悬浮按钮 */
+  padding-bottom: 230rpx !important;
 }
 
 .sp-center {
@@ -94,33 +97,33 @@ export default {
 /* 回到顶部按钮 */
 .sp-backtop {
   position: fixed;
-  right: 20rpx;
-  bottom: 140rpx;
+  right: 23rpx;
+  bottom: 161rpx;
   z-index: 100;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 60rpx;
-  height: 60rpx;
-  font-size: 28rpx;
+  width: 69rpx;
+  height: 69rpx;
+  font-size: 32rpx;
   color: #4f46e5;
   background-color: rgba(255, 255, 255, 0.9);
-  border: 1rpx solid rgba(45, 140, 240, 0.2);
-  border-radius: 30rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.12);
+  border: 1.2rpx solid rgba(45, 140, 240, 0.2);
+  border-radius: 35rpx;
+  box-shadow: 0 2rpx 14rpx rgba(0, 0, 0, 0.12);
 }
 
 /* 页面底部说明文字 */
 .sp-footnote {
-  padding: 22rpx 0 4rpx;
+  padding: 25rpx 0 5rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
 .sp-footnote-text {
-  font-size: 19rpx;
+  font-size: 22rpx;
   color: #b3b8c8;
 }
 
@@ -147,14 +150,14 @@ export default {
   display: flex;
   flex-direction: row;
   align-items: center;
-  height: 46rpx;
-  font-size: 24rpx;
+  height: 53rpx;
+  font-size: 28rpx;
   color: #23263a;
   text-align: right;
 }
 
 .sp-form-placeholder {
-  font-size: 24rpx;
+  font-size: 28rpx;
   color: #b6bbc9;
 }
 
@@ -165,7 +168,7 @@ export default {
   white-space: nowrap;
   text-overflow: ellipsis;
   text-align: right;
-  font-size: 24rpx;
+  font-size: 28rpx;
   color: #23263a;
 }
 
@@ -176,22 +179,22 @@ export default {
 /* 行尾的「显示 / 隐藏」切换 */
 .sp-form-eye {
   flex-shrink: 0;
-  padding: 6rpx 0 6rpx 12rpx;
-  font-size: 21rpx;
+  padding: 7rpx 0 7rpx 14rpx;
+  font-size: 24rpx;
   font-weight: 600;
   color: #4f46e5;
 }
 
 /* 行下提示 */
 .sp-form-error {
-  padding: 8rpx 4rpx 14rpx;
-  font-size: 19rpx;
+  padding: 9rpx 5rpx 16rpx;
+  font-size: 22rpx;
   color: #f43f5e;
 }
 
 .sp-form-ok {
-  padding: 8rpx 4rpx 14rpx;
-  font-size: 19rpx;
+  padding: 9rpx 5rpx 16rpx;
+  font-size: 22rpx;
   color: #0d9488;
 }
 
@@ -209,11 +212,11 @@ export default {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 16rpx;
-  padding: 12rpx 24rpx;
-  padding-bottom: calc(12rpx + env(safe-area-inset-bottom));
+  gap: 18rpx;
+  padding: 14rpx 28rpx;
+  padding-bottom: calc(14rpx + env(safe-area-inset-bottom));
   background-color: #ffffff;
-  box-shadow: 0 -2rpx 8rpx rgba(0, 0, 0, 0.06);
+  box-shadow: 0 -2rpx 9rpx rgba(0, 0, 0, 0.06);
 }
 
 .sp-bottom-bar-icon {
@@ -221,23 +224,23 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-width: 48rpx;
+  min-width: 55rpx;
   gap: 2rpx;
   color: #9aa0b4;
-  font-size: 20rpx;
+  font-size: 23rpx;
 }
 
 /* 底部主按钮（替代原 NutUI nut-button--primary） */
 .sp-bottom-btn {
   flex: 1;
-  height: 92rpx;
+  height: 106rpx;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  border-radius: 46rpx;
+  border-radius: 53rpx;
   background-color: #4f46e5;
-  font-size: 28rpx;
+  font-size: 32rpx;
   font-weight: 600;
   color: #ffffff;
 }
@@ -253,17 +256,15 @@ export default {
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  height: 92rpx;
-  padding: 0 32rpx;
-  border-radius: 46rpx;
+  height: 106rpx;
+  padding: 0 37rpx;
+  border-radius: 53rpx;
   background-color: #eef0f8;
 }
 
 .sp-btn--block {
-  /* 注意：这里不能用 flex: 1 —— 在 flex-column 容器里 flex-basis 作用在高度上，
-     会把按钮压成一行文字的高度（登录页按钮塌成 20rpx 就是这个原因） */
+  flex: 1;
   width: 100%;
-  align-self: stretch;
 }
 
 .sp-btn--primary {
@@ -275,7 +276,7 @@ export default {
 }
 
 .sp-btn-text {
-  font-size: 28rpx;
+  font-size: 32rpx;
   font-weight: 600;
   color: #ffffff;
 }
@@ -301,8 +302,8 @@ export default {
 
 .sp-sheet {
   background-color: #ffffff;
-  border-top-left-radius: 24rpx;
-  border-top-right-radius: 24rpx;
+  border-top-left-radius: 28rpx;
+  border-top-right-radius: 28rpx;
   padding-bottom: env(safe-area-inset-bottom);
 }
 
@@ -311,21 +312,21 @@ export default {
 .sp-input {
   flex: 1;
   min-width: 0;
-  height: 88rpx;
-  padding: 0 24rpx;
-  font-size: 28rpx;
+  height: 101rpx;
+  padding: 0 28rpx;
+  font-size: 32rpx;
   color: #23263a;
   background-color: #f5f6fa;
-  border-radius: 16rpx;
+  border-radius: 18rpx;
 }
 
 /* ---------- 头像 ---------- */
 
 .hero-avatar {
   flex-shrink: 0;
-  width: 96rpx;
-  height: 96rpx;
-  border-radius: 48rpx;
+  width: 110rpx;
+  height: 110rpx;
+  border-radius: 55rpx;
   background-color: #eef0f8;
   border: 2rpx solid rgba(255, 255, 255, 0.28);
 }
@@ -333,40 +334,29 @@ export default {
 /* ---------- 行尾箭头 ---------- */
 
 .sp-icon-chevron {
-  font-size: 32rpx;
-  line-height: 32rpx;
+  font-size: 37rpx;
+  line-height: 37rpx;
   color: #c2c6d4;
 }
 
 /* ============================================================
- * 文本节点的 web/小程序 还原
+ * 还原 view / text 的默认行为（仅针对我们自己的元素）
  *
- * uni-app x 的 CSS 重置把 <text>（渲染为 uni-text）显式设成
- * display: block; text-align: left，而 Taro/H5 里 text 是 inline 且会继承父级对齐。
- * 结果就是「父容器写了 text-align: center，标题却还是靠左」。
+ * uni-app x 重置了 CSS：view 默认 flex + column、text 默认 block + 左对齐，
+ * 与 Taro/H5 的 block / inline 语义不同，会导致「本该并排的元素竖排、
+ * 容器上的 text-align: center 不生效」。
  *
- * 这里把这两项还回去。App 端不支持标签选择器，原生端需要把对齐写到 <text> 自身。
+ * 两个限定缺一不可：
+ * 1. :not([class*="uni-"]) —— 排除 uni 内置组件（modal / toast / picker）的内部结构，
+ *    它们的布局就是按重置后的默认值写的，改了会错乱；
+ * 2. :where(...) —— 把特异性归零，只与框架重置（0,0,2）打平靠后生效，
+ *    不会盖过 .sp-btn / .row 这类类选择器（否则 flex 会被改成 block）。
  * ============================================================ */
 
 /* #ifdef WEB */
-/* uni 框架自带 `uni-app uni-text { text-align: left }`（特异性 0,0,2）。
-   这里用同特异性 + 更靠后的位置覆盖成 inherit：
-   - 没有自己写对齐的 text 会继承父容器（还原 H5/Taro 行为）
-   - 自己写了 text-align 的 text（类选择器，特异性更高）仍以自身为准 */
-/* view 在 Taro/H5 里是 block，uni-app x 重置成了 flex + column。
-   这里在 Web 端还原成 block：显式写了 display: flex 的类不受影响（类选择器优先级更高），
-   没写 display 的容器恢复成文档流，避免「本该同一行的两个 text 被竖排」。 */
-/* :where(:not([class*="uni-"])) 的两层作用：
-   1. :not(...) 避开 uni 内置组件（modal / toast / picker / scroll-view）的内部结构；
-   2. :where() 把本规则特异性归零，于是它只与 uni 的重置（同为 0,0,2）打平靠后生效，
-      绝不会盖到我们自己写的 .sp-btn / .row 这类类选择器上（否则 flex 会全被改成 block）。
-   那些组件的内部布局是照着「view=flex-column、text=block」写的，
-   我们一旦无差别改掉，弹窗就会文字溢出、按钮左对齐。 */
 uni-app uni-view:where(:not([class*="uni-"])) {
   display: block;
-  /* uni 的重置给所有 view 加了 overflow: hidden，会把下拉面板、气泡这类
-     绝对定位的子元素整个裁掉（筛选下拉打不开就是这个原因）。
-     这里还原成 visible；确实需要裁剪的地方（卡片圆角、装饰光斑）样式里都显式写了 overflow: hidden。 */
+  /* 框架给所有 view 加了 overflow: hidden，会把绝对定位的下拉面板整个裁掉 */
   overflow: visible;
 }
 
@@ -377,6 +367,11 @@ uni-app uni-text:where(:not([class*="uni-"])) {
 /* #endif */
 
 /* #ifdef MP-WEIXIN || MP-ALIPAY || MP-BAIDU || MP-TOUTIAO */
+page view {
+  display: block;
+  overflow: visible;
+}
+
 page text {
   display: inline;
   text-align: inherit;

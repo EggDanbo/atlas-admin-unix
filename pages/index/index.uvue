@@ -102,24 +102,24 @@ function goRules() {
 <style lang="scss">
 .page {
   min-height: 100%;
-  padding: 12rpx 0 calc(16rpx + env(safe-area-inset-bottom, 0));
+  padding: 14rpx 0 calc(18rpx + env(safe-area-inset-bottom, 0));
   background: #f5f6fa;
 }
 
 .actions {
   display: flex;
   flex-direction: row;
-  gap: 16rpx;
-  margin: 14rpx 16rpx 0;
+  gap: 18rpx;
+  margin: 16rpx 18rpx 0;
 }
 
 .action {
   flex: 1;
-  padding: 18rpx 20rpx 16rpx;
-  border-radius: 18rpx;
+  padding: 21rpx 23rpx 18rpx;
+  border-radius: 21rpx;
   display: flex;
   flex-direction: column;
-  gap: 4rpx;
+  gap: 5rpx;
   position: relative;
   overflow: hidden;
 }
@@ -133,28 +133,28 @@ function goRules() {
 .action--checkin {
   background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
   color: #fff;
-  box-shadow: 0 10rpx 24rpx rgba(13, 148, 136, 0.24);
+  box-shadow: 0 12rpx 28rpx rgba(13, 148, 136, 0.24);
 }
 
 .action--expense {
   background: linear-gradient(135deg, #4338ca 0%, #7c6cf6 100%);
   color: #fff;
-  box-shadow: 0 10rpx 24rpx rgba(79, 70, 229, 0.24);
+  box-shadow: 0 12rpx 28rpx rgba(79, 70, 229, 0.24);
 }
 
 .action-kicker {
-  font-size: 19rpx;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
   opacity: 0.72;
 }
 
 .action-title {
-  font-size: 30rpx;
+  font-size: 35rpx;
   font-weight: 700;
 }
 
 .action-desc {
-  font-size: 19rpx;
+  font-size: 22rpx;
   opacity: 0.7;
 }
 </style>

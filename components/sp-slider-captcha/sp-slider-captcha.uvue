@@ -404,9 +404,9 @@ defineExpose<SliderCaptchaExpose>({ verify, close })
   width: 100%;
   max-height: 85%;
   background-color: #fff;
-  border-radius: 8rpx;
+  border-radius: 9rpx;
   overflow: hidden;
-  box-shadow: 0 8rpx 30rpx rgba(0, 0, 0, 0.12);
+  box-shadow: 0 9rpx 35rpx rgba(0, 0, 0, 0.12);
 }
 
 .captcha-header {
@@ -441,13 +441,13 @@ defineExpose<SliderCaptchaExpose>({ verify, close })
   width: 100%;
   height: 100%;
   color: $text-color-secondary;
-  gap: 8rpx;
+  gap: 9rpx;
 }
 
 .retry-text {
   color: $primary-color;
   cursor: pointer;
-  margin-left: 4rpx;
+  margin-left: 5rpx;
 }
 
 .captcha-bg {
@@ -512,7 +512,7 @@ defineExpose<SliderCaptchaExpose>({ verify, close })
 
 .slider-track {
   position: relative;
-  background: repeating-linear-gradient(-45deg, #e8e8e8, #e8e8e8 10rpx, #f0f0f0 10rpx, #f0f0f0 20rpx);
+  background: repeating-linear-gradient(-45deg, #e8e8e8, #e8e8e8 12rpx, #f0f0f0 12rpx, #f0f0f0 23rpx);
 }
 
 .slider-bg {
@@ -522,7 +522,7 @@ defineExpose<SliderCaptchaExpose>({ verify, close })
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  border-radius: 8rpx;
+  border-radius: 9rpx;
 }
 
 .slider-hint {
@@ -545,7 +545,7 @@ defineExpose<SliderCaptchaExpose>({ verify, close })
   top: 0;
   left: 0;
   height: 100%;
-  border-radius: 7rpx 0 0 7rpx;
+  border-radius: 8rpx 0 0 8rpx;
   opacity: 0.15;
   pointer-events: none;
   background-color: $primary-color;
@@ -560,12 +560,12 @@ defineExpose<SliderCaptchaExpose>({ verify, close })
   align-items: center;
   justify-content: center;
   background: #fff;
-  border: 1rpx solid #e0e0e0;
-  border-radius: 8rpx;
+  border: 1.2rpx solid #e0e0e0;
+  border-radius: 9rpx;
   cursor: grab;
   box-shadow:
-  0 2rpx 8rpx rgba(0, 0, 0, 0.1),
-  0 1rpx 3rpx rgba(0, 0, 0, 0.06);
+  0 2rpx 9rpx rgba(0, 0, 0, 0.1),
+  0 1.2rpx 3rpx rgba(0, 0, 0, 0.06);
   transition:
   border-color 0.2s,
   box-shadow 0.2s;
@@ -577,15 +577,15 @@ defineExpose<SliderCaptchaExpose>({ verify, close })
   cursor: grabbing;
   border-color: #bbb;
   box-shadow:
-  0 6rpx 16rpx rgba(0, 0, 0, 0.15),
-  0 3rpx 8rpx rgba(0, 0, 0, 0.1);
+  0 7rpx 18rpx rgba(0, 0, 0, 0.15),
+  0 3rpx 9rpx rgba(0, 0, 0, 0.1);
   transition: none;
 }
 
 .slider-handle.is-success {
   background: $primary-color;
   border-color: transparent;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.15);
+  box-shadow: 0 5rpx 14rpx rgba(0, 0, 0, 0.15);
   transition: none;
 }
 

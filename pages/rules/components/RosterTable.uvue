@@ -126,14 +126,14 @@ function onCell(member: string, date: string) {
 .roster {
   display: flex;
   flex-direction: row;
-  margin: 0 -12rpx;
-  padding-top: 4rpx;
+  margin: 0 -14rpx;
+  padding-top: 5rpx;
 }
 
 .names {
   flex-shrink: 0;
-  width: 152rpx;
-  padding-left: 16rpx;
+  width: 175rpx;
+  padding-left: 18rpx;
   background-color: #fff;
 }
 
@@ -141,14 +141,14 @@ function onCell(member: string, date: string) {
   display: flex;
   flex-direction: row;
   align-items: center;
-  height: 112rpx;
-  font-size: 25rpx;
+  height: 129rpx;
+  font-size: 29rpx;
   color: #3a3f52;
 }
 
 .names-head {
-  height: 96rpx;
-  font-size: 21rpx;
+  height: 110rpx;
+  font-size: 24rpx;
   color: #9aa0b4;
 }
 
@@ -168,7 +168,7 @@ function onCell(member: string, date: string) {
 }
 
 .row--head {
-  height: 96rpx;
+  height: 110rpx;
 }
 
 .day-cell {
@@ -178,11 +178,11 @@ function onCell(member: string, date: string) {
   justify-content: center;
   gap: 3rpx;
   flex-shrink: 0;
-  width: 88rpx;
+  width: 101rpx;
 }
 
 .day-num {
-  font-size: 25rpx;
+  font-size: 29rpx;
   font-weight: 600;
   color: #23263a;
   font-variant-numeric: tabular-nums;
@@ -193,7 +193,7 @@ function onCell(member: string, date: string) {
 }
 
 .day-week {
-  font-size: 19rpx;
+  font-size: 22rpx;
   color: #9aa0b4;
 }
 
@@ -207,10 +207,10 @@ function onCell(member: string, date: string) {
   align-items: center;
   flex-shrink: 0;
   justify-content: center;
-  width: 88rpx;
-  height: 112rpx;
-  border: 4rpx solid transparent;
-  border-radius: 14rpx;
+  width: 101rpx;
+  height: 129rpx;
+  border: 5rpx solid transparent;
+  border-radius: 16rpx;
   background-clip: padding-box;
 }
 
@@ -219,7 +219,7 @@ function onCell(member: string, date: string) {
 }
 
 .cell-text {
-  font-size: 21rpx;
+  font-size: 24rpx;
   line-height: 1.2;
 }
 </style>
